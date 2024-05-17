@@ -1,0 +1,119 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+.bg-menu {
+  background: rgba(0, 0, 0, 0.04);
+  -moz-transition: all 0.5s ease;
+  -o-transition: all 0.5s ease;
+}
+
+.menu-hover:after {
+  display: block;
+  content: "";
+  border-bottom: solid 2px #000000;
+  transform: scaleX(0);
+  transition: transform 250ms ease-in-out;
+  opacity: 1;
+  margin-top: 6px;
+}
+
+.active-menu .menu-hover{
+  border-bottom: 2px solid #000000;
+}
+
+.menu-hover:hover{
+  opacity: 1 !important;
+}
+
+.menu-hover:hover:after {
+  transform: scaleX(1);
+}
+
+.active-menu .menu-hover:hover:after {
+  transform: scaleX(0);
+}
+
+.bg-main-infor {
+  background-image: url(https://png.pngtree.com/thumb_back/fh260/background/20230527/pngtree-8-best-free-mountain-background-images-4k-wallpapers-image_2670051.jpg);
+  background-size: cover;
+  background-attachment: fixed;
+}
+
+
+.animation-parent:hover{
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.animation-parent:hover img{
+  z-index: -1;
+  position: relative;
+}
+
+.animation-parent:hover .animation-gallery {
+  animation: 0.5s ease-in slidein forwards;
+}
+
+.animation-parent:not(:hover) .animation-gallery {
+  animation: 0.5s ease-in slideout forwards;
+}
+
+@keyframes slidein {
+  from {
+    bottom: -85px;
+  }
+
+  to {
+    bottom: 0;
+  }
+}
+
+@keyframes slideout {
+  from {
+    bottom: 0;
+  }
+
+  to {
+    bottom: -85px;
+  }
+}
+
+.swiper-pagination {
+  width: fit-content !important;
+  height: fit-content !important;
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 20px;
+  display: flex;
+  gap: 10px;
+}
+
+.swiper-pagination-bullet {
+  display: block;
+  height: 10px;
+  width: 10px;
+  background-color: white;
+  z-index: 2;
+  border-radius: 50%;
+}
+
+.swiper-pagination-bullet.swiper-pagination-bullet-active {
+  border: white double 3px;
+  background-color: transparent;
+}
