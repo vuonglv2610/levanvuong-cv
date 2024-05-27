@@ -1,8 +1,8 @@
 import { REGEX_EMAIL } from "configs/regexConfig";
 import { setCookie } from "libs/getCookie";
-import React from "react";
+import React, { useEffect } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import { login } from "services/api";
 
@@ -12,13 +12,20 @@ const LoginPage = () => {
     handleSubmit,
     formState: { errors },
   } = useForm();
+  const param = new URLSearchParams(useLocation().search).get("code");
+
+  useEffect(() => {
+    console.log(param);
+  }, [param]);
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const onSubmit: SubmitHandler<any> = async (data) => {
     try {
       const response: any = await login(data);
+      console.log("response", response);
       if (response.data) {
         setCookie("accessToken", response.data.accessToken);
-        setCookie("userId", response.data.user.id);
+        setCookie("userId", response.data.result.data.userId);
         toast.success(response.statusText);
         window.location.href = "/";
       } else {
@@ -118,15 +125,54 @@ const LoginPage = () => {
               >
                 Sign in
               </button>
-              <p className="text-sm font-light text-gray-500 dark:text-gray-400">
+              <div className="text-sm font-light text-gray-500 dark:text-gray-400">
                 Don’t have an account yet?
                 <Link
-                  to="#"
+                  to="/register"
                   className="font-medium text-primary-600 hover:underline dark:text-primary-500"
                 >
                   Sign up
                 </Link>
-              </p>
+                <div className="my-4">
+                  ------------------ or ------------------
+                </div>
+                <button
+                  onClick={() =>
+                    window.open(
+                      `${process.env.REACT_APP_PORT_BACKEND}/auth/google`,
+                      "_self"
+                    )
+                  }
+                  className="group h-12 px-3 border-2 border-gray-300 rounded-full transition duration-300 
+ hover:border-blue-400 focus:bg-blue-50 active:bg-blue-100 w-full mb-4"
+                >
+                  <div className="relative flex items-center space-x-6 justify-center">
+                    <img
+                      src="https://tailus.io/sources/blocks/social/preview/images/google.svg"
+                      className="absolute left-0 w-5"
+                      alt="google logo"
+                    />
+                    <span className="block w-max font-semibold tracking-wide text-gray-700 text-sm transition duration-300 group-hover:text-blue-600 sm:text-base">
+                      Google
+                    </span>
+                  </div>
+                </button>
+                <button
+                  className="group h-12 px-3 border-2 border-gray-300 rounded-full transition duration-300 
+                               hover:border-blue-400 focus:bg-blue-50 active:bg-blue-100 w-full"
+                >
+                  <div className="relative flex items-center space-x-6 justify-center">
+                    <img
+                      src="https://upload.wikimedia.org/wikipedia/en/0/04/Facebook_f_logo_%282021%29.svg"
+                      className="absolute left-0 w-5"
+                      alt="Facebook logo"
+                    />
+                    <span className="block w-max font-semibold tracking-wide text-gray-700 text-sm transition duration-300 group-hover:text-blue-600 sm:text-base">
+                      Facebook
+                    </span>
+                  </div>
+                </button>
+              </div>
             </form>
           </div>
         </div>

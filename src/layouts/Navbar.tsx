@@ -10,6 +10,8 @@ const Navbar = () => {
   const { userInfo } = useAuthProvider();
   const user: any = userInfo;
 
+  console.log(user);
+
   useEffect(() => {
     let checkNavbar = navbarConfig;
     //check is login
@@ -20,7 +22,7 @@ const Navbar = () => {
       setNavbar(checkNavbar);
     }
     //xóa bỏ các phần tử có path là admin
-    if (user && user?.role !== "admin") {
+    if (user && user?.role !== 1) {
       checkNavbar = checkNavbar.filter((item) => !item.href.includes("/admin"));
     }
 
@@ -37,7 +39,7 @@ const Navbar = () => {
         </div>
         <ul>
           {navbar &&
-            navbar.map((item :any) => {
+            navbar.map((item: any) => {
               return (
                 <li
                   key={item.title}

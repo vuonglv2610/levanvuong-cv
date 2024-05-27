@@ -1,8 +1,10 @@
 import axios from "axios";
 import { getCookie } from "../libs/getCookie";
 
+//todo: create Interceptors
+
 const instance = axios.create({
-  baseURL: "http://localhost:3000",
+  baseURL: process.env.REACT_APP_PORT_BACKEND,
   headers: { "Content-Type": "application/json" },
 });
 

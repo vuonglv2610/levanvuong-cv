@@ -20,7 +20,7 @@ export const useAuthProvider = () => {
 };
 
 interface AuthProviderInterface {
-  children : ReactNode
+  children: ReactNode;
 }
 
 const AuthProvider = ({ children }: AuthProviderInterface) => {
@@ -29,13 +29,16 @@ const AuthProvider = ({ children }: AuthProviderInterface) => {
   const fetchProfile = async () => {
     if (getCookie("accessToken") && getCookie("userId")) {
       try {
-        const res = await get(`/users/${getCookie("userId")}`);
+        const res = await get(`/user/${getCookie("userId")}`);
         setUserInfo(res.data);
       } catch (error) {
         console.log(error);
       }
     } else {
-      if (window.location.pathname !== "/login") {
+      if (
+        window.location.pathname !== "/login" &&
+        window.location.pathname !== "/register"
+      ) {
         window.location.href = "/login";
       }
     }

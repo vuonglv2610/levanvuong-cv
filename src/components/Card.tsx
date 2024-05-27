@@ -2,10 +2,10 @@ import React from "react";
 import { Link } from "react-router-dom";
 
 interface CardProps {
-  className: string ,
+  className?: string;
 }
 
-const Card = ( { className = ""}: CardProps) => {
+const Card = ({ className = "" }: CardProps) => {
   return (
     <div className={`text-left w-[380px] px-[15px] ${className}`}>
       <Link to="/admin/product/1">
