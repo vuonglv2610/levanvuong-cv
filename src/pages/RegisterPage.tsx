@@ -141,6 +141,7 @@ const RegisterPage = () => {
                 />
               </svg>
               <input
+                autoComplete="off"
                 className="pl-2 outline-none border-none"
                 type="password"
                 placeholder="Password"
@@ -170,6 +171,7 @@ const RegisterPage = () => {
               <input
                 className="pl-2 outline-none border-none"
                 type="password"
+                autoComplete="off"
                 placeholder="Confirm Password"
                 {...register("confirmPassword", { required: true })}
               />
