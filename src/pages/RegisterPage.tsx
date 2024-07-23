@@ -1,9 +1,9 @@
-import React from "react";
-import { useForm } from "react-hook-form";
-import { register as registerUser } from "../services/api";
 import { REGEX_EMAIL } from "configs/regexConfig";
 import useRouter from "hooks/useRouter";
+import React from "react";
+import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
+import { register as registerUser } from "../services/api";
 
 const RegisterPage = () => {
   const {
@@ -18,7 +18,6 @@ const RegisterPage = () => {
     try {
       if (data) {
         const signup = await registerUser(data);
-        console.log("signup", signup);
         if (signup) {
           toast.success(data.statusText);
           navigate("/login");

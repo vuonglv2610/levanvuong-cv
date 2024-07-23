@@ -25,6 +25,11 @@ export const login = async (data: any, options = {}) => {
   return response;
 };
 
+export const loginSuccess = async (id: any, options = {}) => {
+  const response = await instance.post("/login-success", id, options);
+  return response;
+};
+
 export const register = async (data: any, options = {}) => {
   const response = await instance.post("/register", data, options);
   return response;

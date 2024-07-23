@@ -6,8 +6,8 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import { getCookie, removeCookie } from "../libs/getCookie";
 import { get } from "services/api";
+import { getCookie, removeCookie } from "../libs/getCookie";
 
 const AuthContext = createContext(undefined);
 

@@ -4,7 +4,7 @@ import React, { useEffect } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { Link, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
-import { login } from "services/api";
+import { login, loginSuccess } from "services/api";
 
 const LoginPage = () => {
   const {
@@ -14,23 +14,33 @@ const LoginPage = () => {
   } = useForm();
   const param = new URLSearchParams(useLocation().search).get("code");
 
+  // todo: create type enum for response login
+  const checkResponse = (response: any) => {
+    if (response.data) {
+      setCookie("accessToken", response.data.accessToken);
+      setCookie("userId", response.data.result.data.userId);
+      toast.success(response.statusText);
+      window.location.href = "/";
+    } else {
+      toast.error(response.message);
+    }
+  }
+
   useEffect(() => {
-    console.log(param);
+    if (param) {
+      const loginGg = async () => {
+        const response: any = await loginSuccess({ id: param });
+        response && checkResponse(response)
+      }
+      loginGg();
+    }
   }, [param]);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const onSubmit: SubmitHandler<any> = async (data) => {
     try {
       const response: any = await login(data);
-      console.log("response", response);
-      if (response.data) {
-        setCookie("accessToken", response.data.accessToken);
-        setCookie("userId", response.data.result.data.userId);
-        toast.success(response.statusText);
-        window.location.href = "/";
-      } else {
-        toast.error(response.message);
-      }
+      response && checkResponse(response)
     } catch (error) {
       console.error(error);
     }
