@@ -32,11 +32,11 @@ code {
   margin-top: 6px;
 }
 
-.active-menu .menu-hover{
+.active-menu .menu-hover {
   border-bottom: 2px solid #000000;
 }
 
-.menu-hover:hover{
+.menu-hover:hover {
   opacity: 1 !important;
 }
 
@@ -55,11 +55,11 @@ code {
 }
 
 
-.animation-parent:hover{
+.animation-parent:hover {
   background: rgba(0, 0, 0, 0.3);
 }
 
-.animation-parent:hover img{
+.animation-parent:hover img {
   z-index: -1;
   position: relative;
 }
@@ -116,4 +116,9 @@ code {
 .swiper-pagination-bullet.swiper-pagination-bullet-active {
   border: white double 3px;
   background-color: transparent;
+}
+
+.container {
+  max-width: 960px;
+  margin: 0 auto;
 }

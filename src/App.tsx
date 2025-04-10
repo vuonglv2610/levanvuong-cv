@@ -1,28 +1,28 @@
-import React, { useEffect } from "react";
-import "./App.css";
-import "aos/dist/aos.css";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import AOS from "aos";
+import "aos/dist/aos.css";
+import AuthProvider from "contexts/AuthContext";
+import Cart from "pages/Cart";
+import React, { useEffect } from "react";
 import {
   Route,
   RouterProvider,
   createBrowserRouter,
   createRoutesFromElements,
-  redirect,
 } from "react-router-dom";
-import LoginPage from "./pages/Login";
-import RegisterPage from "./pages/RegisterPage";
+import "./App.css";
+import HomePage from "./components/HomePage";
+import TableManage from "./components/TableManage";
+import AdminLayout from "./layouts/Admin";
 import ClientLayout from "./layouts/Client";
 import { getCookie } from "./libs/getCookie";
-import HomePage from "./components/HomePage";
-import ProductsList from "./pages/Products";
-import Gallery from "./components/Gallery";
 import NotFoundPage from "./pages/404";
-import AdminLayout from "./layouts/Admin";
 import Dashboard from "./pages/Dashboard";
-import TableManage from "./components/TableManage";
 import DetailPage from "./pages/Detail";
-import AuthProvider from "contexts/AuthContext";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import LoginPage from "./pages/Login";
+import ProductsList from "./pages/Products";
+import RegisterPage from "./pages/RegisterPage";
+// import "./src/fontawasome.js";
 
 function App() {
   const router = createBrowserRouter(
@@ -39,14 +39,14 @@ function App() {
           element={<ClientLayout />}
           loader={() => {
             const token = getCookie("accessToken");
-            if (!token) return redirect("/login");
+            // if (!token) return redirect("/login");
             return null;
           }}
         >
           <Route index element={<HomePage />} />
           <Route path="/product" element={<ProductsList />} />
-          <Route path="/gallery" element={<Gallery />} />
           <Route path="/404" element={<NotFoundPage />} />
+          <Route path="/cart" element={<Cart />} />
         </Route>
         <Route
           path="admin"
