@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --primary-color: rgb(20, 53, 195);
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -119,6 +123,22 @@ code {
 }
 
 .container {
-  max-width: 960px;
+  max-width: 1180px;
   margin: 0 auto;
+}
+
+.color-primary{
+  color: var(--primary-color);
+}
+
+.bg-primary{
+  background: var(--primary-color);
+}
+
+.btn-primary{
+  background: var(--primary-color);
+  padding: 10px 15px;
+  color: white;
+  border: none;
+  border-radius: 10px;
 }

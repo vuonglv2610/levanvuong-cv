@@ -1,8 +1,8 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { get, post } from "services/api";
+import { get } from "services/api";
 
 interface TableManageProps {
   isShowFooter: boolean;
@@ -11,23 +11,21 @@ interface TableManageProps {
 
 const TableManage = ({ isShowFooter = true, url }: TableManageProps) => {
   const { data } = useQuery({ queryKey: [url], queryFn: () => get(url) });
-  const queryClient = useQueryClient();
+  let dataProducts = data?.data?.result?.data;
+
+  const navigate = useNavigate()
+
   if (data?.data) {
     toast.success("get success!");
   }
 
-  const mutation = useMutation({
-    mutationFn: () => post(url, {
-      albumId: 1,
-      title: "nihil at amet non hic quia qui",
-      url: "https://via.placeholder.com/600/1ee8a4",
-      thumbnailUrl: "https://via.placeholder.com/150/1ee8a4",
-    }),
-    onSuccess: () => {
-      // Invalidate and refetch
-      queryClient.invalidateQueries({ queryKey: ['todos'] })
-    },
-  })
+  // const mutation = useMutation({
+  //   mutationFn: () => post(url, {}),
+  //   onSuccess: () => {
+  //     // Invalidate and refetch
+  //     queryClient.invalidateQueries({ queryKey: ['todos'] })
+  //   },
+  // })
 
   // const addProduct = () => {
   //   return post(url, {
@@ -72,7 +70,7 @@ const TableManage = ({ isShowFooter = true, url }: TableManageProps) => {
         <select
           id="small"
           // onChange={(e) => setSelect(e.target.value)}
-          className="w-[320px] block p-2 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+          className="w-[320px] block p-2 text-sm text-gray-900 border rounded-lg bg-gray-50"
         >
           <option value="ALL">ALL</option>
           <option value="US">United States</option>
@@ -83,24 +81,23 @@ const TableManage = ({ isShowFooter = true, url }: TableManageProps) => {
         <input
           type="text"
           id="simple-search"
-          className="w-[320px] bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block ps-10 p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+          className="w-[320px] border border-gray-300 text-gray-900 text-sm rounded-lg bg-gray-50"
           placeholder="Search branch name..."
-          // onChange={(e) => setInput(e.target.value)}
+        // onChange={(e) => setInput(e.target.value)}
         />
       </div>
       <div className="text-end">
         {/* <Link to="#" className="bg-blue-600 px-3 py-2 rounded text-white"> */}
         <button
           className="bg-blue-600 px-3 py-2 rounded text-white"
-          onClick={() => mutation.mutate()}
+          onClick={() => navigate('/admin/product/add')}
         >
           Add news
         </button>
         {/* </Link> */}
       </div>
-
-      <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-        <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+      <table className="w-full text-sm text-left rtl:text-right text-gray-400">
+        <thead className="text-xs uppercase text-gray-400">
           <tr>
             <th scope="col" className="px-6 py-3">
               STT
@@ -109,10 +106,10 @@ const TableManage = ({ isShowFooter = true, url }: TableManageProps) => {
               Product name
             </th>
             <th scope="col" className="px-6 py-3">
-              Color
+              Img
             </th>
             <th scope="col" className="px-6 py-3">
-              Category
+              Price
             </th>
             <th scope="col" className="px-6 py-3">
               <span className="sr-only">Edit</span>
@@ -121,33 +118,33 @@ const TableManage = ({ isShowFooter = true, url }: TableManageProps) => {
         </thead>
         {/* todo: show fields follow page  */}
         <tbody>
-          {data &&
-            data.data.map((item: any, i: number) => (
+          {dataProducts &&
+            dataProducts.map((item: any, i: number) => (
               <tr
-                className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
-                key={item.title}
+                className="bg-white border-b bg-gray-800 border-gray-700 hover:bg-gray-50 hover:bg-gray-600"
+                key={`${item.name}${i}`}
               >
                 <th
                   scope="row"
-                  className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+                  className="px-6 py-4 font-medium whitespace-nowrap text-white"
                 >
                   {i + 1}
                 </th>
                 <th
                   scope="row"
-                  className="px-6 py-4 font-medium whitespace-nowrap dark:text-white"
+                  className="px-6 py-4 font-medium whitespace-nowrap text-white"
                 >
-                  {item?.title}
+                  {item?.name}
                 </th>
                 <td className="px-6 py-4">
                   <img
-                    src={item?.thumbnailUrl}
+                    src={item?.img}
                     alt="#"
                     width={50}
                     height={50}
                   />
                 </td>
-                <td className="px-6 py-4">{item?.url}</td>
+                <td className="px-6 py-4">{item?.price}</td>
                 <td className="px-6 py-4 text-right">
                   <Link
                     to={`edit/${item.id}`}

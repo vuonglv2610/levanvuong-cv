@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import AOS from "aos";
 import "aos/dist/aos.css";
 import AuthProvider from "contexts/AuthContext";
+import AddProductPage from "pages/admin/AddProductPage";
 import Cart from "pages/Cart";
 import React, { useEffect } from "react";
 import {
@@ -10,6 +11,7 @@ import {
   createBrowserRouter,
   createRoutesFromElements,
 } from "react-router-dom";
+import ScrollToTop from "react-scroll-to-top";
 import "./App.css";
 import HomePage from "./components/HomePage";
 import TableManage from "./components/TableManage";
@@ -51,15 +53,15 @@ function App() {
         <Route
           path="admin"
           element={<AdminLayout />}
-          //  loader={async () => {
-          //check auth role
-          // const token = getCookie('accessToken')
-          // const userId = getCookie('userId')
-          // const res = await get(`/users/${getCookie("userId")}`);
-          // const userId = getCookie('userId')
-          // if (!token && userId && res?.data?.role === 'admin') return redirect('/')
-          // return null
-          // }}
+        //  loader={async () => {
+        //check auth role
+        // const token = getCookie('accessToken')
+        // const userId = getCookie('userId')
+        // const res = await get(`/users/${getCookie("userId")}`);
+        // const userId = getCookie('userId')
+        // if (!token && userId && res?.data?.role === 'admin') return redirect('/')
+        // return null
+        // }}
         >
           <Route index element={<Dashboard />} />
           <Route
@@ -68,6 +70,7 @@ function App() {
           />
           <Route path="product/:id" element={<DetailPage />} />
           <Route path="product/edit/:id" element={<DetailPage />} />
+          <Route path="product/add" element={<AddProductPage />} />
         </Route>
       </Route>
     )
@@ -89,6 +92,7 @@ function App() {
           <RouterProvider router={router} />
         </QueryClientProvider>
       </AuthProvider>
+      <ScrollToTop smooth={true} className="bg-primary flex justify-center items-center" color="white" width="20px" height="20px" />
     </div>
   );
 }
