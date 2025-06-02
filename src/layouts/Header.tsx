@@ -1,8 +1,11 @@
-import { faBell, faCartShopping, faUser } from '@fortawesome/free-solid-svg-icons';
+import { faCartShopping, faUser } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { getCookie } from 'libs/getCookie';
 import React from 'react';
 
 function Header() {
+  const isLogin = getCookie("userId");
+
   return (<>
     <div className="header-top bg-[#1435c3] text-white p-2 text-[12px]">
       <div className="container">
@@ -43,16 +46,14 @@ function Header() {
           </div>
         </form>
         <div className="container-icon flex gap-[40px] justify-center">
-          <div className='user text-[18px]'>
-            <a href="#" >
-              <FontAwesomeIcon icon={faUser} />
-            </a>
-          </div>
-          <div className='bell text-[18px]'>
-            <a href="#">
-              <FontAwesomeIcon icon={faBell} />
-            </a>
-          </div>
+          {
+            !isLogin &&
+            <div className='user text-[18px]'>
+              <a href="/login" >
+                <FontAwesomeIcon icon={faUser} />
+              </a>
+            </div>
+          }
           <div className='cart font-[18px]'>
             <a href="/cart">
               <FontAwesomeIcon icon={faCartShopping} />
@@ -60,7 +61,7 @@ function Header() {
           </div>
         </div>
       </div>
-    </div>
+    </div >
   </>
   )
 }

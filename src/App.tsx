@@ -3,15 +3,17 @@ import AOS from "aos";
 import "aos/dist/aos.css";
 import AuthProvider from "contexts/AuthContext";
 import AddProductPage from "pages/admin/AddProductPage";
+import EditProductPage from "pages/admin/EditProductPage";
 import Cart from "pages/Cart";
 import React, { useEffect } from "react";
 import {
   Route,
   RouterProvider,
   createBrowserRouter,
-  createRoutesFromElements,
+  createRoutesFromElements
 } from "react-router-dom";
 import ScrollToTop from "react-scroll-to-top";
+import { get } from "services/api";
 import "./App.css";
 import HomePage from "./components/HomePage";
 import TableManage from "./components/TableManage";
@@ -27,6 +29,17 @@ import RegisterPage from "./pages/RegisterPage";
 // import "./src/fontawasome.js";
 
 function App() {
+  const handle = async () => {
+    if (getCookie("userId")) {
+      const res = await get(`/user/${getCookie("userId")}`);
+      console.log('res', res);
+    }
+  }
+
+  useEffect(() => {
+    handle()
+  }, [])
+
   const router = createBrowserRouter(
     createRoutesFromElements(
       <Route>
@@ -53,13 +66,12 @@ function App() {
         <Route
           path="admin"
           element={<AdminLayout />}
-        //  loader={async () => {
-        //check auth role
+        // loader={async () => {
+        // check auth role
         // const token = getCookie('accessToken')
         // const userId = getCookie('userId')
         // const res = await get(`/users/${getCookie("userId")}`);
-        // const userId = getCookie('userId')
-        // if (!token && userId && res?.data?.role === 'admin') return redirect('/')
+        // if (!token || userId && res?.data?.role === 'admin') return redirect('/')
         // return null
         // }}
         >
@@ -69,7 +81,7 @@ function App() {
             element={<TableManage url="/products" isShowFooter />}
           />
           <Route path="product/:id" element={<DetailPage />} />
-          <Route path="product/edit/:id" element={<DetailPage />} />
+          <Route path="product/edit/:id" element={<EditProductPage />} />
           <Route path="product/add" element={<AddProductPage />} />
         </Route>
       </Route>

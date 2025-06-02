@@ -8,6 +8,10 @@ const navbarAdminConfig = [
       title: "Product management",
     },
     {
+      href: "/admin/category",
+      title: "Category management",
+    },
+    {
       href: "/",
       title: "Client site",
     },
