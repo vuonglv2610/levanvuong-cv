@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { get } from "services/api";
@@ -12,12 +12,15 @@ interface TableManageProps {
 const TableManage = ({ isShowFooter = true, url }: TableManageProps) => {
   const { data } = useQuery({ queryKey: [url], queryFn: () => get(url) });
   let dataProducts = data?.data?.result?.data;
-
+  const [products, setProducts] = useState<any>([]);
   const navigate = useNavigate()
 
-  if (data?.data) {
-    toast.success("get success!");
-  }
+  useEffect(() => {
+    if (data?.data) {
+      setProducts(dataProducts)
+      toast.success("get success!");
+    }
+  }, [])
 
   // const mutation = useMutation({
   //   mutationFn: () => post(url, {}),
@@ -118,8 +121,8 @@ const TableManage = ({ isShowFooter = true, url }: TableManageProps) => {
         </thead>
         {/* todo: show fields follow page  */}
         <tbody>
-          {dataProducts &&
-            dataProducts.map((item: any, i: number) => (
+          {products &&
+            products.map((item: any, i: number) => (
               <tr
                 className="bg-white border-b bg-gray-800 border-gray-700 hover:bg-gray-50 hover:bg-gray-600"
                 key={`${item.name}${i}`}
