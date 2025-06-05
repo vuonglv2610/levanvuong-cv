@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { get } from "services/api";
+import { get, remove } from "services/api";
 
 interface TableManageProps {
   isShowFooter: boolean;
@@ -17,31 +17,49 @@ const TableManage = ({ isShowFooter = true, url }: TableManageProps) => {
   const [itemsPerPage, setItemsPerPage] = useState(5);
   const navigate = useNavigate();
 
+  // Thêm state để lưu thời gian cập nhật cuối cùng
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+
+  // Thêm state để theo dõi sản phẩm đang xóa
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
   // Cải thiện cấu hình React Query
-  const { data, isLoading, error } = useQuery({ 
-    queryKey: [url], 
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: [url],
     queryFn: () => get(url),
-    staleTime: 30000,
+    staleTime: 30000, // Dữ liệu được coi là "cũ" sau 30 giây
     retry: 2,
+    refetchOnWindowFocus: false, // Không refetch khi focus lại tab
   });
+
+  // Thêm hàm refetch để cập nhật dữ liệu từ server
+  const refreshData = async () => {
+    try {
+      await refetch();
+      toast.success("Dữ liệu đã được cập nhật!");
+    } catch (error) {
+      console.error('Error refreshing data:', error);
+      toast.error('Không thể cập nhật dữ liệu!');
+    }
+  };
 
   // Cập nhật state products khi data thay đổi
   useEffect(() => {
     if (data?.data?.result?.data) {
       const productsData = data.data.result.data;
       setProducts(productsData);
-      toast.success("Lấy dữ liệu thành công!");
+      setLastUpdated(new Date());
     }
   }, [data]);
 
   // Lọc sản phẩm theo tìm kiếm và danh mục
   const filteredProducts = useMemo(() => {
-    return products && products.length > 0 
+    return products && products.length > 0
       ? products.filter(product => {
-          const matchesSearch = product?.name?.toLowerCase().includes((searchTerm || "").toLowerCase());
-          const matchesCategory = filterCategory === "ALL" || product?.category === filterCategory;
-          return matchesSearch && matchesCategory;
-        })
+        const matchesSearch = product?.name?.toLowerCase().includes((searchTerm || "").toLowerCase());
+        const matchesCategory = filterCategory === "ALL" || product?.category === filterCategory;
+        return matchesSearch && matchesCategory;
+      })
       : [];
   }, [products, searchTerm, filterCategory]);
 
@@ -60,10 +78,10 @@ const TableManage = ({ isShowFooter = true, url }: TableManageProps) => {
   // Lấy danh sách các danh mục duy nhất
   const categories = useMemo(() => {
     return ["ALL", ...Array.from(new Set(
-      products && products.length > 0 
+      products && products.length > 0
         ? products
-            .map(product => product?.category)
-            .filter(Boolean)
+          .map(product => product?.category)
+          .filter(Boolean)
         : []
     ))];
   }, [products]);
@@ -79,7 +97,7 @@ const TableManage = ({ isShowFooter = true, url }: TableManageProps) => {
   const pageNumbers = useMemo(() => {
     const pages = [];
     const maxPagesToShow = 5; // Số trang tối đa hiển thị
-    
+
     if (totalPages <= maxPagesToShow) {
       // Nếu tổng số trang ít hơn hoặc bằng số trang tối đa hiển thị
       for (let i = 1; i <= totalPages; i++) {
@@ -89,17 +107,17 @@ const TableManage = ({ isShowFooter = true, url }: TableManageProps) => {
       // Nếu tổng số trang nhiều hơn số trang tối đa hiển thị
       let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
       let endPage = startPage + maxPagesToShow - 1;
-      
+
       if (endPage > totalPages) {
         endPage = totalPages;
         startPage = Math.max(1, endPage - maxPagesToShow + 1);
       }
-      
+
       for (let i = startPage; i <= endPage; i++) {
         pages.push(i);
       }
     }
-    
+
     return pages;
   }, [currentPage, totalPages]);
 
@@ -107,6 +125,50 @@ const TableManage = ({ isShowFooter = true, url }: TableManageProps) => {
   const handleItemsPerPageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setItemsPerPage(Number(e.target.value));
     setCurrentPage(1); // Reset về trang đầu tiên khi thay đổi số lượng sản phẩm trên mỗi trang
+  };
+
+  // Cải thiện hàm xóa sản phẩm
+  const handleRemoveProduct = async (id: any) => {
+    try {
+      // Đánh dấu sản phẩm đang xóa
+      setDeletingId(id);
+      
+      // Hiển thị loading state
+      toast.loading("Đang xóa sản phẩm...", { 
+        toastId: "delete-loading",
+        autoClose: false
+      });
+      
+      // Gọi API xóa sản phẩm
+      const res = await remove(`/products/${id}`);
+      
+      if (res.data) {
+        // Đóng toast loading
+        toast.dismiss("delete-loading");
+        
+        // Hiển thị thông báo thành công
+        toast.success('Xóa sản phẩm thành công!');
+        
+        // Cập nhật dữ liệu từ server
+        await refetch();
+        
+        // Nếu sau khi xóa, trang hiện tại không còn sản phẩm nào và không phải trang đầu tiên
+        // thì quay lại trang trước đó
+        if (currentProducts.length === 1 && currentPage > 1) {
+          setCurrentPage(currentPage - 1);
+        }
+      }
+    } catch (error) {
+      // Đóng toast loading
+      toast.dismiss("delete-loading");
+      
+      // Hiển thị thông báo lỗi
+      console.error('Error removing product:', error);
+      toast.error('Có lỗi xảy ra khi xóa sản phẩm!');
+    } finally {
+      // Xóa đánh dấu sản phẩm đang xóa
+      setDeletingId(null);
+    }
   };
 
   if (isLoading) {
@@ -132,8 +194,24 @@ const TableManage = ({ isShowFooter = true, url }: TableManageProps) => {
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6 max-w-full overflow-hidden">
-      <h2 className="text-2xl font-bold mb-6 text-gray-800">Quản lý sản phẩm</h2>
-      
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold text-gray-800">Quản lý sản phẩm</h2>
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-500">
+            Cập nhật lần cuối: {lastUpdated.toLocaleTimeString()}
+          </span>
+          <button
+            onClick={refreshData}
+            className="p-2 text-blue-600 hover:text-blue-800 bg-blue-50 rounded-full transition-colors duration-200"
+            title="Làm mới dữ liệu"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+
       {/* Search and Filter */}
       <div className="flex flex-col md:flex-row mb-6 gap-4 md:gap-6 md:items-center">
         <div className="md:w-1/3">
@@ -157,7 +235,7 @@ const TableManage = ({ isShowFooter = true, url }: TableManageProps) => {
           <div className="relative">
             <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
               <svg className="w-4 h-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
-                <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
+                <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
               </svg>
             </div>
             <input
@@ -174,7 +252,7 @@ const TableManage = ({ isShowFooter = true, url }: TableManageProps) => {
           </div>
         </div>
       </div>
-      
+
       {/* Add Product Button */}
       <div className="flex justify-end mb-6">
         <button
@@ -187,7 +265,7 @@ const TableManage = ({ isShowFooter = true, url }: TableManageProps) => {
           Thêm sản phẩm mới
         </button>
       </div>
-      
+
       {/* Products Table */}
       <div className="overflow-x-auto rounded-lg border border-gray-200">
         {filteredProducts.length > 0 ? (
@@ -204,7 +282,9 @@ const TableManage = ({ isShowFooter = true, url }: TableManageProps) => {
             <tbody>
               {currentProducts.map((item: any, i: number) => (
                 <tr
-                  className="bg-white border-b hover:bg-gray-50 transition-colors duration-200"
+                  className={`bg-white border-b hover:bg-gray-50 transition-colors duration-200 ${
+                    deletingId === item.id ? 'opacity-50 bg-red-50' : ''
+                  }`}
                   key={`${item.id || item.name || i}`}
                 >
                   <td className="px-6 py-4 font-medium text-gray-900">
@@ -226,8 +306,8 @@ const TableManage = ({ isShowFooter = true, url }: TableManageProps) => {
                     </div>
                   </td>
                   <td className="px-6 py-4 font-medium">
-                    {typeof item?.price === 'number' 
-                      ? item.price.toLocaleString('vi-VN') + '₫' 
+                    {typeof item?.price === 'number'
+                      ? item.price.toLocaleString('vi-VN') + '₫'
                       : item?.price || "Chưa có giá"}
                   </td>
                   <td className="px-6 py-4 text-right">
@@ -242,8 +322,7 @@ const TableManage = ({ isShowFooter = true, url }: TableManageProps) => {
                         className="font-medium text-red-600 hover:text-red-800 bg-red-50 px-3 py-1.5 rounded-md transition-colors duration-200"
                         onClick={() => {
                           if (window.confirm('Bạn có chắc chắn muốn xóa sản phẩm này?')) {
-                            console.log('Delete product:', item.id);
-                            // Implement delete functionality here
+                            handleRemoveProduct(item.id);
                           }
                         }}
                       >
@@ -271,7 +350,7 @@ const TableManage = ({ isShowFooter = true, url }: TableManageProps) => {
           </div>
         )}
       </div>
-      
+
       {/* Pagination */}
       {isShowFooter && filteredProducts.length > 0 && (
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 mt-6">
@@ -292,40 +371,37 @@ const TableManage = ({ isShowFooter = true, url }: TableManageProps) => {
               Hiển thị <span className="font-medium">{currentProducts.length}</span> / <span className="font-medium">{filteredProducts.length}</span> sản phẩm
             </span>
           </div>
-          
+
           <div className="flex gap-2">
-            <button 
-              className={`px-3 py-1 border rounded-md ${
-                currentPage === 1 
-                  ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed' 
-                  : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
-              }`}
+            <button
+              className={`px-3 py-1 border rounded-md ${currentPage === 1
+                ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
+                : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+                }`}
               onClick={() => paginate(currentPage - 1)}
               disabled={currentPage === 1}
             >
               Trước
             </button>
-            
+
             {pageNumbers.map(number => (
               <button
                 key={number}
-                className={`px-3 py-1 border rounded-md ${
-                  currentPage === number
-                    ? 'border-blue-500 bg-blue-500 text-white'
-                    : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
-                }`}
+                className={`px-3 py-1 border rounded-md ${currentPage === number
+                  ? 'border-blue-500 bg-blue-500 text-white'
+                  : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+                  }`}
                 onClick={() => paginate(number)}
               >
                 {number}
               </button>
             ))}
-            
-            <button 
-              className={`px-3 py-1 border rounded-md ${
-                currentPage === totalPages || totalPages === 0
-                  ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed' 
-                  : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
-              }`}
+
+            <button
+              className={`px-3 py-1 border rounded-md ${currentPage === totalPages || totalPages === 0
+                ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
+                : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+                }`}
               onClick={() => paginate(currentPage + 1)}
               disabled={currentPage === totalPages || totalPages === 0}
             >
@@ -339,6 +415,10 @@ const TableManage = ({ isShowFooter = true, url }: TableManageProps) => {
 };
 
 export default TableManage;
+
+
+
+
 
 
 

@@ -16,7 +16,7 @@ const HomePage = () => {
       <div className="container">
         {/* <div className="flex-grow px-4 bg-main-infor w-full"> */}
         <h1>{user?.fullname}</h1>
-        {user && <button onClick={logout}>logout</button>}
+        {/* {user && <button onClick={logout}>logout</button>} */}
         <MainInfor />
         {/* {data &&
         data.map((item) => {

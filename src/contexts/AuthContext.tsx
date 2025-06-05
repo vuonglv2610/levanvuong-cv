@@ -9,7 +9,15 @@ import React, {
 import { get } from "services/api";
 import { getCookie, removeCookie } from "../libs/getCookie";
 
-const AuthContext = createContext(undefined);
+// Thêm interface để định nghĩa kiểu dữ liệu cho context
+interface AuthContextType {
+  userInfo: any;
+  setUserInfo: React.Dispatch<React.SetStateAction<any>>;
+  logout: () => void;
+}
+
+// Khởi tạo context với kiểu dữ liệu đúng
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const useAuthProvider = () => {
   const data = useContext(AuthContext);
@@ -45,13 +53,13 @@ const AuthProvider = ({ children }: AuthProviderInterface) => {
   };
 
   // check auth in admin page
-  if (
-    userInfo &&
-    userInfo?.role !== "admin" &&
-    window.location.pathname.includes("/admin")
-  ) {
-    window.location.href = "/";
-  }
+  // if (
+  //   userInfo &&
+  //   userInfo?.role !== "admin" &&
+  //   window.location.pathname.includes("/admin")
+  // ) {
+  //   window.location.href = "/";
+  // }
 
   const logout = () => {
     setUserInfo(undefined);
@@ -60,7 +68,7 @@ const AuthProvider = ({ children }: AuthProviderInterface) => {
     window.location.href = "/login";
   };
 
-  const authContextValue = useMemo(
+  const authContextValue: AuthContextType = useMemo(
     () => ({
       userInfo,
       setUserInfo,
@@ -74,7 +82,7 @@ const AuthProvider = ({ children }: AuthProviderInterface) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={authContextValue as any}>
+    <AuthContext.Provider value={authContextValue}>
       {/* TODO: check permission private route by role*/}
       {children}
     </AuthContext.Provider>
