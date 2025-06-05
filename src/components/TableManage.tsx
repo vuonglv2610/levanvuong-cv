@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { get } from "services/api";
@@ -10,252 +10,336 @@ interface TableManageProps {
 }
 
 const TableManage = ({ isShowFooter = true, url }: TableManageProps) => {
-  const { data } = useQuery({ queryKey: [url], queryFn: () => get(url) });
-  let dataProducts = data?.data?.result?.data;
-  const [products, setProducts] = useState<any>([]);
-  const navigate = useNavigate()
+  const [products, setProducts] = useState<any[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterCategory, setFilterCategory] = useState("ALL");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(5);
+  const navigate = useNavigate();
 
+  // Cải thiện cấu hình React Query
+  const { data, isLoading, error } = useQuery({ 
+    queryKey: [url], 
+    queryFn: () => get(url),
+    staleTime: 30000,
+    retry: 2,
+  });
+
+  // Cập nhật state products khi data thay đổi
   useEffect(() => {
-    if (data?.data) {
-      setProducts(dataProducts)
-      toast.success("get success!");
+    if (data?.data?.result?.data) {
+      const productsData = data.data.result.data;
+      setProducts(productsData);
+      toast.success("Lấy dữ liệu thành công!");
     }
-  }, [])
+  }, [data]);
 
-  // const mutation = useMutation({
-  //   mutationFn: () => post(url, {}),
-  //   onSuccess: () => {
-  //     // Invalidate and refetch
-  //     queryClient.invalidateQueries({ queryKey: ['todos'] })
-  //   },
-  // })
+  // Lọc sản phẩm theo tìm kiếm và danh mục
+  const filteredProducts = useMemo(() => {
+    return products && products.length > 0 
+      ? products.filter(product => {
+          const matchesSearch = product?.name?.toLowerCase().includes((searchTerm || "").toLowerCase());
+          const matchesCategory = filterCategory === "ALL" || product?.category === filterCategory;
+          return matchesSearch && matchesCategory;
+        })
+      : [];
+  }, [products, searchTerm, filterCategory]);
 
-  // const addProduct = () => {
-  //   return post(url, {
-  //     albumId: 1,
-  //     title: "nihil at amet non hic quia qui",
-  //     url: "https://via.placeholder.com/600/1ee8a4",
-  //     thumbnailUrl: "https://via.placeholder.com/150/1ee8a4",
-  //   });
-  // };
+  // Tính toán tổng số trang
+  const totalPages = useMemo(() => {
+    return Math.ceil(filteredProducts.length / itemsPerPage);
+  }, [filteredProducts, itemsPerPage]);
 
-  // const useAddProduct =  () => {
-  //   return  useMutation(addProduct);
-  // };
+  // Lấy sản phẩm cho trang hiện tại
+  const currentProducts = useMemo(() => {
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    return filteredProducts.slice(indexOfFirstItem, indexOfLastItem);
+  }, [filteredProducts, currentPage, itemsPerPage]);
 
-  // const [page, setPage] = useState(1);
-  //   todo: feature filter
-  // const [select, setSelect] = useState<any>("ALL");
-  // const [input, setInput] = useState<any>("");
-  // const [limit, setLimit] = useState<any>(10);
-  // const [totalPage, setTotalPage] = useState<any>(1);
-  // const [flag, setFlag] = useState(false);
-  // const { data, totals, fetchData } = useGetQuery(
-  //   `${url}?_page=${page}&_limit=${limit}`
-  // );
+  // Lấy danh sách các danh mục duy nhất
+  const categories = useMemo(() => {
+    return ["ALL", ...Array.from(new Set(
+      products && products.length > 0 
+        ? products
+            .map(product => product?.category)
+            .filter(Boolean)
+        : []
+    ))];
+  }, [products]);
 
-  // const numbers = Array.from({ length: totalPage }, (_, index) => index);
+  // Xử lý chuyển trang
+  const paginate = (pageNumber: number) => {
+    if (pageNumber > 0 && pageNumber <= totalPages) {
+      setCurrentPage(pageNumber);
+    }
+  };
 
-  // useEffect(() => {
-  //   setTotalPage((totals / 10).toFixed());
-  // }, [totals]);
+  // Tạo mảng số trang để hiển thị
+  const pageNumbers = useMemo(() => {
+    const pages = [];
+    const maxPagesToShow = 5; // Số trang tối đa hiển thị
+    
+    if (totalPages <= maxPagesToShow) {
+      // Nếu tổng số trang ít hơn hoặc bằng số trang tối đa hiển thị
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Nếu tổng số trang nhiều hơn số trang tối đa hiển thị
+      let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
+      let endPage = startPage + maxPagesToShow - 1;
+      
+      if (endPage > totalPages) {
+        endPage = totalPages;
+        startPage = Math.max(1, endPage - maxPagesToShow + 1);
+      }
+      
+      for (let i = startPage; i <= endPage; i++) {
+        pages.push(i);
+      }
+    }
+    
+    return pages;
+  }, [currentPage, totalPages]);
 
-  // useEffect(() => {
-  //   if (flag) {
-  //     fetchData();
-  //   }
-  //   setFlag(true);
-  // }, [page, limit]);
+  // Xử lý thay đổi số lượng sản phẩm trên mỗi trang
+  const handleItemsPerPageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setItemsPerPage(Number(e.target.value));
+    setCurrentPage(1); // Reset về trang đầu tiên khi thay đổi số lượng sản phẩm trên mỗi trang
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center p-10 min-h-[400px]">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-10 text-center bg-red-50 rounded-lg border border-red-200 min-h-[400px] flex items-center justify-center">
+        <div>
+          <svg className="w-12 h-12 text-red-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <p className="text-red-500 text-lg font-medium">Có lỗi xảy ra khi tải dữ liệu. Vui lòng thử lại sau.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
-      <div className="flex mb-6 gap-20 justify-end">
-        <select
-          id="small"
-          // onChange={(e) => setSelect(e.target.value)}
-          className="w-[320px] block p-2 text-sm text-gray-900 border rounded-lg bg-gray-50"
-        >
-          <option value="ALL">ALL</option>
-          <option value="US">United States</option>
-          <option value="CA">Canada</option>
-          <option value="FR">France</option>
-          <option value="DE">Germany</option>
-        </select>
-        <input
-          type="text"
-          id="simple-search"
-          className="w-[320px] border border-gray-300 text-gray-900 text-sm rounded-lg bg-gray-50"
-          placeholder="Search branch name..."
-        // onChange={(e) => setInput(e.target.value)}
-        />
+    <div className="bg-white rounded-lg shadow-md p-6 max-w-full overflow-hidden">
+      <h2 className="text-2xl font-bold mb-6 text-gray-800">Quản lý sản phẩm</h2>
+      
+      {/* Search and Filter */}
+      <div className="flex flex-col md:flex-row mb-6 gap-4 md:gap-6 md:items-center">
+        <div className="md:w-1/3">
+          <label htmlFor="category-filter" className="block text-sm font-medium text-gray-700 mb-1">Danh mục</label>
+          <select
+            id="category-filter"
+            value={filterCategory}
+            onChange={(e) => {
+              setFilterCategory(e.target.value);
+              setCurrentPage(1); // Reset về trang đầu tiên khi thay đổi bộ lọc
+            }}
+            className="w-full p-2.5 text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+          >
+            {categories.map((category, index) => (
+              <option key={index} value={category || ""}>{category || "Không có danh mục"}</option>
+            ))}
+          </select>
+        </div>
+        <div className="md:w-2/3">
+          <label htmlFor="search-input" className="block text-sm font-medium text-gray-700 mb-1">Tìm kiếm sản phẩm</label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <svg className="w-4 h-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
+              </svg>
+            </div>
+            <input
+              type="text"
+              id="search-input"
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1); // Reset về trang đầu tiên khi thay đổi tìm kiếm
+              }}
+              className="block w-full p-2.5 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Tìm kiếm theo tên sản phẩm..."
+            />
+          </div>
+        </div>
       </div>
-      <div className="text-end">
-        {/* <Link to="#" className="bg-blue-600 px-3 py-2 rounded text-white"> */}
+      
+      {/* Add Product Button */}
+      <div className="flex justify-end mb-6">
         <button
-          className="bg-blue-600 px-3 py-2 rounded text-white"
+          className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-5 rounded-lg transition-colors duration-200 flex items-center"
           onClick={() => navigate('/admin/product/add')}
         >
-          Add news
+          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+          </svg>
+          Thêm sản phẩm mới
         </button>
-        {/* </Link> */}
       </div>
-      <table className="w-full text-sm text-left rtl:text-right text-gray-400">
-        <thead className="text-xs uppercase text-gray-400">
-          <tr>
-            <th scope="col" className="px-6 py-3">
-              STT
-            </th>
-            <th scope="col" className="px-6 py-3">
-              Product name
-            </th>
-            <th scope="col" className="px-6 py-3">
-              Img
-            </th>
-            <th scope="col" className="px-6 py-3">
-              Price
-            </th>
-            <th scope="col" className="px-6 py-3">
-              <span className="sr-only">Edit</span>
-            </th>
-          </tr>
-        </thead>
-        {/* todo: show fields follow page  */}
-        <tbody>
-          {products &&
-            products.map((item: any, i: number) => (
-              <tr
-                className="bg-white border-b bg-gray-800 border-gray-700 hover:bg-gray-50 hover:bg-gray-600"
-                key={`${item.name}${i}`}
-              >
-                <th
-                  scope="row"
-                  className="px-6 py-4 font-medium whitespace-nowrap text-white"
-                >
-                  {i + 1}
-                </th>
-                <th
-                  scope="row"
-                  className="px-6 py-4 font-medium whitespace-nowrap text-white"
-                >
-                  {item?.name}
-                </th>
-                <td className="px-6 py-4">
-                  <img
-                    src={item?.img}
-                    alt="#"
-                    width={50}
-                    height={50}
-                  />
-                </td>
-                <td className="px-6 py-4">{item?.price}</td>
-                <td className="px-6 py-4 text-right">
-                  <Link
-                    to={`edit/${item.id}`}
-                    className="font-medium text-blue-600 dark:text-blue-500 hover:underline"
-                  >
-                    Edit
-                  </Link>
-                </td>
+      
+      {/* Products Table */}
+      <div className="overflow-x-auto rounded-lg border border-gray-200">
+        {filteredProducts.length > 0 ? (
+          <table className="w-full text-sm text-left text-gray-500">
+            <thead className="text-xs text-gray-700 uppercase bg-gray-100">
+              <tr>
+                <th scope="col" className="px-6 py-3">STT</th>
+                <th scope="col" className="px-6 py-3">Tên sản phẩm</th>
+                <th scope="col" className="px-6 py-3">Hình ảnh</th>
+                <th scope="col" className="px-6 py-3">Giá</th>
+                <th scope="col" className="px-6 py-3 text-right">Thao tác</th>
               </tr>
-            ))}
-        </tbody>
-      </table>
-      {/* {isShowFooter && (
-        <div className="flex justify-between">
-          <select
-            id="small"
-            onChange={(e) => {
-              setLimit(e.target.value);
-              if (e.target.value >= totals) {
-                setTotalPage(1);
-                setPage(1);
-              } else {
-                setTotalPage((totals / 10).toFixed());
-              }
-            }}
-            className="w-[75px] m-2 block p-2 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-          >
-            <option value="10">10</option>
-            <option value="15">15</option>
-            <option value="20">20</option>
-            <option value="50">50</option>
-            <option value="100">100</option>
-          </select>
-          <nav
-            aria-label="Page navigation example"
-            className="flex justify-end m-[10px]"
-          >
-            <ul className="flex items-center -space-x-px h-8 text-sm">
-              <li>
-                <Link
-                  to="#"
-                  onClick={() => page > 1 && setPage(page - 1)}
-                  className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+            </thead>
+            <tbody>
+              {currentProducts.map((item: any, i: number) => (
+                <tr
+                  className="bg-white border-b hover:bg-gray-50 transition-colors duration-200"
+                  key={`${item.id || item.name || i}`}
                 >
-                  <span className="sr-only">Previous</span>
-                  <svg
-                    className="w-2.5 h-2.5 rtl:rotate-180"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 6 10"
-                  >
-                    <path
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 1 1 5l4 4"
-                    />
-                  </svg>
-                </Link>
-              </li>
-              {numbers.map((i: any) => (
-                <li key={i}>
-                  <Link
-                    onClick={() => setPage(i + 1)}
-                    to="#"
-                    aria-current="page"
-                    className={`flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white ${
-                      page === i + 1
-                        ? "[&]:text-blue-600 bg-blue-50 font-bold"
-                        : ""
-                    }`}
-                  >
-                    {i + 1}
-                  </Link>
-                </li>
+                  <td className="px-6 py-4 font-medium text-gray-900">
+                    {(currentPage - 1) * itemsPerPage + i + 1}
+                  </td>
+                  <td className="px-6 py-4 font-medium text-gray-900">
+                    {item?.name || "Không có tên"}
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="w-16 h-16 overflow-hidden rounded-md bg-gray-100 flex items-center justify-center">
+                      <img
+                        src={item?.img || "https://via.placeholder.com/64x64?text=No+Image"}
+                        alt={item?.name || "Product image"}
+                        className="object-cover w-full h-full"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = 'https://via.placeholder.com/64x64?text=No+Image';
+                        }}
+                      />
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 font-medium">
+                    {typeof item?.price === 'number' 
+                      ? item.price.toLocaleString('vi-VN') + '₫' 
+                      : item?.price || "Chưa có giá"}
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <div className="flex gap-2 justify-end">
+                      <Link
+                        to={`edit/${item.id}`}
+                        className="font-medium text-blue-600 hover:text-blue-800 bg-blue-50 px-3 py-1.5 rounded-md transition-colors duration-200"
+                      >
+                        Sửa
+                      </Link>
+                      <button
+                        className="font-medium text-red-600 hover:text-red-800 bg-red-50 px-3 py-1.5 rounded-md transition-colors duration-200"
+                        onClick={() => {
+                          if (window.confirm('Bạn có chắc chắn muốn xóa sản phẩm này?')) {
+                            console.log('Delete product:', item.id);
+                            // Implement delete functionality here
+                          }
+                        }}
+                      >
+                        Xóa
+                      </button>
+                    </div>
+                  </td>
+                </tr>
               ))}
-              <li>
-                <Link
-                  onClick={() => page < totalPage && setPage(page + 1)}
-                  to="#"
-                  className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-                >
-                  <span className="sr-only">Next</span>
-                  <svg
-                    className="w-2.5 h-2.5 rtl:rotate-180"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 6 10"
-                  >
-                    <path
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="m1 9 4-4-4-4"
-                    />
-                  </svg>
-                </Link>
-              </li>
-            </ul>
-          </nav>
+            </tbody>
+          </table>
+        ) : (
+          <div className="flex flex-col items-center justify-center p-10 bg-gray-50 rounded-lg">
+            <svg className="w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+            </svg>
+            <p className="text-lg font-medium text-gray-600 mb-2">Không tìm thấy sản phẩm nào</p>
+            <p className="text-gray-500 mb-4">Hãy thêm sản phẩm mới hoặc thay đổi bộ lọc tìm kiếm</p>
+            <button
+              className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
+              onClick={() => navigate('/admin/product/add')}
+            >
+              Thêm sản phẩm mới
+            </button>
+          </div>
+        )}
+      </div>
+      
+      {/* Pagination */}
+      {isShowFooter && filteredProducts.length > 0 && (
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 mt-6">
+          <div className="flex items-center gap-2">
+            <label htmlFor="items-per-page" className="text-sm text-gray-700">Hiển thị:</label>
+            <select
+              id="items-per-page"
+              value={itemsPerPage}
+              onChange={handleItemsPerPageChange}
+              className="p-1.5 text-sm text-gray-900 border border-gray-300 rounded-md bg-white focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="5">5</option>
+              <option value="10">10</option>
+              <option value="20">20</option>
+              <option value="50">50</option>
+            </select>
+            <span className="text-sm text-gray-700">
+              Hiển thị <span className="font-medium">{currentProducts.length}</span> / <span className="font-medium">{filteredProducts.length}</span> sản phẩm
+            </span>
+          </div>
+          
+          <div className="flex gap-2">
+            <button 
+              className={`px-3 py-1 border rounded-md ${
+                currentPage === 1 
+                  ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed' 
+                  : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+              }`}
+              onClick={() => paginate(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              Trước
+            </button>
+            
+            {pageNumbers.map(number => (
+              <button
+                key={number}
+                className={`px-3 py-1 border rounded-md ${
+                  currentPage === number
+                    ? 'border-blue-500 bg-blue-500 text-white'
+                    : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+                }`}
+                onClick={() => paginate(number)}
+              >
+                {number}
+              </button>
+            ))}
+            
+            <button 
+              className={`px-3 py-1 border rounded-md ${
+                currentPage === totalPages || totalPages === 0
+                  ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed' 
+                  : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+              }`}
+              onClick={() => paginate(currentPage + 1)}
+              disabled={currentPage === totalPages || totalPages === 0}
+            >
+              Sau
+            </button>
+          </div>
         </div>
-      )} */}
+      )}
     </div>
   );
 };
 
 export default TableManage;
+
+
+
+
