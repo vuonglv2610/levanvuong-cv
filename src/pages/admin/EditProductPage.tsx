@@ -63,7 +63,7 @@ const EditProductPage = () => {
             
             if (res.data) {
                 toast.success('Cập nhật sản phẩm thành công!');
-                navigate('/admin/products');
+                navigate('/admin/product');
             }
         } catch (error) {
             console.error('Error updating product:', error);
@@ -100,7 +100,7 @@ const EditProductPage = () => {
             <div className="flex items-center justify-between mb-8">
                 <h1 className="text-2xl font-bold text-gray-800">Chỉnh sửa sản phẩm</h1>
                 <button 
-                    onClick={() => navigate('/admin/products')}
+                    onClick={() => navigate('/admin/product')}
                     className="flex items-center text-gray-600 hover:text-gray-800 transition-colors"
                 >
                     <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -275,7 +275,7 @@ const EditProductPage = () => {
                 <div className="flex justify-end space-x-4 pt-4 border-t border-gray-200">
                     <button
                         type="button"
-                        onClick={() => navigate('/admin/products')}
+                        onClick={() => navigate('/admin/product')}
                         className="px-6 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:ring-4 focus:ring-gray-300 transition-colors"
                     >
                         Hủy
