@@ -2,7 +2,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import AOS from "aos";
 import "aos/dist/aos.css";
 import AuthProvider from "contexts/AuthContext";
+import AddCategoryPage from "pages/admin/AddCategoryPage";
 import AddProductPage from "pages/admin/AddProductPage";
+import EditCategoryPage from "pages/admin/EditCategoryPage";
 import EditProductPage from "pages/admin/EditProductPage";
 import Cart from "pages/Cart";
 import React, { useEffect } from "react";
@@ -76,13 +78,76 @@ function App() {
         // }}
         >
           <Route index element={<Dashboard />} />
+          
+          {/* Route cho sản phẩm */}
           <Route
             path="product"
-            element={<TableManage url="/products" isShowFooter />}
+            element={
+              <TableManage 
+                url="/products" 
+                isShowFooter={true}
+                title="Quản lý sản phẩm"
+                addButtonText="Thêm sản phẩm mới"
+                addPath="/admin/product/add"
+                editPath="/admin/product/edit"
+                columns={[
+                  { key: "name", header: "Tên sản phẩm", render: (item) => (
+                    <span className="font-medium text-gray-900">{item?.name || "Không có tên"}</span>
+                  )},
+                  { key: "img", header: "Hình ảnh", render: (item) => (
+                    <div className="w-16 h-16 overflow-hidden rounded-md bg-gray-100 flex items-center justify-center">
+                      <img
+                        src={item?.img || "https://via.placeholder.com/64x64?text=No+Image"}
+                        alt={item?.name || "Product image"}
+                        className="object-cover w-full h-full"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = 'https://via.placeholder.com/64x64?text=No+Image';
+                        }}
+                      />
+                    </div>
+                  )},
+                  { key: "price", header: "Giá", render: (item) => (
+                    <span className="font-medium">
+                      {typeof item?.price === 'number'
+                        ? item.price.toLocaleString('vi-VN') + '₫'
+                        : item?.price || "Chưa có giá"}
+                    </span>
+                  )}
+                ]}
+                filterOptions={{ showCategoryFilter: true }}
+              />
+            }
           />
           <Route path="product/:id" element={<DetailPage />} />
           <Route path="product/edit/:id" element={<EditProductPage />} />
           <Route path="product/add" element={<AddProductPage />} />
+          
+          {/* Route cho danh mục */}
+          <Route
+            path="category"
+            element={
+              <TableManage 
+                url="/categories" 
+                isShowFooter={true}
+                title="Quản lý danh mục"
+                addButtonText="Thêm danh mục mới"
+                addPath="/admin/category/add"
+                editPath="/admin/category/edit"
+                columns={[
+                  { key: "name", header: "Tên danh mục", render: (item) => (
+                    <span className="font-medium text-gray-900">{item?.name || "Không có tên"}</span>
+                  )},
+                  { key: "description", header: "Mô tả", render: (item) => (
+                    <span>{item?.description || "Không có mô tả"}</span>
+                  )}
+                ]}
+                filterOptions={{ showCategoryFilter: false }}
+              />
+            }
+          />
+          <Route path="category/:id" element={<DetailPage />} />
+          <Route path="category/edit/:id" element={<EditCategoryPage />} />
+          <Route path="category/add" element={<AddCategoryPage />} />
         </Route>
       </Route>
     )

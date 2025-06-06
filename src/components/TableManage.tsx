@@ -4,35 +4,60 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { get, remove } from "services/api";
 
-interface TableManageProps {
-  isShowFooter: boolean;
-  url: string;
+interface Column {
+  key: string;
+  header: string;
+  render?: (item: any, index: number) => React.ReactNode;
 }
 
-const TableManage = ({ isShowFooter = true, url }: TableManageProps) => {
-  const [products, setProducts] = useState<any[]>([]);
+interface TableManageProps {
+  isShowFooter?: boolean;
+  url: string;
+  title: string;
+  addButtonText?: string;
+  addPath?: string;
+  editPath?: string;
+  deletePath?: string;
+  columns: Column[];
+  filterOptions?: {
+    showCategoryFilter?: boolean;
+  };
+}
+
+const TableManage = ({ 
+  isShowFooter = true, 
+  url, 
+  title = "Quản lý dữ liệu",
+  addButtonText = "Thêm mới",
+  addPath = "add",
+  editPath = "edit",
+  deletePath = "",
+  columns = [],
+  filterOptions = { showCategoryFilter: false }
+}: TableManageProps) => {
+  const [items, setItems] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("ALL");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
   const navigate = useNavigate();
 
-  // Thêm state để lưu thời gian cập nhật cuối cùng
+  // State để lưu thời gian cập nhật cuối cùng
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
 
-  // Thêm state để theo dõi sản phẩm đang xóa
+  // State để theo dõi item đang xóa
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  // Cải thiện cấu hình React Query
+  // Cấu hình React Query
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: [url],
     queryFn: () => get(url),
-    staleTime: 30000, // Dữ liệu được coi là "cũ" sau 30 giây
+    staleTime: 30000,
     retry: 2,
-    refetchOnWindowFocus: false, // Không refetch khi focus lại tab
+    refetchOnWindowFocus: false,
   });
 
-  // Thêm hàm refetch để cập nhật dữ liệu từ server
+  // Hàm refetch để cập nhật dữ liệu từ server
   const refreshData = async () => {
     try {
       await refetch();
@@ -43,48 +68,52 @@ const TableManage = ({ isShowFooter = true, url }: TableManageProps) => {
     }
   };
 
-  // Cập nhật state products khi data thay đổi
+  // Cập nhật state items khi data thay đổi
   useEffect(() => {
     if (data?.data?.result?.data) {
-      const productsData = data.data.result.data;
-      setProducts(productsData);
+      const itemsData = data.data.result.data;
+      setItems(itemsData);
       setLastUpdated(new Date());
     }
   }, [data]);
 
-  // Lọc sản phẩm theo tìm kiếm và danh mục
-  const filteredProducts = useMemo(() => {
-    return products && products.length > 0
-      ? products.filter(product => {
-        const matchesSearch = product?.name?.toLowerCase().includes((searchTerm || "").toLowerCase());
-        const matchesCategory = filterCategory === "ALL" || product?.category === filterCategory;
+  // Lọc items theo tìm kiếm và danh mục (nếu có)
+  const filteredItems = useMemo(() => {
+    return items && items.length > 0
+      ? items.filter(item => {
+        const matchesSearch = item?.name?.toLowerCase().includes((searchTerm || "").toLowerCase());
+        const matchesCategory = !filterOptions.showCategoryFilter || 
+                               filterCategory === "ALL" || 
+                               item?.category === filterCategory;
         return matchesSearch && matchesCategory;
       })
       : [];
-  }, [products, searchTerm, filterCategory]);
+  }, [items, searchTerm, filterCategory, filterOptions.showCategoryFilter]);
 
   // Tính toán tổng số trang
   const totalPages = useMemo(() => {
-    return Math.ceil(filteredProducts.length / itemsPerPage);
-  }, [filteredProducts, itemsPerPage]);
+    return Math.ceil(filteredItems.length / itemsPerPage);
+  }, [filteredItems, itemsPerPage]);
 
-  // Lấy sản phẩm cho trang hiện tại
-  const currentProducts = useMemo(() => {
+  // Lấy items cho trang hiện tại
+  const currentItems = useMemo(() => {
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    return filteredProducts.slice(indexOfFirstItem, indexOfLastItem);
-  }, [filteredProducts, currentPage, itemsPerPage]);
+    return filteredItems.slice(indexOfFirstItem, indexOfLastItem);
+  }, [filteredItems, currentPage, itemsPerPage]);
 
-  // Lấy danh sách các danh mục duy nhất
+  // Lấy danh sách các danh mục duy nhất (nếu cần)
   const categories = useMemo(() => {
+    if (!filterOptions.showCategoryFilter) return [];
+    
     return ["ALL", ...Array.from(new Set(
-      products && products.length > 0
-        ? products
-          .map(product => product?.category)
+      items && items.length > 0
+        ? items
+          .map(item => item?.category)
           .filter(Boolean)
         : []
     ))];
-  }, [products]);
+  }, [items, filterOptions.showCategoryFilter]);
 
   // Xử lý chuyển trang
   const paginate = (pageNumber: number) => {
@@ -96,15 +125,13 @@ const TableManage = ({ isShowFooter = true, url }: TableManageProps) => {
   // Tạo mảng số trang để hiển thị
   const pageNumbers = useMemo(() => {
     const pages = [];
-    const maxPagesToShow = 5; // Số trang tối đa hiển thị
+    const maxPagesToShow = 5;
 
     if (totalPages <= maxPagesToShow) {
-      // Nếu tổng số trang ít hơn hoặc bằng số trang tối đa hiển thị
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
       }
     } else {
-      // Nếu tổng số trang nhiều hơn số trang tối đa hiển thị
       let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
       let endPage = startPage + maxPagesToShow - 1;
 
@@ -121,52 +148,40 @@ const TableManage = ({ isShowFooter = true, url }: TableManageProps) => {
     return pages;
   }, [currentPage, totalPages]);
 
-  // Xử lý thay đổi số lượng sản phẩm trên mỗi trang
+  // Xử lý thay đổi số lượng items trên mỗi trang
   const handleItemsPerPageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setItemsPerPage(Number(e.target.value));
-    setCurrentPage(1); // Reset về trang đầu tiên khi thay đổi số lượng sản phẩm trên mỗi trang
+    setCurrentPage(1);
   };
 
-  // Cải thiện hàm xóa sản phẩm
-  const handleRemoveProduct = async (id: any) => {
+  // Hàm xóa item
+  const handleRemoveItem = async (id: any) => {
     try {
-      // Đánh dấu sản phẩm đang xóa
       setDeletingId(id);
       
-      // Hiển thị loading state
-      toast.loading("Đang xóa sản phẩm...", { 
+      toast.loading("Đang xóa...", { 
         toastId: "delete-loading",
         autoClose: false
       });
       
-      // Gọi API xóa sản phẩm
-      const res = await remove(`/products/${id}`);
+      const deleteUrl = deletePath ? `${deletePath}/${id}` : `${url}/${id}`;
+      const res = await remove(deleteUrl);
       
       if (res.data) {
-        // Đóng toast loading
         toast.dismiss("delete-loading");
+        toast.success('Xóa thành công!');
         
-        // Hiển thị thông báo thành công
-        toast.success('Xóa sản phẩm thành công!');
-        
-        // Cập nhật dữ liệu từ server
         await refetch();
         
-        // Nếu sau khi xóa, trang hiện tại không còn sản phẩm nào và không phải trang đầu tiên
-        // thì quay lại trang trước đó
-        if (currentProducts.length === 1 && currentPage > 1) {
+        if (currentItems.length === 1 && currentPage > 1) {
           setCurrentPage(currentPage - 1);
         }
       }
     } catch (error) {
-      // Đóng toast loading
       toast.dismiss("delete-loading");
-      
-      // Hiển thị thông báo lỗi
-      console.error('Error removing product:', error);
-      toast.error('Có lỗi xảy ra khi xóa sản phẩm!');
+      console.error('Error removing item:', error);
+      toast.error('Có lỗi xảy ra khi xóa!');
     } finally {
-      // Xóa đánh dấu sản phẩm đang xóa
       setDeletingId(null);
     }
   };
@@ -183,10 +198,14 @@ const TableManage = ({ isShowFooter = true, url }: TableManageProps) => {
     return (
       <div className="p-10 text-center bg-red-50 rounded-lg border border-red-200 min-h-[400px] flex items-center justify-center">
         <div>
-          <svg className="w-12 h-12 text-red-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          </svg>
-          <p className="text-red-500 text-lg font-medium">Có lỗi xảy ra khi tải dữ liệu. Vui lòng thử lại sau.</p>
+          <h3 className="text-lg font-medium text-red-800 mb-2">Đã xảy ra lỗi khi tải dữ liệu</h3>
+          <p className="text-red-600">Vui lòng thử lại sau hoặc liên hệ quản trị viên.</p>
+          <button
+            onClick={refreshData}
+            className="mt-4 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+          >
+            Thử lại
+          </button>
         </div>
       </div>
     );
@@ -195,7 +214,7 @@ const TableManage = ({ isShowFooter = true, url }: TableManageProps) => {
   return (
     <div className="bg-white rounded-lg shadow-md p-6 max-w-full overflow-hidden">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">Quản lý sản phẩm</h2>
+        <h2 className="text-2xl font-bold text-gray-800">{title}</h2>
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-500">
             Cập nhật lần cuối: {lastUpdated.toLocaleTimeString()}
@@ -214,73 +233,75 @@ const TableManage = ({ isShowFooter = true, url }: TableManageProps) => {
 
       {/* Search and Filter */}
       <div className="flex flex-col md:flex-row mb-6 gap-4 md:gap-6 md:items-center">
-        <div className="md:w-1/3">
-          <label htmlFor="category-filter" className="block text-sm font-medium text-gray-700 mb-1">Danh mục</label>
-          <select
-            id="category-filter"
-            value={filterCategory}
-            onChange={(e) => {
-              setFilterCategory(e.target.value);
-              setCurrentPage(1); // Reset về trang đầu tiên khi thay đổi bộ lọc
-            }}
-            className="w-full p-2.5 text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-          >
-            {categories.map((category, index) => (
-              <option key={index} value={category || ""}>{category || "Không có danh mục"}</option>
-            ))}
-          </select>
-        </div>
-        <div className="md:w-2/3">
-          <label htmlFor="search-input" className="block text-sm font-medium text-gray-700 mb-1">Tìm kiếm sản phẩm</label>
+        {filterOptions.showCategoryFilter && (
+          <div className="md:w-1/3">
+            <label htmlFor="category-filter" className="block text-sm font-medium text-gray-700 mb-1">Danh mục</label>
+            <select
+              id="category-filter"
+              value={filterCategory}
+              onChange={(e) => {
+                setFilterCategory(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="w-full p-2.5 text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+            >
+              {categories.map((category, index) => (
+                <option key={index} value={category || ""}>{category || "Không có danh mục"}</option>
+              ))}
+            </select>
+          </div>
+        )}
+        <div className={filterOptions.showCategoryFilter ? "md:w-2/3" : "w-full"}>
+          <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">Tìm kiếm</label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
               <svg className="w-4 h-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
-                <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
+                <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
               </svg>
             </div>
             <input
               type="text"
-              id="search-input"
+              id="search"
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
-                setCurrentPage(1); // Reset về trang đầu tiên khi thay đổi tìm kiếm
+                setCurrentPage(1);
               }}
               className="block w-full p-2.5 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Tìm kiếm theo tên sản phẩm..."
+              placeholder="Tìm kiếm theo tên..."
             />
           </div>
         </div>
       </div>
 
-      {/* Add Product Button */}
+      {/* Add Button */}
       <div className="flex justify-end mb-6">
         <button
           className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-5 rounded-lg transition-colors duration-200 flex items-center"
-          onClick={() => navigate('/admin/product/add')}
+          onClick={() => navigate(`${addPath}`)}
         >
           <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
           </svg>
-          Thêm sản phẩm mới
+          {addButtonText}
         </button>
       </div>
 
-      {/* Products Table */}
+      {/* Items Table */}
       <div className="overflow-x-auto rounded-lg border border-gray-200">
-        {filteredProducts.length > 0 ? (
+        {filteredItems.length > 0 ? (
           <table className="w-full text-sm text-left text-gray-500">
             <thead className="text-xs text-gray-700 uppercase bg-gray-100">
               <tr>
                 <th scope="col" className="px-6 py-3">STT</th>
-                <th scope="col" className="px-6 py-3">Tên sản phẩm</th>
-                <th scope="col" className="px-6 py-3">Hình ảnh</th>
-                <th scope="col" className="px-6 py-3">Giá</th>
+                {columns.map((column, index) => (
+                  <th key={index} scope="col" className="px-6 py-3">{column.header}</th>
+                ))}
                 <th scope="col" className="px-6 py-3 text-right">Thao tác</th>
               </tr>
             </thead>
             <tbody>
-              {currentProducts.map((item: any, i: number) => (
+              {currentItems.map((item: any, i: number) => (
                 <tr
                   className={`bg-white border-b hover:bg-gray-50 transition-colors duration-200 ${
                     deletingId === item.id ? 'opacity-50 bg-red-50' : ''
@@ -290,30 +311,17 @@ const TableManage = ({ isShowFooter = true, url }: TableManageProps) => {
                   <td className="px-6 py-4 font-medium text-gray-900">
                     {(currentPage - 1) * itemsPerPage + i + 1}
                   </td>
-                  <td className="px-6 py-4 font-medium text-gray-900">
-                    {item?.name || "Không có tên"}
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="w-16 h-16 overflow-hidden rounded-md bg-gray-100 flex items-center justify-center">
-                      <img
-                        src={item?.img || "https://via.placeholder.com/64x64?text=No+Image"}
-                        alt={item?.name || "Product image"}
-                        className="object-cover w-full h-full"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = 'https://via.placeholder.com/64x64?text=No+Image';
-                        }}
-                      />
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 font-medium">
-                    {typeof item?.price === 'number'
-                      ? item.price.toLocaleString('vi-VN') + '₫'
-                      : item?.price || "Chưa có giá"}
-                  </td>
+                  {columns.map((column, index) => (
+                    <td key={index} className="px-6 py-4">
+                      {column.render 
+                        ? column.render(item, i)
+                        : item[column.key] || `Không có ${column.header.toLowerCase()}`}
+                    </td>
+                  ))}
                   <td className="px-6 py-4 text-right">
                     <div className="flex gap-2 justify-end">
                       <Link
-                        to={`edit/${item.id}`}
+                        to={`${editPath}/${item.id}`}
                         className="font-medium text-blue-600 hover:text-blue-800 bg-blue-50 px-3 py-1.5 rounded-md transition-colors duration-200"
                       >
                         Sửa
@@ -321,8 +329,8 @@ const TableManage = ({ isShowFooter = true, url }: TableManageProps) => {
                       <button
                         className="font-medium text-red-600 hover:text-red-800 bg-red-50 px-3 py-1.5 rounded-md transition-colors duration-200"
                         onClick={() => {
-                          if (window.confirm('Bạn có chắc chắn muốn xóa sản phẩm này?')) {
-                            handleRemoveProduct(item.id);
+                          if (window.confirm('Bạn có chắc chắn muốn xóa?')) {
+                            handleRemoveItem(item.id);
                           }
                         }}
                       >
@@ -339,75 +347,91 @@ const TableManage = ({ isShowFooter = true, url }: TableManageProps) => {
             <svg className="w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
             </svg>
-            <p className="text-lg font-medium text-gray-600 mb-2">Không tìm thấy sản phẩm nào</p>
-            <p className="text-gray-500 mb-4">Hãy thêm sản phẩm mới hoặc thay đổi bộ lọc tìm kiếm</p>
+            <p className="text-lg font-medium text-gray-600 mb-2">Không tìm thấy dữ liệu</p>
+            <p className="text-gray-500 mb-4">Hãy thêm mới hoặc thay đổi bộ lọc tìm kiếm</p>
             <button
               className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
-              onClick={() => navigate('/admin/product/add')}
+              onClick={() => navigate(`${addPath}`)}
             >
-              Thêm sản phẩm mới
+              {addButtonText}
             </button>
           </div>
         )}
       </div>
 
       {/* Pagination */}
-      {isShowFooter && filteredProducts.length > 0 && (
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4 mt-6">
-          <div className="flex items-center gap-2">
-            <label htmlFor="items-per-page" className="text-sm text-gray-700">Hiển thị:</label>
+      {filteredItems.length > 0 && isShowFooter && (
+        <div className="flex flex-col md:flex-row justify-between items-center mt-6 space-y-4 md:space-y-0">
+          <div className="flex items-center space-x-2">
+            <label htmlFor="itemsPerPage" className="text-sm text-gray-600">Hiển thị:</label>
             <select
-              id="items-per-page"
+              id="itemsPerPage"
               value={itemsPerPage}
               onChange={handleItemsPerPageChange}
-              className="p-1.5 text-sm text-gray-900 border border-gray-300 rounded-md bg-white focus:ring-blue-500 focus:border-blue-500"
+              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2"
             >
               <option value="5">5</option>
               <option value="10">10</option>
               <option value="20">20</option>
               <option value="50">50</option>
             </select>
-            <span className="text-sm text-gray-700">
-              Hiển thị <span className="font-medium">{currentProducts.length}</span> / <span className="font-medium">{filteredProducts.length}</span> sản phẩm
+            <span className="text-sm text-gray-600">mục mỗi trang</span>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <span className="text-sm text-gray-600">
+              Hiển thị {filteredItems.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0} - {Math.min(currentPage * itemsPerPage, filteredItems.length)} của {filteredItems.length} mục
             </span>
           </div>
 
-          <div className="flex gap-2">
-            <button
-              className={`px-3 py-1 border rounded-md ${currentPage === 1
-                ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
-                : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
-                }`}
-              onClick={() => paginate(currentPage - 1)}
-              disabled={currentPage === 1}
-            >
-              Trước
-            </button>
-
-            {pageNumbers.map(number => (
-              <button
-                key={number}
-                className={`px-3 py-1 border rounded-md ${currentPage === number
-                  ? 'border-blue-500 bg-blue-500 text-white'
-                  : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+          <nav aria-label="Page navigation">
+            <ul className="flex items-center -space-x-px h-8 text-sm">
+              <li>
+                <button
+                  onClick={() => paginate(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className={`flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 ${
+                    currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
-                onClick={() => paginate(number)}
-              >
-                {number}
-              </button>
-            ))}
-
-            <button
-              className={`px-3 py-1 border rounded-md ${currentPage === totalPages || totalPages === 0
-                ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
-                : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
-                }`}
-              onClick={() => paginate(currentPage + 1)}
-              disabled={currentPage === totalPages || totalPages === 0}
-            >
-              Sau
-            </button>
-          </div>
+                >
+                  <span className="sr-only">Previous</span>
+                  <svg className="w-2.5 h-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+                    <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 1 1 5l4 4"/>
+                  </svg>
+                </button>
+              </li>
+              
+              {pageNumbers.map(number => (
+                <li key={number}>
+                  <button
+                    onClick={() => paginate(number)}
+                    className={`flex items-center justify-center px-3 h-8 leading-tight ${
+                      currentPage === number
+                        ? 'text-blue-600 border border-gray-300 bg-blue-50 hover:bg-blue-100 hover:text-blue-700'
+                        : 'text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700'
+                    }`}
+                  >
+                    {number}
+                  </button>
+                </li>
+              ))}
+              
+              <li>
+                <button
+                  onClick={() => paginate(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className={`flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 ${
+                    currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+                >
+                  <span className="sr-only">Next</span>
+                  <svg className="w-2.5 h-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+                    <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 9 4-4-4-4"/>
+                  </svg>
+                </button>
+              </li>
+            </ul>
+          </nav>
         </div>
       )}
     </div>
@@ -415,11 +439,4 @@ const TableManage = ({ isShowFooter = true, url }: TableManageProps) => {
 };
 
 export default TableManage;
-
-
-
-
-
-
-
 
