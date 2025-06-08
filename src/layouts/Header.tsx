@@ -1,10 +1,26 @@
 import { faCartShopping, faUser } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { useQuery } from '@tanstack/react-query';
 import { getCookie } from 'libs/getCookie';
 import React from 'react';
+import { get } from 'services/api';
+import SearchForm from '../components/SearchForm';
 
 function Header() {
   const isLogin = getCookie("userId");
+
+  // Lấy danh sách categories cho dropdown
+  const { data } = useQuery({ 
+    queryKey: ['/categories'], 
+    queryFn: () => get('/categories'),
+    staleTime: 60000
+  });
+  
+  const categories = data?.data?.result?.data || [];
+  const categoryOptions = categories.map((cat: any) => ({
+    value: cat.id,
+    label: cat.name
+  }));
 
   return (<>
     <div className="header-top bg-[#1435c3] text-white p-2 text-[12px]">
@@ -33,18 +49,14 @@ function Header() {
             <option value="DE">Germany</option>
           </select>
         </form>
-        <form className="form-header-search max-w-md mx-auto h-[45px]">
-          <label htmlFor="default-search" className="mb-2 text-sm font-medium  sr-only dark:text-white">Search</label>
-          <div className="relative">
-            <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-              <svg className="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
-                <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
-              </svg>
-            </div>
-            <input type="search" id="default-search" className="block w-full h-[45px] p-4 ps-10 text-sm  border border-gray-300 rounded-lg bg-gray-50" placeholder="Search..." />
-            <button type="submit" className="text-white absolute end-[5px] bottom-[5px] bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Search</button>
-          </div>
-        </form>
+        <div className="header-search-container">
+          <SearchForm 
+            placeholder="Search for products..." 
+            showCategories={true}
+            categories={categoryOptions}
+            className="max-w-md mx-auto h-[45px]"
+          />
+        </div>
         <div className="container-icon flex gap-[40px] justify-center">
           {
             !isLogin &&

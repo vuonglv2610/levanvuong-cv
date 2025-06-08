@@ -72,7 +72,7 @@ function Cart() {
     
     try {
       setIsUpdating(true);
-      await remove(`/shoppingcart/remove/${itemId}`);
+      await remove(`/shoppingcart/${itemId}`);
       toast.success('Đã xóa sản phẩm khỏi giỏ hàng');
       refetch();
     } catch (error) {
