@@ -76,11 +76,10 @@ const AdminLayout = () => {
                       <Link
                         key={i + 100}
                         to={item.href}
-                        className={`${
-                          location.pathname === item.href 
-                            ? "bg-gray-900 text-white" 
-                            : "text-gray-300 hover:bg-gray-700 hover:text-white"
-                        } rounded-md px-3 py-2 text-sm font-medium transition-colors duration-200`}
+                        className={`${location.pathname === item.href
+                          ? "bg-gray-900 text-white"
+                          : "text-gray-300 hover:bg-gray-700 hover:text-white"
+                          } rounded-md px-3 py-2 text-sm font-medium transition-colors duration-200`}
                       >
                         {item.title}
                       </Link>
@@ -126,9 +125,8 @@ const AdminLayout = () => {
                       </button>
                     </div>
                     <div
-                      className={`${
-                        toggle ? "hidden" : ""
-                      } absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none transition-all duration-200`}
+                      className={`${toggle ? "hidden" : ""
+                        } absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none transition-all duration-200`}
                       role="menu"
                       aria-orientation="vertical"
                       aria-labelledby="user-menu-button"
@@ -146,12 +144,12 @@ const AdminLayout = () => {
                         Your Profile
                       </Link>
                       <Link
-                        to="/admin/settings"
+                        to="/admin/change-password"
                         className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                         role="menuitem"
                       >
                         <FontAwesomeIcon icon={faCog} className="mr-2 text-gray-500" />
-                        Settings
+                        Change Password
                       </Link>
                       <button
                         onClick={handleLogout}
@@ -177,9 +175,9 @@ const AdminLayout = () => {
                 >
                   <span className="absolute -inset-0.5" />
                   <span className="sr-only">Open main menu</span>
-                  <FontAwesomeIcon 
-                    icon={mobileMenuOpen ? faXmark : faBars} 
-                    className="h-6 w-6" 
+                  <FontAwesomeIcon
+                    icon={mobileMenuOpen ? faXmark : faBars}
+                    className="h-6 w-6"
                   />
                 </button>
               </div>
@@ -187,8 +185,8 @@ const AdminLayout = () => {
           </div>
 
           {/* Mobile menu */}
-          <div 
-            className={`${mobileMenuOpen ? 'block' : 'hidden'} md:hidden transition-all duration-300 ease-in-out`} 
+          <div
+            className={`${mobileMenuOpen ? 'block' : 'hidden'} md:hidden transition-all duration-300 ease-in-out`}
             id="mobile-menu"
           >
             <div className="space-y-1 px-2 pb-3 pt-2 sm:px-3">
@@ -196,11 +194,10 @@ const AdminLayout = () => {
                 <Link
                   key={index}
                   to={item.href}
-                  className={`${
-                    location.pathname === item.href 
-                      ? "bg-gray-900 text-white" 
-                      : "text-gray-300 hover:bg-gray-700 hover:text-white"
-                  } block rounded-md px-3 py-2 text-base font-medium`}
+                  className={`${location.pathname === item.href
+                    ? "bg-gray-900 text-white"
+                    : "text-gray-300 hover:bg-gray-700 hover:text-white"
+                    } block rounded-md px-3 py-2 text-base font-medium`}
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   {item.title}
@@ -246,12 +243,12 @@ const AdminLayout = () => {
                   Your Profile
                 </Link>
                 <Link
-                  to="/admin/settings"
+                  to="/admin/change-password"
                   className="flex items-center rounded-md px-3 py-2 text-base font-medium text-gray-400 hover:bg-gray-700 hover:text-white"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <FontAwesomeIcon icon={faCog} className="mr-2" />
-                  Settings
+                  Change Password
                 </Link>
                 <button
                   onClick={handleLogout}

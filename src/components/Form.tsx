@@ -7,7 +7,7 @@ import { toast } from 'react-toastify';
 interface FormField {
   name: string;
   label: string;
-  type: 'text' | 'number' | 'textarea' | 'select' | 'file' | 'image';
+  type: 'text' | 'number' | 'textarea' | 'select' | 'file' | 'image'| 'password';
   required?: boolean;
   options?: { value: string; label: string }[];
   rows?: number;
