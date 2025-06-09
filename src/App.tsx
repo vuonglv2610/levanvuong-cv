@@ -30,11 +30,15 @@ import ProductsList from "./pages/Products";
 import RegisterPage from "./pages/RegisterPage";
 // import "./src/fontawasome.js";
 
+// Thêm import cho các trang quản lý người dùng
+import AddUserPage from "pages/admin/AddUserPage";
+import EditUserPage from "pages/admin/EditUserPage";
+import UserManagement from "pages/admin/UserManagement";
+
 function App() {
   const handle = async () => {
     if (getCookie("userId")) {
-      const res = await get(`/user/${getCookie("userId")}`);
-      console.log('res', res);
+      const res = await get(`/customers/${getCookie("userId")}`);
     }
   }
 
@@ -148,6 +152,14 @@ function App() {
           <Route path="category/:id" element={<DetailPage />} />
           <Route path="category/edit/:id" element={<EditCategoryPage />} />
           <Route path="category/add" element={<AddCategoryPage />} />
+          
+          {/* Route cho người dùng */}
+          <Route
+            path="user"
+            element={<UserManagement />}
+          />
+          <Route path="user/add" element={<AddUserPage />} />
+          <Route path="user/edit/:id" element={<EditUserPage />} />
         </Route>
       </Route>
     )

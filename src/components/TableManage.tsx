@@ -21,6 +21,12 @@ interface TableManageProps {
   columns: Column[];
   filterOptions?: {
     showCategoryFilter?: boolean;
+    customFilters?: Array<{
+      name: string;
+      label: string;
+      type: string;
+      options: Array<{ value: string; label: string }>;
+    }>;
   };
 }
 
@@ -47,6 +53,9 @@ const TableManage = ({
 
   // State để theo dõi item đang xóa
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  // Thêm state cho các custom filters
+  const [customFilterValues, setCustomFilterValues] = useState<Record<string, string>>({});
 
   // Cấu hình React Query
   const { data, isLoading, error, refetch } = useQuery({
@@ -77,7 +86,7 @@ const TableManage = ({
     }
   }, [data]);
 
-  // Lọc items theo tìm kiếm và danh mục (nếu có)
+  // Cập nhật hàm lọc items để xử lý custom filters
   const filteredItems = useMemo(() => {
     return items && items.length > 0
       ? items.filter(item => {
@@ -85,10 +94,19 @@ const TableManage = ({
         const matchesCategory = !filterOptions.showCategoryFilter || 
                                filterCategory === "ALL" || 
                                item?.category === filterCategory;
-        return matchesSearch && matchesCategory;
+        
+        // Xử lý custom filters
+        const matchesCustomFilters = filterOptions.customFilters
+          ? filterOptions.customFilters.every(filter => {
+              const filterValue = customFilterValues[filter.name];
+              return !filterValue || filterValue === "ALL" || item[filter.name] === filterValue;
+            })
+          : true;
+        
+        return matchesSearch && matchesCategory && matchesCustomFilters;
       })
       : [];
-  }, [items, searchTerm, filterCategory, filterOptions.showCategoryFilter]);
+  }, [items, searchTerm, filterCategory, filterOptions.showCategoryFilter, filterOptions.customFilters, customFilterValues]);
 
   // Tính toán tổng số trang
   const totalPages = useMemo(() => {
@@ -272,6 +290,33 @@ const TableManage = ({
             />
           </div>
         </div>
+        {filterOptions.customFilters && filterOptions.customFilters.length > 0 && (
+          <div className="flex flex-col md:flex-row gap-4 md:items-center">
+            {filterOptions.customFilters.map((filter, index) => (
+              <div key={index} className="md:w-1/3">
+                <label htmlFor={`filter-${filter.name}`} className="block text-sm font-medium text-gray-700 mb-1">
+                  {filter.label}
+                </label>
+                <select
+                  id={`filter-${filter.name}`}
+                  value={customFilterValues[filter.name] || "ALL"}
+                  onChange={(e) => {
+                    setCustomFilterValues({
+                      ...customFilterValues,
+                      [filter.name]: e.target.value
+                    });
+                    setCurrentPage(1);
+                  }}
+                  className="w-full p-2.5 text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  {filter.options.map((option, optIndex) => (
+                    <option key={optIndex} value={option.value}>{option.label}</option>
+                  ))}
+                </select>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Add Button */}

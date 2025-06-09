@@ -37,7 +37,8 @@ const AuthProvider = ({ children }: AuthProviderInterface) => {
   const fetchProfile = async () => {
     if (getCookie("accessToken") && getCookie("userId")) {
       try {
-        const res = await get(`/user/${getCookie("userId")}`);
+        //todo: get profile
+        const res = await get(`/customers/${getCookie("userId")}`);
         setUserInfo(res.data);
       } catch (error) {
         console.log(error);
@@ -90,3 +91,5 @@ const AuthProvider = ({ children }: AuthProviderInterface) => {
 };
 
 export default AuthProvider;
+
+

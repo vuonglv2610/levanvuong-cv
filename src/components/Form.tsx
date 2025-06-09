@@ -50,7 +50,7 @@ const FormComponent: React.FC<FormProps> = ({
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
-  const { register, handleSubmit, formState: { errors }, reset, setValue, watch } = useForm({
+  const { register, handleSubmit, formState: { errors }, reset, setValue } = useForm({
     defaultValues: initialValues
   });
 
