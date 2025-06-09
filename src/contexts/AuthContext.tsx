@@ -6,7 +6,7 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import { get } from "services/api";
+import { getProfile } from "services/api";
 import { getCookie, removeCookie } from "../libs/getCookie";
 
 // Thêm interface để định nghĩa kiểu dữ liệu cho context
@@ -37,8 +37,7 @@ const AuthProvider = ({ children }: AuthProviderInterface) => {
   const fetchProfile = async () => {
     if (getCookie("accessToken") && getCookie("userId")) {
       try {
-        //todo: get profile
-        const res = await get(`/customers/${getCookie("userId")}`);
+        const res = await getProfile()
         setUserInfo(res.data);
       } catch (error) {
         console.log(error);

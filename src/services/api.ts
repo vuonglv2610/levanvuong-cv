@@ -1,3 +1,4 @@
+import { getCookie } from "../libs/getCookie";
 import instance from "./instance";
 
 export const get = async (url: string, options = {}) => {
@@ -75,3 +76,31 @@ export const register = async (data: any, options = {}) => {
   const response = await instance.post("/register", data, options);
   return response;
 };
+
+export const getProfile = async () => {
+  try {
+    const response = await instance.get(`/profile`);
+    return response;
+  } catch (error) {
+    console.error("Failed to fetch profile:", error);
+    throw error;
+  }
+};
+
+export const updateProfile = async (data: any) => {
+  try {
+    const userId = getCookie("userId");
+    if (!userId) {
+      throw new Error("User ID not found");
+    }
+    
+    const response = await instance.put(`/users/edit/${userId}`, data);
+    return response;
+  } catch (error) {
+    console.error("Failed to update profile:", error);
+    throw error;
+  }
+};
+
+
+

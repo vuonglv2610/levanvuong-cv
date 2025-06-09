@@ -15,7 +15,6 @@ import {
   createRoutesFromElements
 } from "react-router-dom";
 import ScrollToTop from "react-scroll-to-top";
-import { get } from "services/api";
 import "./App.css";
 import HomePage from "./components/HomePage";
 import TableManage from "./components/TableManage";
@@ -34,17 +33,11 @@ import RegisterPage from "./pages/RegisterPage";
 import AddUserPage from "pages/admin/AddUserPage";
 import EditUserPage from "pages/admin/EditUserPage";
 import UserManagement from "pages/admin/UserManagement";
+import ChangePasswordPage from "./pages/admin/ChangePasswordPage";
+import ProfilePage from "./pages/admin/ProfilePage";
 
 function App() {
-  const handle = async () => {
-    if (getCookie("userId")) {
-      const res = await get(`/customers/${getCookie("userId")}`);
-    }
-  }
 
-  useEffect(() => {
-    handle()
-  }, [])
 
   const router = createBrowserRouter(
     createRoutesFromElements(
@@ -82,6 +75,8 @@ function App() {
         // }}
         >
           <Route index element={<Dashboard />} />
+          <Route path="profile" element={<ProfilePage />} />
+          <Route path="change-password" element={<ChangePasswordPage />} />
           
           {/* Route cho sản phẩm */}
           <Route

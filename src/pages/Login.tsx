@@ -32,9 +32,6 @@ const LoginPage = () => {
 
   // Xử lý response đăng nhập
   const checkResponse = (response: LoginResponse) => {
-    console.log("Login response:", response);
-    console.log("cccc", response.data?.result);
-
 
     // Kiểm tra response có tồn tại không
     if (!response) {
@@ -47,7 +44,7 @@ const LoginPage = () => {
 
       // Lưu token và userId vào cookie
       setCookie("accessToken", response.data.result.token);
-      setCookie("userId", param);
+      setCookie("userId", param || response.data?.result?.data?.userId);
 
       // Hiển thị thông báo thành công
       toast.success("Đăng nhập thành công!");
