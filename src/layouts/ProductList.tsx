@@ -1,7 +1,8 @@
+import { getCookie } from 'libs/getCookie';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from "react-toastify";
-import { get } from 'services/api';
+import { get, post } from 'services/api';
 
 const ProductList = () => {
     const [products, setProducts] = useState<any[]>([]);
@@ -85,12 +86,33 @@ const ProductList = () => {
     const handleAddToCart = (e: React.MouseEvent, product: any) => {
         e.preventDefault();
         e.stopPropagation();
-        // Thêm logic lưu vào localStorage hoặc gọi API thêm vào giỏ hàng
-        toast.success(`Đã thêm ${product.name} vào giỏ hàng!`);
+        
+        const userId = getCookie("userId");
+        
+        if (!userId) {
+            toast.info("Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng");
+            window.location.href = "/login";
+            return;
+        }
+        
+        try {
+            post(`/shoppingcart`, {
+                product_id: product.id,
+                customer_id: userId,
+                quantity: 1
+            });
+            toast.success(`Đã thêm ${product.name} vào giỏ hàng!`);
+        } catch (error) {
+            console.error("Error adding to cart:", error);
+            toast.error("Không thể thêm sản phẩm vào giỏ hàng");
+        }
     }
 
     useEffect(() => {
-        getProducts();
+        getProducts().then(() => {
+            console.log('Products data:', products);
+        });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     if (loading) {
@@ -122,14 +144,16 @@ const ProductList = () => {
                     {currentProducts.map((product, index) => (
                         <div key={product.id || index} className="group relative">
                             <div className="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-lg bg-gray-100 transition-all duration-300 group-hover:opacity-90">
-                                <img 
-                                    src={product.img || 'https://via.placeholder.com/300x300?text=No+Image'} 
-                                    alt={product.name || 'Product image'} 
-                                    className="h-60 w-full object-cover object-center"
-                                    onError={(e) => {
-                                        (e.target as HTMLImageElement).src = 'https://via.placeholder.com/300x300?text=No+Image';
-                                    }}
-                                />
+                                <Link to={`/product/${product.id}`}>
+                                    <img 
+                                        src={product.img || 'https://via.placeholder.com/300x300?text=No+Image'} 
+                                        alt={product.name || 'Product image'} 
+                                        className="h-60 w-full object-cover object-center"
+                                        onError={(e) => {
+                                            (e.target as HTMLImageElement).src = 'https://via.placeholder.com/300x300?text=No+Image';
+                                        }}
+                                    />
+                                </Link>
                             </div>
                             <div className="mt-4 flex justify-between">
                                 <div>
@@ -139,7 +163,7 @@ const ProductList = () => {
                                         </Link>
                                     </h3>
                                     <p className="mt-1 text-sm text-gray-500 line-clamp-1">
-                                        {product.category?.name || 'Chưa phân loại'}
+                                        {product.category?.name || 'Không có danh mục'}
                                     </p>
                                 </div>
                                 <div>

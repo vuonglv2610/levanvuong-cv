@@ -20,7 +20,6 @@ import HomePage from "./components/HomePage";
 import TableManage from "./components/TableManage";
 import AdminLayout from "./layouts/Admin";
 import ClientLayout from "./layouts/Client";
-import { getCookie } from "./libs/getCookie";
 import NotFoundPage from "./pages/404";
 import Dashboard from "./pages/Dashboard";
 import DetailPage from "./pages/Detail";
@@ -33,128 +32,138 @@ import RegisterPage from "./pages/RegisterPage";
 import AddUserPage from "pages/admin/AddUserPage";
 import EditUserPage from "pages/admin/EditUserPage";
 import UserManagement from "pages/admin/UserManagement";
+import Checkout from "pages/Checkout";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import ChangePasswordPage from "./pages/admin/ChangePasswordPage";
 import ProfilePage from "./pages/admin/ProfilePage";
 
 function App() {
-
-
   const router = createBrowserRouter(
     createRoutesFromElements(
-      <Route>
-        <Route path="/login" element={<LoginPage />} />
-        <Route
-          path="/register"
-          loader={() => null}
-          element={<RegisterPage />}
-        />
-        <Route
-          path="/"
-          element={<ClientLayout />}
-          loader={() => {
-            const token = getCookie("accessToken");
-            // if (!token) return redirect("/login");
-            return null;
-          }}
-        >
-          <Route index element={<HomePage />} />
-          <Route path="/product" element={<ProductsList />} />
-          <Route path="/404" element={<NotFoundPage />} />
-          <Route path="/cart" element={<Cart />} />
-        </Route>
-        <Route
-          path="admin"
-          element={<AdminLayout />}
-        // loader={async () => {
-        // check auth role
-        // const token = getCookie('accessToken')
-        // const userId = getCookie('userId')
-        // const res = await get(`/users/${getCookie("userId")}`);
-        // if (!token || userId && res?.data?.role === 'admin') return redirect('/')
-        // return null
-        // }}
-        >
-          <Route index element={<Dashboard />} />
-          <Route path="profile" element={<ProfilePage />} />
-          <Route path="change-password" element={<ChangePasswordPage />} />
-          
-          {/* Route cho sản phẩm */}
+      <Route errorElement={<ErrorBoundary />}>
+        <Route>
+          <Route path="/login" element={<LoginPage />} />
           <Route
-            path="product"
-            element={
-              <TableManage 
-                url="/products" 
-                isShowFooter={true}
-                title="Quản lý sản phẩm"
-                addButtonText="Thêm sản phẩm mới"
-                addPath="/admin/product/add"
-                editPath="/admin/product/edit"
-                columns={[
-                  { key: "name", header: "Tên sản phẩm", render: (item) => (
-                    <span className="font-medium text-gray-900">{item?.name || "Không có tên"}</span>
-                  )},
-                  { key: "img", header: "Hình ảnh", render: (item) => (
-                    <div className="w-16 h-16 overflow-hidden rounded-md bg-gray-100 flex items-center justify-center">
-                      <img
-                        src={item?.img || "https://via.placeholder.com/64x64?text=No+Image"}
-                        alt={item?.name || "Product image"}
-                        className="object-cover w-full h-full"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = 'https://via.placeholder.com/64x64?text=No+Image';
-                        }}
-                      />
-                    </div>
-                  )},
-                  { key: "price", header: "Giá", render: (item) => (
-                    <span className="font-medium">
-                      {typeof item?.price === 'number'
-                        ? item.price.toLocaleString('vi-VN') + '₫'
-                        : item?.price || "Chưa có giá"}
-                    </span>
-                  )}
-                ]}
-                filterOptions={{ showCategoryFilter: true }}
-              />
-            }
+            path="/register"
+            loader={() => null}
+            element={<RegisterPage />}
           />
-          <Route path="product/:id" element={<DetailPage />} />
-          <Route path="product/edit/:id" element={<EditProductPage />} />
-          <Route path="product/add" element={<AddProductPage />} />
-          
-          {/* Route cho danh mục */}
           <Route
-            path="category"
-            element={
-              <TableManage 
-                url="/categories" 
-                isShowFooter={true}
-                title="Quản lý danh mục"
-                addButtonText="Thêm danh mục mới"
-                addPath="/admin/category/add"
-                editPath="/admin/category/edit"
-                columns={[
-                  { key: "name", header: "Tên danh mục", render: (item) => (
-                    <span className="font-medium text-gray-900">{item?.name || "Không có tên"}</span>
-                  )},
-                  { key: "description", header: "Mô tả", render: (item) => (
-                    <span>{item?.description || "Không có mô tả"}</span>
-                  )}
-                ]}
-                filterOptions={{ showCategoryFilter: false }}
-              />
-            }
-          />
-          <Route path="category/:id" element={<DetailPage />} />
-          <Route path="category/edit/:id" element={<EditCategoryPage />} />
-          <Route path="category/add" element={<AddCategoryPage />} />
-          
-          {/* Route cho người dùng */}
+            path="/"
+            element={<ClientLayout />}
+            loader={() => {
+              // const token = getCookie("accessToken");
+              // if (!token) return redirect("/login");
+              return null;
+            }}
+          >
+            <Route index element={<HomePage />} />
+            <Route path="/product" element={<ProductsList />} />
+            <Route path="/product/:id" element={<DetailPage />} />
+            <Route path="/404" element={<NotFoundPage />} />
+            <Route path="/cart" element={<Cart />} />
+            <Route path="/checkout" element={<Checkout />} />
+          </Route>
           <Route
-            path="user"
-            element={<UserManagement />}
-          />
-          <Route path="user/add" element={<AddUserPage />} />
-          <Route path="user/edit/:id" element={<EditUserPage />} />
+            path="admin"
+            element={<AdminLayout />}
+          // loader={async () => {
+          // check auth role
+          // const token = getCookie('accessToken')
+          // const userId = getCookie('userId')
+          // const res = await get(`/users/${getCookie("userId")}`);
+          // if (!token || userId && res?.data?.role === 'admin') return redirect('/')
+          // return null
+          // }}
+          >
+            <Route index element={<Dashboard />} />
+            <Route path="profile" element={<ProfilePage />} />
+            <Route path="change-password" element={<ChangePasswordPage />} />
+            
+            {/* Route cho sản phẩm */}
+            <Route
+              path="product"
+              element={
+                <TableManage 
+                  url="/products" 
+                  isShowFooter={true}
+                  title="Quản lý sản phẩm"
+                  addButtonText="Thêm sản phẩm mới"
+                  addPath="/admin/product/add"
+                  editPath="/admin/product/edit"
+                  columns={[
+                    { key: "name", header: "Tên sản phẩm", render: (item) => (
+                      <span className="font-medium text-gray-900">{item?.name || "Không có tên"}</span>
+                    )},
+                    { key: "img", header: "Hình ảnh", render: (item) => (
+                      <div className="w-16 h-16 overflow-hidden rounded-md bg-gray-100 flex items-center justify-center">
+                        <img
+                          src={item?.img || "https://via.placeholder.com/64x64?text=No+Image"}
+                          alt={item?.name || "Product image"}
+                          className="object-cover w-full h-full"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = 'https://via.placeholder.com/64x64?text=No+Image';
+                          }}
+                        />
+                      </div>
+                    )},
+                    { key: "price", header: "Giá", render: (item) => (
+                      <span className="font-medium">
+                        {typeof item?.price === 'number'
+                          ? item.price.toLocaleString('vi-VN') + '₫'
+                          : item?.price || "Chưa có giá"}
+                      </span>
+                    )},
+                    // Thêm column cho danh mục
+                    { key: "category", header: "Danh mục", render: (item) => (
+                      <span className="text-gray-600">
+                        {item?.category?.name || "Không có danh mục"}
+                      </span>
+                    )}
+                  ]}
+                  filterOptions={{ showCategoryFilter: true }}
+                />
+              }
+            />
+            <Route path="product/:id" element={<DetailPage />} />
+            <Route path="product/edit/:id" element={<EditProductPage />} />
+            <Route path="product/add" element={<AddProductPage />} />
+            
+            {/* Route cho danh mục */}
+            <Route
+              path="category"
+              element={
+                <TableManage 
+                  url="/categories" 
+                  isShowFooter={true}
+                  title="Quản lý danh mục"
+                  addButtonText="Thêm danh mục mới"
+                  addPath="/admin/category/add"
+                  editPath="/admin/category/edit"
+                  columns={[
+                    { key: "name", header: "Tên danh mục", render: (item) => (
+                      <span className="font-medium text-gray-900">{item?.name || "Không có tên"}</span>
+                    )},
+                    { key: "description", header: "Mô tả", render: (item) => (
+                      <span>{item?.description || "Không có mô tả"}</span>
+                    )}
+                  ]}
+                  filterOptions={{ showCategoryFilter: false }}
+                />
+              }
+            />
+            <Route path="category/:id" element={<DetailPage />} />
+            <Route path="category/edit/:id" element={<EditCategoryPage />} />
+            <Route path="category/add" element={<AddCategoryPage />} />
+            
+            {/* Route cho người dùng */}
+            <Route
+              path="user"
+              element={<UserManagement />}
+            />
+            <Route path="user/add" element={<AddUserPage />} />
+            <Route path="user/edit/:id" element={<EditUserPage />} />
+          </Route>
         </Route>
       </Route>
     )

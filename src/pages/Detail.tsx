@@ -1,64 +1,114 @@
-import React from "react";
+import { faAngleRight, faCartPlus } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useQuery } from "@tanstack/react-query";
+import React, { useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
+import { toast } from "react-toastify";
+import { get } from "services/api";
 
 const DetailPage = () => {
   const { id } = useParams();
-  // const dataDetail = useGetQuery("/comments/2");
-  // console.log("dataDetail", dataDetail);
+  
+  const { data: productData, isLoading } = useQuery({
+    queryKey: [`/products/${id}`],
+    queryFn: () => get(`/products/${id}`),
+    staleTime: 60000,
+    enabled: !!id
+  });
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const product = productData?.data?.result?.data || {};
+
+  useEffect(() => {
+    if (product) {
+      console.log('Product data:', product);
+    }
+  }, [product]);
+
+  const handleAddToCart = () => {
+    // Add to cart logic here
+    toast.success(`Đã thêm ${product.name} vào giỏ hàng!`);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center py-20">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex gap-[60px]">
-      <div className="w-[60%] text-left">
-        <img
-          className="w-full max-w-[730px] max-h-[400px] object-cover mb-[24px]"
-          src="https://preview.colorlib.com/theme/elen/images/image_1.jpg.webp"
-          alt="#"
-        />
-        <Link to="#" className="text-[12px] text-[#f05d23]">
-          TECHNOLOGY
-        </Link>
-        <div className="text-[28px] mb-[24px] mt-[4px] font-bold">
-          The Newest Technology On This Year 2019 The {id}
-        </div>
-        <div className="text-[#999999] mb-4">
-          Even the all-powerful Pointing has no control about the blind texts it
-          is an almost unorthographic life One day however a small line of blind
-          text by the name of Lorem Ipsum decided to leave for the far World of
-          Grammar.
-        </div>
-        <div className="relative">
-          <div className="flex gap-[20px] align-bottom">
+    <div className="container mx-auto px-4 py-8">
+      {/* Breadcrumb */}
+      <div className="text-left mb-8">
+        <Link to="/" className="hover:text-primary transition-colors">Trang chủ</Link>
+        <FontAwesomeIcon icon={faAngleRight} className="mx-2" />
+        <Link to="/product" className="hover:text-primary transition-colors">Sản phẩm</Link>
+        <FontAwesomeIcon icon={faAngleRight} className="mx-2" />
+        <span className="font-medium">{product.name || "Chi tiết sản phẩm"}</span>
+      </div>
+
+      <div className="flex flex-col md:flex-row gap-8">
+        {/* Product Image */}
+        <div className="md:w-1/2">
+          <div className="bg-gray-100 rounded-lg overflow-hidden">
             <img
-              className="w-[60px] h-[60px] rounded-[50%]"
-              src="https://preview.colorlib.com/theme/elen/images/person_1.jpg.webp"
-              alt="#"
+              src={product.img || "https://via.placeholder.com/600x400?text=No+Image"}
+              alt={product.name || "Product image"}
+              className="w-full h-auto object-cover"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = 'https://via.placeholder.com/600x400?text=No+Image';
+              }}
             />
-            <div className="mt-[20px]">
-              <div>Written by</div>
-              <div>
-                <Link
-                  to="#"
-                  className="font-bold text-[18px] border-b-[1px] border-[#000000]"
-                >
-                  Dave Lewis
-                </Link>
-                , <span>Nov 28, 2018</span>
-              </div>
+          </div>
+        </div>
+
+        {/* Product Info */}
+        <div className="md:w-1/2 text-left">
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">{product.name}</h1>
+          
+          {product.categoryId && (
+            <div className="mb-4">
+              <span className="text-sm font-medium text-primary px-3 py-1 bg-blue-50 rounded-full">
+                {product.category?.name || "Danh mục"}
+              </span>
+            </div>
+          )}
+          
+          <div className="text-2xl font-bold text-gray-900 mb-6">
+            {typeof product.price === 'number' 
+              ? product.price.toLocaleString('vi-VN') + '₫' 
+              : product.price || "Liên hệ"}
+          </div>
+          
+          <div className="mb-6">
+            <h3 className="text-lg font-medium mb-2">Mô tả sản phẩm:</h3>
+            <p className="text-gray-600 leading-relaxed">
+              {product.description || "Chưa có mô tả cho sản phẩm này."}
+            </p>
+          </div>
+          
+          <div className="mb-6">
+            <h3 className="text-lg font-medium mb-2">Thông tin thêm:</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="text-gray-600">SKU:</div>
+              <div>{product.sku || "N/A"}</div>
+              
+              <div className="text-gray-600">Số lượng trong kho:</div>
+              <div>{product.quantity !== undefined ? product.quantity : "N/A"}</div>
             </div>
           </div>
-          <div className="absolute bottom-0 right-0 flex gap-[20px]">
-            <span className="flex gap-[10px]">
-              {/* <FontAwesomeIcon icon={faHeart} />3 */}
-            </span>
-            <span className="flex gap-[10px]">
-              {/* <FontAwesomeIcon icon={faEye} />3 */}
-            </span>
-            <span className="flex gap-[10px]">
-              {/* <FontAwesomeIcon icon={faComment} />3 */}
-            </span>
-          </div>
+          
+          <button 
+            onClick={handleAddToCart}
+            className="w-full bg-primary text-white py-3 px-6 rounded-md hover:bg-blue-700 transition-colors font-medium flex items-center justify-center"
+          >
+            <FontAwesomeIcon icon={faCartPlus} className="mr-2" />
+            Thêm vào giỏ hàng
+          </button>
         </div>
       </div>
-      {/* <CommercialComponent /> */}
     </div>
   );
 };

@@ -1,14 +1,16 @@
 import { faAngleRight, faMinus, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useQuery } from '@tanstack/react-query';
+import { getCookie } from 'libs/getCookie';
 import React, { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { get, put, remove } from 'services/api';
 
 function Cart() {
   const url = '/shoppingcart/customer';
-  const userId = '11033333'; // Thay bằng ID người dùng thực tế hoặc lấy từ context
+  const userId = getCookie('userId');
+  const navigate = useNavigate();
 
   const [cartItems, setCartItems] = useState<any[]>([]);
   const [isCheckedAll, setCheckedAll] = useState(false);
@@ -34,13 +36,12 @@ function Cart() {
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: [url, userId],
-    queryFn: () => get(`/shoppingcart/customer/${userId}`)
+    queryFn: () => get(`${url}/${userId}`)
   });
 
   // Cập nhật số lượng sản phẩm
   const updateQuantity = async (itemId: string, newQuantity: number, index: number) => {
     if (newQuantity < 1) return;
-    
     try {
       setIsUpdating(true);
       // Cập nhật UI trước để tạo trải nghiệm mượt mà
@@ -53,7 +54,6 @@ function Cart() {
 
       // Gọi API để cập nhật số lượng
       await put(`/shoppingcart/edit/${itemId}`, { quantity: newQuantity });
-      
       // Refresh dữ liệu sau khi cập nhật
       refetch();
     } catch (error) {
@@ -159,11 +159,27 @@ function Cart() {
     );
   }
 
+  // Thêm hàm xử lý chuyển đến trang thanh toán
+  const handleCheckout = () => {
+    const selectedItems = cartItems.filter((_, index) => checkedItems[index]);
+    
+    if (selectedItems.length === 0) {
+      toast.error('Vui lòng chọn ít nhất một sản phẩm');
+      return;
+    }
+    
+    // Lưu các sản phẩm đã chọn vào localStorage để sử dụng ở trang thanh toán
+    localStorage.setItem('checkoutItems', JSON.stringify(selectedItems));
+    
+    // Chuyển hướng đến trang thanh toán
+    navigate('/checkout');
+  };
+
   return (
     <div className='container py-[40px] min-h-[calc(100vh-175px)]'>
       <div className="subtitle text-left mb-6">
-        <Link to="/" className="hover:text-primary transition-colors">Trang chủ</Link> 
-        <FontAwesomeIcon icon={faAngleRight} className="mx-2" /> 
+        <Link to="/" className="hover:text-primary transition-colors">Trang chủ</Link>
+        <FontAwesomeIcon icon={faAngleRight} className="mx-2" />
         <span className="font-medium">Giỏ hàng</span>
       </div>
       
@@ -228,9 +244,9 @@ function Cart() {
                       <td className="px-6 py-4">
                         <div className="flex items-center">
                           <div className="flex-shrink-0 w-20 h-20 mr-4">
-                            <img 
-                              src={item?.product?.img || 'https://via.placeholder.com/80'} 
-                              alt={item?.product?.name} 
+                            <img
+                              src={item?.product?.img || 'https://via.placeholder.com/80'}
+                              alt={item?.product?.name}
                               className="w-full h-full object-cover rounded-md"
                             />
                           </div>
@@ -246,7 +262,7 @@ function Cart() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-center">
-                          <button 
+                          <button
                             className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-l-md hover:bg-gray-100 transition-colors"
                             onClick={() => updateQuantity(item.id, quantity - 1, index)}
                             disabled={isUpdating || quantity <= 1}
@@ -259,7 +275,7 @@ function Cart() {
                             readOnly
                             className="w-12 h-8 border-t border-b border-gray-300 text-center focus:outline-none"
                           />
-                          <button 
+                          <button
                             className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-r-md hover:bg-gray-100 transition-colors"
                             onClick={() => updateQuantity(item.id, quantity + 1, index)}
                             disabled={isUpdating}
@@ -275,7 +291,7 @@ function Cart() {
                         {formatCurrency(itemTotal)}
                       </td>
                       <td className="px-6 py-4 text-center">
-                        <button 
+                        <button
                           className="text-red-500 hover:text-red-700 transition-colors"
                           onClick={() => removeItem(item.id)}
                           disabled={isUpdating}
@@ -306,7 +322,7 @@ function Cart() {
                       placeholder="Nhập mã giảm giá"
                       className="flex-1 border border-gray-300 rounded-l-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
                     />
-                    <button 
+                    <button
                       onClick={applyPromoCode}
                       className="bg-primary text-white px-4 py-2 rounded-r-md hover:bg-blue-700 transition-colors"
                     >
@@ -402,14 +418,7 @@ function Cart() {
               <button 
                 className='btn-primary w-full mt-4 py-3 rounded-md font-medium disabled:bg-gray-400 disabled:cursor-not-allowed'
                 disabled={checkedItems.filter(Boolean).length === 0}
-                onClick={() => {
-                  if (checkedItems.filter(Boolean).length === 0) {
-                    toast.error('Vui lòng chọn ít nhất một sản phẩm');
-                    return;
-                  }
-                  // Xử lý thanh toán ở đây
-                  toast.success('Chuyển đến trang thanh toán');
-                }}
+                onClick={handleCheckout}
               >
                 Tiến hành thanh toán
               </button>
