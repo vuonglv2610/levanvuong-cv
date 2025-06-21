@@ -16,6 +16,10 @@ const navbarAdminConfig = [
     title: "User management",
   },
   {
+    href: "/admin/inventory",
+    title: "Inventory management",
+  },
+  {
     href: "/",
     title: "Client site",
   },

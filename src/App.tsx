@@ -29,8 +29,11 @@ import RegisterPage from "./pages/RegisterPage";
 // import "./src/fontawasome.js";
 
 // Thêm import cho các trang quản lý người dùng
+import AddInventoryReceipt from "pages/admin/AddInventoryReceipt";
 import AddUserPage from "pages/admin/AddUserPage";
+import EditInventoryReceipt from "pages/admin/EditInventoryReceipt";
 import EditUserPage from "pages/admin/EditUserPage";
+import InventoryManagement from "pages/admin/InventoryManagement";
 import UserManagement from "pages/admin/UserManagement";
 import Checkout from "pages/Checkout";
 import { ErrorBoundary } from "./components/ErrorBoundary";
@@ -163,6 +166,12 @@ function App() {
             />
             <Route path="user/add" element={<AddUserPage />} />
             <Route path="user/edit/:id" element={<EditUserPage />} />
+            <Route
+              path="inventory"
+              element={<InventoryManagement />}
+            />
+            <Route path="inventory/add" element={<AddInventoryReceipt />} />
+            <Route path="inventory/edit/:id" element={<EditInventoryReceipt />} />
           </Route>
         </Route>
       </Route>
@@ -191,3 +200,10 @@ function App() {
 }
 
 export default App;
+
+
+
+
+
+
+
