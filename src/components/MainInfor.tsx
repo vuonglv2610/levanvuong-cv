@@ -1,6 +1,6 @@
 import ProductList from "layouts/ProductList";
 import React from "react";
-import NavBar from "../layouts/NavBar";
+import NavBar from "../layouts/Navbar";
 
 const MainInfor = () => {
   return (
