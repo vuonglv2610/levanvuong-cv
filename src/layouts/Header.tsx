@@ -39,11 +39,12 @@ function Header() {
     <div className="bg-white">
       <div className='header-container grid grid-cols-4 gap-[40px] items-center p-4 container'>
         <div className="logo max-w-[200px]">
-          <img src="https://cdn2.fptshop.com.vn/unsafe/360x0/filters:quality(100)/small/fptshop_logo_c5ac91ae46.png" alt="#" />
+          <img src="https://res-console.cloudinary.com/dkiw9eaeh/media_explorer_thumbnails/1d21c353bc001bcaec606c1da043dbb2/detailed" width={50} height={50} alt="#" />
         </div>
         <form className="form-header-category max-w-sm h-[45px]">
           <select className="bg-gray-50 border border-gray-300 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 h-full">
-            <option value="US">United States</option>
+           {/* todo: Lấy danh sách categories từ API */}
+            <option value="US">Tất cả</option>
             <option value="CA">Canada</option>
             <option value="FR">France</option>
             <option value="DE">Germany</option>

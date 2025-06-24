@@ -14,7 +14,15 @@ const EditBrandPage = () => {
         staleTime: 60000
     });
     
-    const brandData = dataBrand?.data?.result?.data || {};
+    // Thử nhiều cấu trúc dữ liệu có thể có
+    const brandData = dataBrand?.data?.result?.data ||
+                     dataBrand?.data?.data ||
+                     dataBrand?.data ||
+                     {};
+
+    // Debug log để kiểm tra dữ liệu
+    console.log('Raw API response:', dataBrand);
+    console.log('Extracted brand data:', brandData);
     
     const formFields = [
         {
@@ -42,13 +50,18 @@ const EditBrandPage = () => {
     ];
     
     const handleSubmit = async (data: any) => {
+        console.log('Form data received:', data);
+        console.log('Brand data from API:', brandData);
+
         const dataUpdate = {
-            name: data.name,
-            description: data.description,
-            logo: data.logo || brandData.logo
+            name: data.name || brandData.name,
+            description: data.description || brandData.description || null,
+            logo: data.logo || brandData.logo || null
         };
-        
-        return await put(`/brands/edit/${params?.id}`, dataUpdate);
+
+        console.log('Data to be sent:', dataUpdate);
+
+        return await put(`/brands/${params?.id}`, dataUpdate);
     };
     
     if (isLoading) {
@@ -64,9 +77,9 @@ const EditBrandPage = () => {
             title="Chỉnh sửa thương hiệu"
             fields={formFields}
             initialValues={{
-                name: brandData.name || "",
-                description: brandData.description || "",
-                logo: brandData.logo || ""
+                name: brandData?.name || "",
+                description: brandData?.description || "",
+                logo: brandData?.logo || ""
             }}
             onSubmit={handleSubmit}
             backUrl="/admin/brand"

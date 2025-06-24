@@ -7,16 +7,28 @@ import FormComponent from '../../components/Form';
 const AddProductPage = () => {
     const navigate = useNavigate();
     
-    const { data, isLoading: loadingCategories } = useQuery({ 
-        queryKey: ['/categories'], 
+    const { data, isLoading: loadingCategories } = useQuery({
+        queryKey: ['/categories'],
         queryFn: () => get('/categories'),
         staleTime: 60000
     });
-    
+
+    const { data: brandsData, isLoading: loadingBrands } = useQuery({
+        queryKey: ['/brands'],
+        queryFn: () => get('/brands'),
+        staleTime: 60000
+    });
+
     const categories = data?.data?.result?.data || [];
     const categoryOptions = categories.map((cat: any) => ({
         value: cat.id,
         label: cat.name
+    }));
+
+    const brands = brandsData?.data?.result?.data || [];
+    const brandOptions = brands.map((brand: any) => ({
+        value: brand.id,
+        label: brand.name
     }));
     
     const formFields = [
@@ -52,17 +64,6 @@ const AddProductPage = () => {
             }
         },
         {
-            name: "quantity",
-            label: "Số lượng",
-            type: "number" as const,
-            required: true,
-            placeholder: "Nhập số lượng",
-            validation: {
-                required: "Vui lòng nhập số lượng",
-                min: { value: 0, message: "Số lượng không được âm" }
-            }
-        },
-        {
             name: "category",
             label: "Danh mục",
             type: "select" as const,
@@ -70,6 +71,16 @@ const AddProductPage = () => {
             options: categoryOptions,
             validation: {
                 required: "Vui lòng chọn danh mục"
+            }
+        },
+        {
+            name: "brand",
+            label: "Thương hiệu",
+            type: "select" as const,
+            required: true,
+            options: brandOptions,
+            validation: {
+                required: "Vui lòng chọn thương hiệu"
             }
         },
         {
@@ -92,15 +103,15 @@ const AddProductPage = () => {
             name: data.name,
             price: Number(data.price),
             img: data.img || null,
-            quantity: Number(data.quantity),
             description: data.description,
-            categoryId: data.category
+            categoryId: data.category,
+            brandId: data.brand
         };
-        
+
         return await post('/products', dataAddNew);
     };
     
-    if (loadingCategories) {
+    if (loadingCategories || loadingBrands) {
         return (
             <div className="flex justify-center items-center p-10">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
@@ -119,8 +130,7 @@ const AddProductPage = () => {
             redirectAfterSubmit="/admin/product"
             transformBeforeSubmit={(data) => ({
                 ...data,
-                price: Number(data.price),
-                quantity: Number(data.quantity)
+                price: Number(data.price)
             })}
         />
     );

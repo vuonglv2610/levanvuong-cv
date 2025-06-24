@@ -14,18 +14,30 @@ const EditProductPage = () => {
         staleTime: 60000
     });
     
-    const { data: dataCate, isLoading: loadingCategories } = useQuery({ 
-        queryKey: ['/categories'], 
+    const { data: dataCate, isLoading: loadingCategories } = useQuery({
+        queryKey: ['/categories'],
         queryFn: () => get('/categories'),
         staleTime: 60000
     });
-    
+
+    const { data: dataBrands, isLoading: loadingBrands } = useQuery({
+        queryKey: ['/brands'],
+        queryFn: () => get('/brands'),
+        staleTime: 60000
+    });
+
     const productData = dataProduct?.data?.result?.data || {};
     const categories = dataCate?.data?.result?.data || [];
-    
+    const brands = dataBrands?.data?.result?.data || [];
+
     const categoryOptions = categories.map((cat: any) => ({
         value: cat.id,
         label: cat.name
+    }));
+
+    const brandOptions = brands.map((brand: any) => ({
+        value: brand.id,
+        label: brand.name
     }));
     
     const formFields = [
@@ -61,17 +73,6 @@ const EditProductPage = () => {
             }
         },
         {
-            name: "quantity",
-            label: "Số lượng",
-            type: "number" as const,
-            required: true,
-            placeholder: "Nhập số lượng",
-            validation: {
-                required: "Vui lòng nhập số lượng",
-                min: { value: 0, message: "Số lượng không được âm" }
-            }
-        },
-        {
             name: "category",
             label: "Danh mục",
             type: "select" as const,
@@ -79,6 +80,16 @@ const EditProductPage = () => {
             options: categoryOptions,
             validation: {
                 required: "Vui lòng chọn danh mục"
+            }
+        },
+        {
+            name: "brand",
+            label: "Thương hiệu",
+            type: "select" as const,
+            required: true,
+            options: brandOptions,
+            validation: {
+                required: "Vui lòng chọn thương hiệu"
             }
         },
         {
@@ -101,15 +112,15 @@ const EditProductPage = () => {
             name: data.name,
             price: Number(data.price),
             img: data.img || null,
-            quantity: Number(data.quantity),
             description: data.description,
-            categoryId: data.category
+            categoryId: data.category,
+            brandId: data.brand
         };
-        
+
         return await put(`/products/edit/${params?.id}`, dataUpdate);
     };
     
-    if (loadingProduct || loadingCategories) {
+    if (loadingProduct || loadingCategories || loadingBrands) {
         return (
             <div className="flex justify-center items-center p-10">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
@@ -125,9 +136,9 @@ const EditProductPage = () => {
                 sku: productData.sku || "",
                 name: productData.name || "",
                 price: productData.price || 0,
-                quantity: productData.quantity || 0,
                 description: productData.description || "",
                 category: productData.categoryId || "",
+                brand: productData.brandId || "",
                 img: productData.img || ""
             }}
             onSubmit={handleSubmit}
@@ -137,8 +148,7 @@ const EditProductPage = () => {
             redirectAfterSubmit="/admin/product"
             transformBeforeSubmit={(data) => ({
                 ...data,
-                price: Number(data.price),
-                quantity: Number(data.quantity)
+                price: Number(data.price)
             })}
         />
     );

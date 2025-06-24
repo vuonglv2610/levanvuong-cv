@@ -48,8 +48,71 @@ const AdminLayout = () => {
   // Lấy tiêu đề trang từ đường dẫn hiện tại
   const getPageTitle = () => {
     const currentPath = location.pathname;
+
+    // Kiểm tra exact match trước
     const currentPage = navbarAdminConfig.find(item => item.href === currentPath);
-    return currentPage?.title || "Dashboard";
+    if (currentPage) {
+      return currentPage.title;
+    }
+
+    // Xử lý các trang con (add, edit, etc.)
+    if (currentPath.includes('/admin/product/add')) {
+      return 'Thêm sản phẩm mới';
+    }
+    if (currentPath.includes('/admin/product/edit/')) {
+      return 'Chỉnh sửa sản phẩm';
+    }
+    if (currentPath.includes('/admin/category/add')) {
+      return 'Thêm danh mục mới';
+    }
+    if (currentPath.includes('/admin/category/edit/')) {
+      return 'Chỉnh sửa danh mục';
+    }
+    if (currentPath.includes('/admin/brand/add')) {
+      return 'Thêm thương hiệu mới';
+    }
+    if (currentPath.includes('/admin/brand/edit/')) {
+      return 'Chỉnh sửa thương hiệu';
+    }
+    if (currentPath.includes('/admin/user/add')) {
+      return 'Thêm người dùng mới';
+    }
+    if (currentPath.includes('/admin/user/edit/')) {
+      return 'Chỉnh sửa người dùng';
+    }
+    if (currentPath.includes('/admin/inventory/add')) {
+      return 'Thêm phiếu nhập kho';
+    }
+    if (currentPath.includes('/admin/inventory/edit/')) {
+      return 'Chỉnh sửa phiếu nhập kho';
+    }
+    if (currentPath.includes('/admin/profile')) {
+      return 'Thông tin cá nhân';
+    }
+
+    // Xử lý các trang chính dựa trên path segment
+    if (currentPath.startsWith('/admin/product')) {
+      return 'Quản lý sản phẩm';
+    }
+    if (currentPath.startsWith('/admin/category')) {
+      return 'Quản lý danh mục';
+    }
+    if (currentPath.startsWith('/admin/brand')) {
+      return 'Quản lý thương hiệu';
+    }
+    if (currentPath.startsWith('/admin/user')) {
+      return 'Quản lý người dùng';
+    }
+    if (currentPath.startsWith('/admin/inventory')) {
+      return 'Quản lý kho hàng';
+    }
+
+    // Default cho trang admin chính
+    if (currentPath === '/admin' || currentPath === '/admin/') {
+      return 'Trang chủ Admin';
+    }
+
+    return "Dashboard";
   };
 
   return (
@@ -65,7 +128,7 @@ const AdminLayout = () => {
                   <Link to="/admin" className="flex items-center">
                     <img
                       className="h-8 w-auto"
-                      src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=500"
+                      src="https://res-console.cloudinary.com/dkiw9eaeh/media_explorer_thumbnails/1d21c353bc001bcaec606c1da043dbb2/detailed"
                       alt="Admin Dashboard"
                     />
                   </Link>

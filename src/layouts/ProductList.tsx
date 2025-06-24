@@ -138,70 +138,104 @@ const ProductList = () => {
         <div className="bg-white">
             <div className="container mx-auto px-4 py-12 sm:py-16">
                 <h2 id="products-heading" className="text-2xl font-bold text-gray-900 mb-8">Sản phẩm nổi bật</h2>
-                
                 {/* Products Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                     {currentProducts.map((product, index) => (
-                        <div key={product.id || index} className="group relative">
-                            <div className="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-lg bg-gray-100 transition-all duration-300 group-hover:opacity-90">
+                        <div key={product.id || index} className="group relative bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 hover:border-gray-200 flex flex-col h-full">
+                            {/* Image Container */}
+                            <div className="relative overflow-hidden">
                                 <Link to={`/product/${product.id}`}>
-                                    <img 
-                                        src={product.img || 'https://via.placeholder.com/300x300?text=No+Image'} 
-                                        alt={product.name || 'Product image'} 
-                                        className="h-60 w-full object-cover object-center"
-                                        onError={(e) => {
-                                            (e.target as HTMLImageElement).src = 'https://via.placeholder.com/300x300?text=No+Image';
-                                        }}
-                                    />
+                                    <div className="aspect-square w-full bg-gray-50 overflow-hidden">
+                                        <img
+                                            src={product.img || 'https://via.placeholder.com/300x300?text=No+Image'}
+                                            alt={product.name || 'Product image'}
+                                            className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
+                                            onError={(e) => {
+                                                (e.target as HTMLImageElement).src = 'https://via.placeholder.com/300x300?text=No+Image';
+                                            }}
+                                        />
+                                    </div>
                                 </Link>
+
+                                {/* Badges */}
+                                {product.isNew && (
+                                    <div className="absolute top-3 left-3 bg-gradient-to-r from-green-500 to-green-600 text-white text-xs font-semibold px-2.5 py-1 rounded-full shadow-lg">
+                                        Mới
+                                    </div>
+                                )}
+                                {product.discount && (
+                                    <div className="absolute top-3 right-3 bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-semibold px-2.5 py-1 rounded-full shadow-lg">
+                                        -{product.discount}%
+                                    </div>
+                                )}
+
+                                {/* Quick Add Button - Hiện khi hover */}
+                                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                                    <button
+                                        onClick={(e) => handleAddToCart(e, product)}
+                                        className="bg-white text-gray-900 px-4 py-2 rounded-lg font-medium shadow-lg hover:bg-gray-50 transition-colors transform translate-y-2 group-hover:translate-y-0 flex items-center gap-2"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                        </svg>
+                                        Thêm vào giỏ
+                                    </button>
+                                </div>
                             </div>
-                            <div className="mt-4 flex justify-between">
-                                <div>
-                                    <h3 className="text-sm font-medium text-gray-900 line-clamp-2">
-                                        <Link to={`/product/${product.id}`} className="hover:text-primary transition-colors">
+
+                            {/* Content */}
+                            <div className="p-4 flex-1 flex flex-col">
+                                {/* Product Info */}
+                                <div className="flex-1">
+                                    <h3 className="text-sm font-semibold text-gray-900 line-clamp-2 min-h-[2.5rem] leading-tight mb-2">
+                                        <Link to={`/product/${product.id}`} className="hover:text-blue-600 transition-colors">
                                             {product.name || 'Sản phẩm không tên'}
                                         </Link>
                                     </h3>
-                                    <p className="mt-1 text-sm text-gray-500 line-clamp-1">
-                                        {product.category?.name || 'Không có danh mục'}
+                                    <p className="text-xs text-gray-500 mb-3 line-clamp-1">
+                                        {product.categoryName || 'Không có danh mục'}
                                     </p>
                                 </div>
-                                <div>
-                                    <p className="text-sm font-medium text-gray-900">
-                                        {typeof product.price === 'number' 
-                                            ? product.price.toLocaleString('vi-VN') + '₫' 
-                                            : product.price || 'Liên hệ'}
-                                    </p>
-                                    {product.oldPrice && (
-                                        <p className="text-sm text-gray-500 line-through">
-                                            {typeof product.oldPrice === 'number' 
-                                                ? product.oldPrice.toLocaleString('vi-VN') + '₫' 
-                                                : product.oldPrice}
+
+                                {/* Price */}
+                                <div className="flex items-center justify-between">
+                                    <div className="flex flex-col">
+                                        <p className="text-lg font-bold text-gray-900">
+                                            {typeof product.price === 'number'
+                                                ? product.price.toLocaleString('vi-VN') + '₫'
+                                                : product.price || 'Liên hệ'}
                                         </p>
-                                    )}
+                                        {product.oldPrice && (
+                                            <p className="text-sm text-gray-400 line-through">
+                                                {typeof product.oldPrice === 'number'
+                                                    ? product.oldPrice.toLocaleString('vi-VN') + '₫'
+                                                    : product.oldPrice}
+                                            </p>
+                                        )}
+                                    </div>
+
+                                    {/* Rating Stars (placeholder) */}
+                                    <div className="flex items-center">
+                                        {[...Array(5)].map((_, i) => (
+                                            <svg key={i} className="w-3 h-3 text-yellow-400 fill-current" viewBox="0 0 20 20">
+                                                <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                                            </svg>
+                                        ))}
+                                        <span className="text-xs text-gray-500 ml-1">(4.5)</span>
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="mt-3">
-                                <button 
+
+                                {/* Add to Cart Button */}
+                                <button
                                     onClick={(e) => handleAddToCart(e, product)}
-                                    className="w-full bg-primary text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors text-sm font-medium flex items-center justify-center"
+                                    className="w-full mt-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-2.5 px-4 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
                                 >
-                                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
                                     </svg>
                                     Thêm vào giỏ
                                 </button>
                             </div>
-                            {product.isNew && (
-                                <div className="absolute top-2 left-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded">
-                                    Mới
-                                </div>
-                            )}
-                            {product.discount && (
-                                <div className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
-                                    -{product.discount}%
-                                </div>
-                            )}
                         </div>
                     ))}
                 </div>
@@ -216,6 +250,15 @@ const ProductList = () => {
                                 value={itemsPerPage}
                                 onChange={handleItemsPerPageChange}
                                 className="p-1.5 text-sm text-gray-900 border border-gray-300 rounded-md bg-white focus:ring-blue-500 focus:border-blue-500"
+                                style={{
+                                    appearance: 'none',
+                                    WebkitAppearance: 'none',
+                                    MozAppearance: 'none',
+                                    backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e")`,
+                                    backgroundRepeat: 'no-repeat',
+                                    backgroundPosition: 'right 0.5rem center',
+                                    backgroundSize: '1em'
+                                }}
                             >
                                 <option value="4">4</option>
                                 <option value="8">8</option>

@@ -1,31 +1,31 @@
 const navbarAdminConfig = [
   {
     href: "/admin",
-    title: "Home page",
+    title: "Trang chủ",
   },
   {
     href: "/admin/product",
-    title: "Product management",
+    title: "Quản lý sản phẩm",
   },
   {
     href: "/admin/category",
-    title: "Category management",
+    title: "Quản lý danh mục",
   },
   {
     href: "/admin/brand",
-    title: "Brand management",
+    title: "Quản lý thương hiệu",
   },
   {
     href: "/admin/user",
-    title: "User management",
+    title: "Quản lý người dùng",
   },
   {
     href: "/admin/inventory",
-    title: "Inventory management",
+    title: "Quản lý kho hàng",
   },
   {
     href: "/",
-    title: "Client site",
+    title: "Trang khách hàng",
   },
 ];
 

@@ -36,10 +36,19 @@ const SearchForm: React.FC<SearchFormProps> = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} className={`flex ${className}`}>
+    <form onSubmit={handleSubmit} className={`flex shadow-lg rounded-xl overflow-hidden bg-white border border-gray-200 hover:shadow-xl transition-all duration-300 ${className}`}>
       {showCategories && categories.length > 0 && (
         <select
-          className="bg-gray-50 border border-gray-300 text-sm rounded-l-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 h-full"
+          className="bg-white border-0 text-sm text-gray-700 font-medium px-4 py-3 pr-10 min-w-[140px] focus:outline-none focus:ring-0 cursor-pointer hover:bg-gray-50 transition-colors duration-200"
+          style={{
+            appearance: 'none',
+            WebkitAppearance: 'none',
+            MozAppearance: 'none',
+            backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e")`,
+            backgroundRepeat: 'no-repeat',
+            backgroundPosition: 'right 0.7rem center',
+            backgroundSize: '1em'
+          }}
           value={selectedCategory}
           onChange={(e) => setSelectedCategory(e.target.value)}
         >
@@ -51,19 +60,22 @@ const SearchForm: React.FC<SearchFormProps> = ({
           ))}
         </select>
       )}
-      <div className="relative w-full">
+      {showCategories && categories.length > 0 && (
+        <div className="w-px bg-gray-200"></div>
+      )}
+      <div className="relative flex-1">
         <input
           type="text"
-          className={`bg-gray-50 border border-gray-300 text-gray-900 text-sm ${showCategories ? 'rounded-r-lg' : 'rounded-lg'} focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 h-full`}
+          className="w-full px-4 py-3 text-gray-900 text-sm bg-white border-0 focus:outline-none focus:ring-0 placeholder-gray-500"
           placeholder={placeholder}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
         <button
           type="submit"
-          className="absolute right-2.5 bottom-1/2 transform translate-y-1/2 text-gray-500 hover:text-blue-700"
+          className="absolute right-3 top-1/2 transform -translate-y-1/2 p-2 text-gray-400 hover:text-white hover:bg-blue-600 rounded-lg transition-all duration-200 group"
         >
-          <svg className="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+          <svg className="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
             <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
           </svg>
         </button>

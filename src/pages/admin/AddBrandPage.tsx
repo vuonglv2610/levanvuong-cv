@@ -1,10 +1,11 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { post } from 'services/api';
 import FormComponent from '../../components/Form';
 
 const AddBrandPage = () => {
   const navigate = useNavigate();
-  
+
   const formFields = [
     {
       name: "name",
@@ -29,12 +30,16 @@ const AddBrandPage = () => {
       type: "image" as const
     }
   ];
-  
+
   const handleSubmit = async (data: any) => {
-    return console.log('data: ', data.logo);
-    
+    const dataAddNew = {
+      name: data.name,
+      description: data.description || null,
+      logo: data.logo || null
+    };
+    return await post('/brands', dataAddNew);
   };
-  
+
   return (
     <FormComponent
       title="Thêm thương hiệu mới"
