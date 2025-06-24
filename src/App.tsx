@@ -29,8 +29,11 @@ import RegisterPage from "./pages/RegisterPage";
 // import "./src/fontawasome.js";
 
 // Thêm import cho các trang quản lý người dùng
+import AddBrandPage from "pages/admin/AddBrandPage";
 import AddInventoryReceipt from "pages/admin/AddInventoryReceipt";
 import AddUserPage from "pages/admin/AddUserPage";
+import BrandManagement from "pages/admin/BrandManagement";
+import EditBrandPage from "pages/admin/EditBrandPage";
 import EditInventoryReceipt from "pages/admin/EditInventoryReceipt";
 import EditUserPage from "pages/admin/EditUserPage";
 import InventoryManagement from "pages/admin/InventoryManagement";
@@ -159,6 +162,11 @@ function App() {
             <Route path="category/edit/:id" element={<EditCategoryPage />} />
             <Route path="category/add" element={<AddCategoryPage />} />
             
+            {/* Route cho thương hiệu */}
+            <Route path="brand" element={<BrandManagement />} />
+            <Route path="brand/edit/:id" element={<EditBrandPage />} />
+            <Route path="brand/add" element={<AddBrandPage />} />
+            
             {/* Route cho người dùng */}
             <Route
               path="user"
@@ -200,6 +208,7 @@ function App() {
 }
 
 export default App;
+
 
 
 

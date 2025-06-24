@@ -12,6 +12,10 @@ const navbarAdminConfig = [
     title: "Category management",
   },
   {
+    href: "/admin/brand",
+    title: "Brand management",
+  },
+  {
     href: "/admin/user",
     title: "User management",
   },

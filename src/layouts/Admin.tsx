@@ -59,7 +59,7 @@ const AdminLayout = () => {
         <nav className={`bg-gray-800 sticky top-0 z-50 transition-all ${scrolled ? 'shadow-md' : ''}`}>
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="flex h-16 items-center justify-between">
-              {/* Logo và menu desktop - Đã chuyển sang bên trái */}
+              {/* Logo và menu desktop */}
               <div className="flex items-center flex-1">
                 <div className="flex-shrink-0">
                   <Link to="/admin" className="flex items-center">
@@ -70,8 +70,8 @@ const AdminLayout = () => {
                     />
                   </Link>
                 </div>
-                <div className="hidden md:block ml-10">
-                  <div className="flex items-baseline space-x-4 text-white">
+                <div className="hidden md:block ml-10 overflow-x-auto max-w-[calc(100vw-300px)]">
+                  <div className="flex items-baseline space-x-2 text-white">
                     {navbarAdminConfig.map((item, i) => (
                       <Link
                         key={i + 100}
@@ -79,7 +79,7 @@ const AdminLayout = () => {
                         className={`${location.pathname === item.href
                           ? "bg-gray-900 text-white"
                           : "text-gray-300 hover:bg-gray-700 hover:text-white"
-                          } rounded-md px-3 py-2 text-sm font-medium transition-colors duration-200`}
+                          } rounded-md px-2 py-2 text-sm font-medium transition-colors duration-200 whitespace-nowrap`}
                       >
                         {item.title}
                       </Link>
@@ -291,6 +291,7 @@ const AdminLayout = () => {
 };
 
 export default AdminLayout;
+
 
 
 
