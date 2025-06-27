@@ -17,6 +17,8 @@ interface FormField {
     min?: { value: number; message: string };
     max?: { value: number; message: string };
     pattern?: { value: RegExp; message: string };
+    minLength?: { value: number; message: string };
+    validate?: (value: any, formValues: any) => string | boolean;
   };
 }
 
@@ -50,7 +52,7 @@ const FormComponent: React.FC<FormProps> = ({
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
-  const { register, handleSubmit, formState: { errors }, reset, setValue } = useForm({
+  const { register, handleSubmit, formState: { errors }, reset, setValue, watch } = useForm({
     defaultValues: initialValues
   });
 
@@ -62,6 +64,10 @@ const FormComponent: React.FC<FormProps> = ({
       // Set image preview if available
       if (initialValues.img) {
         setImagePreview(initialValues.img);
+      } else if (initialValues.avatar) {
+        setImagePreview(initialValues.avatar);
+      } else if (initialValues.logo) {
+        setImagePreview(initialValues.logo);
       }
     }
   }, [initialValues, reset]);
@@ -82,6 +88,7 @@ const FormComponent: React.FC<FormProps> = ({
       setImagePreview(base64);
       setValue('img', base64);
       setValue('logo', base64); // Also set logo field for brands
+      setValue('avatar', base64); // Also set avatar field for users
       console.log('Image uploaded and set:', base64.substring(0, 50) + '...');
     }
   };
@@ -96,14 +103,17 @@ const FormComponent: React.FC<FormProps> = ({
       // Transform data before submitting if needed
       const submissionData = transformBeforeSubmit ? transformBeforeSubmit(data) : data;
 
-      // Handle image/logo fields
+      // Handle image/logo/avatar fields
       if (imagePreview) {
         submissionData.img = imagePreview;
         submissionData.logo = imagePreview;
+        submissionData.avatar = imagePreview;
       } else if (data.img) {
         submissionData.img = data.img;
       } else if (data.logo) {
         submissionData.logo = data.logo;
+      } else if (data.avatar) {
+        submissionData.avatar = data.avatar;
       }
 
       // Remove empty string values and replace with null
@@ -143,7 +153,8 @@ const FormComponent: React.FC<FormProps> = ({
     
     const registerOptions = {
       required: required ? validation?.required || `Vui lòng nhập ${label}` : false,
-      ...validation
+      ...validation,
+      validate: validation?.validate ? (value: any) => validation.validate!(value, watch()) : undefined
     };
 
     switch (type) {

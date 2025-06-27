@@ -1,15 +1,55 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
+import ProductQueryFilter from './ProductQueryFilter';
 import TableManage from './TableManage';
 
+interface ProductQueryParams {
+  name?: string;
+  sku?: string;
+  categoryId?: string;
+  brandId?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  sort_by?: string;
+  sort_order?: 'ASC' | 'DESC';
+}
+
 const ProductManager = () => {
+  const [queryParams, setQueryParams] = useState<ProductQueryParams>({});
+
+  // Tạo URL với query parameters
+  const apiUrl = useMemo(() => {
+    const params = new URLSearchParams();
+
+    Object.entries(queryParams).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        params.append(key, value.toString());
+      }
+    });
+
+    const queryString = params.toString();
+    const finalUrl = queryString ? `/products?${queryString}` : '/products';
+    console.log('API URL:', finalUrl);
+    return finalUrl;
+  }, [queryParams]);
+
+  const handleQueryChange = (newParams: ProductQueryParams) => {
+    console.log('Query params changed:', newParams);
+    setQueryParams(newParams);
+  };
+
   return (
-    <TableManage 
-      url="/products" 
-      isShowFooter={true}
-      title="Quản lý sản phẩm"
-      addButtonText="Thêm sản phẩm mới"
-      addPath="/admin/product/add"
-      editPath="/admin/product/edit"
+    <div>
+      <ProductQueryFilter
+        onQueryChange={handleQueryChange}
+        initialParams={queryParams}
+      />
+      <TableManage
+        url={apiUrl}
+        isShowFooter={true}
+        title="Quản lý sản phẩm"
+        addButtonText="Thêm sản phẩm mới"
+        addPath="/admin/product/add"
+        editPath="/admin/product/edit"
       columns={[
         { 
           key: "name", 
@@ -65,8 +105,9 @@ const ProductManager = () => {
           )
         }
       ]}
-      filterOptions={{ showCategoryFilter: true }}
+      filterOptions={{ showCategoryFilter: false, showSearch: false }}
     />
+    </div>
   );
 };
 

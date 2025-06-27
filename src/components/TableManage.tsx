@@ -21,6 +21,7 @@ interface TableManageProps {
   columns: Column[];
   filterOptions?: {
     showCategoryFilter?: boolean;
+    showSearch?: boolean;
     customFilters?: Array<{
       name: string;
       label: string;
@@ -39,7 +40,7 @@ const TableManage = ({
   editPath = "edit",
   deletePath = "",
   columns = [],
-  filterOptions = { showCategoryFilter: false }
+  filterOptions = { showCategoryFilter: false, showSearch: true }
 }: TableManageProps) => {
   const [items, setItems] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -90,11 +91,11 @@ const TableManage = ({
   const filteredItems = useMemo(() => {
     return items && items.length > 0
       ? items.filter(item => {
-        const matchesSearch = item?.name?.toLowerCase().includes((searchTerm || "").toLowerCase());
-        const matchesCategory = !filterOptions.showCategoryFilter || 
-                               filterCategory === "ALL" || 
+        const matchesSearch = !filterOptions.showSearch || item?.name?.toLowerCase().includes((searchTerm || "").toLowerCase());
+        const matchesCategory = !filterOptions.showCategoryFilter ||
+                               filterCategory === "ALL" ||
                                item?.category === filterCategory;
-        
+
         // Xử lý custom filters
         const matchesCustomFilters = filterOptions.customFilters
           ? filterOptions.customFilters.every(filter => {
@@ -102,11 +103,11 @@ const TableManage = ({
               return !filterValue || filterValue === "ALL" || item[filter.name] === filterValue;
             })
           : true;
-        
+
         return matchesSearch && matchesCategory && matchesCustomFilters;
       })
       : [];
-  }, [items, searchTerm, filterCategory, filterOptions.showCategoryFilter, filterOptions.customFilters, customFilterValues]);
+  }, [items, searchTerm, filterCategory, filterOptions.showCategoryFilter, filterOptions.showSearch, filterOptions.customFilters, customFilterValues]);
 
   // Tính toán tổng số trang
   const totalPages = useMemo(() => {
@@ -250,74 +251,78 @@ const TableManage = ({
       </div>
 
       {/* Search and Filter */}
-      <div className="flex flex-col md:flex-row mb-6 gap-4 md:gap-6 md:items-center">
-        {filterOptions.showCategoryFilter && (
-          <div className="md:w-1/3">
-            <label htmlFor="category-filter" className="block text-sm font-medium text-gray-700 mb-1">Danh mục</label>
-            <select
-              id="category-filter"
-              value={filterCategory}
-              onChange={(e) => {
-                setFilterCategory(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="w-full p-2.5 text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-            >
-              {categories.map((category, index) => (
-                <option key={index} value={category || ""}>{category || "Không có danh mục"}</option>
-              ))}
-            </select>
-          </div>
-        )}
-        <div className={filterOptions.showCategoryFilter ? "md:w-2/3" : "w-full"}>
-          <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">Tìm kiếm</label>
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-              <svg className="w-4 h-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
-                <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
-              </svg>
+      {(filterOptions.showCategoryFilter || filterOptions.showSearch || (filterOptions.customFilters && filterOptions.customFilters.length > 0)) && (
+        <div className="flex flex-col md:flex-row mb-6 gap-4 md:gap-6 md:items-center">
+          {filterOptions.showCategoryFilter && (
+            <div className="md:w-1/3">
+              <label htmlFor="category-filter" className="block text-sm font-medium text-gray-700 mb-1">Danh mục</label>
+              <select
+                id="category-filter"
+                value={filterCategory}
+                onChange={(e) => {
+                  setFilterCategory(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="w-full p-2.5 text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+              >
+                {categories.map((category, index) => (
+                  <option key={index} value={category || ""}>{category || "Không có danh mục"}</option>
+                ))}
+              </select>
             </div>
-            <input
-              type="text"
-              id="search"
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="block w-full p-2.5 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Tìm kiếm theo tên..."
-            />
-          </div>
-        </div>
-        {filterOptions.customFilters && filterOptions.customFilters.length > 0 && (
-          <div className="flex flex-col md:flex-row gap-4 md:items-center">
-            {filterOptions.customFilters.map((filter, index) => (
-              <div key={index} className="md:w-1/3">
-                <label htmlFor={`filter-${filter.name}`} className="block text-sm font-medium text-gray-700 mb-1">
-                  {filter.label}
-                </label>
-                <select
-                  id={`filter-${filter.name}`}
-                  value={customFilterValues[filter.name] || "ALL"}
+          )}
+          {filterOptions.showSearch && (
+            <div className={filterOptions.showCategoryFilter ? "md:w-2/3" : "w-full"}>
+              <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">Tìm kiếm</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <svg className="w-4 h-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                    <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  id="search"
+                  value={searchTerm}
                   onChange={(e) => {
-                    setCustomFilterValues({
-                      ...customFilterValues,
-                      [filter.name]: e.target.value
-                    });
+                    setSearchTerm(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="w-full p-2.5 text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  {filter.options.map((option, optIndex) => (
-                    <option key={optIndex} value={option.value}>{option.label}</option>
-                  ))}
-                </select>
+                  className="block w-full p-2.5 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Tìm kiếm theo tên..."
+                />
               </div>
-            ))}
-          </div>
-        )}
-      </div>
+            </div>
+          )}
+          {filterOptions.customFilters && filterOptions.customFilters.length > 0 && (
+            <div className="flex flex-col md:flex-row gap-4 md:items-center">
+              {filterOptions.customFilters.map((filter, index) => (
+                <div key={index} className="md:w-1/3">
+                  <label htmlFor={`filter-${filter.name}`} className="block text-sm font-medium text-gray-700 mb-1">
+                    {filter.label}
+                  </label>
+                  <select
+                    id={`filter-${filter.name}`}
+                    value={customFilterValues[filter.name] || "ALL"}
+                    onChange={(e) => {
+                      setCustomFilterValues({
+                        ...customFilterValues,
+                        [filter.name]: e.target.value
+                      });
+                      setCurrentPage(1);
+                    }}
+                    className="w-full p-2.5 text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    {filter.options.map((option, optIndex) => (
+                      <option key={optIndex} value={option.value}>{option.label}</option>
+                    ))}
+                  </select>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Add Button */}
       <div className="flex justify-end mb-6">

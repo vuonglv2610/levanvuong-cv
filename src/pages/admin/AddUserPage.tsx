@@ -65,6 +65,22 @@ const AddUserPage = () => {
       }
     },
     {
+      name: "confirmPassword",
+      label: "Xác nhận mật khẩu",
+      type: "text" as const,
+      required: true,
+      placeholder: "Nhập lại mật khẩu",
+      validation: {
+        required: "Vui lòng xác nhận mật khẩu",
+        validate: (value: string, formValues: any) => {
+          if (value !== formValues.password) {
+            return "Mật khẩu xác nhận không khớp";
+          }
+          return true;
+        }
+      }
+    },
+    {
       name: "role",
       label: "Vai trò",
       type: "select" as const,
@@ -85,17 +101,17 @@ const AddUserPage = () => {
       type: "textarea" as const,
       rows: 3,
       placeholder: "Nhập địa chỉ"
-    },
-    {
-      name: "status",
-      label: "Trạng thái",
-      type: "select" as const,
-      options: [
-        { value: "active", label: "Hoạt động" },
-        { value: "inactive", label: "Khóa" }
-      ],
-      defaultValue: "active"
     }
+    // {
+    //   name: "status",
+    //   label: "Trạng thái",
+    //   type: "select" as const,
+    //   options: [
+    //     { value: "active", label: "Hoạt động" },
+    //     { value: "inactive", label: "Khóa" }
+    //   ],
+    //   defaultValue: "active"
+    // }
   ];
   
   const handleSubmit = async (data: any) => {
@@ -108,7 +124,9 @@ const AddUserPage = () => {
       address: data.address || "",
       status: data.status || "active"
     };
-    
+
+    console.log('Data being sent to API:', dataAddNew);
+    console.log('Avatar data:', data.avatar);
     return await post('/users', dataAddNew);
   };
   
