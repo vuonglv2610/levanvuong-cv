@@ -38,12 +38,16 @@ import EditInventoryReceipt from "pages/admin/EditInventoryReceipt";
 import EditProductPage from "pages/admin/EditProductPage";
 import EditUserPage from "pages/admin/EditUserPage";
 import InventoryManagement from "pages/admin/InventoryManagement";
+import OrderManagement from "pages/admin/OrderManagement";
 import UserManagement from "pages/admin/UserManagement";
 import Checkout from "pages/Checkout";
 import SearchPage from "pages/SearchPage";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import ChangePasswordPage from "./pages/admin/ChangePasswordPage";
 import ProfilePage from "./pages/admin/ProfilePage";
+import OrdersPage from "./pages/OrdersPage";
+import UserProfilePage from "./pages/ProfilePage";
+import WishlistPage from "./pages/WishlistPage";
 
 function App() {
   const router = createBrowserRouter(
@@ -69,6 +73,9 @@ function App() {
             <Route path="/product" element={<ProductsList />} />
             <Route path="/product/:id" element={<DetailPage />} />
             <Route path="/search" element={<SearchPage />} />
+            <Route path="/profile" element={<UserProfilePage />} />
+            <Route path="/orders" element={<OrdersPage />} />
+            <Route path="/wishlist" element={<WishlistPage />} />
             <Route path="/404" element={<NotFoundPage />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/checkout" element={<Checkout />} />
@@ -134,6 +141,10 @@ function App() {
             />
             <Route path="user/add" element={<AddUserPage />} />
             <Route path="user/edit/:id" element={<EditUserPage />} />
+
+            {/* Route cho đơn hàng */}
+            <Route path="orders" element={<OrderManagement />} />
+
             <Route
               path="inventory"
               element={<InventoryManagement />}

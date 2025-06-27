@@ -103,6 +103,9 @@ const AdminLayout = () => {
     if (currentPath.startsWith('/admin/user')) {
       return 'Quản lý người dùng';
     }
+    if (currentPath.startsWith('/admin/orders')) {
+      return 'Quản lý đơn hàng';
+    }
     if (currentPath.startsWith('/admin/inventory')) {
       return 'Quản lý kho hàng';
     }

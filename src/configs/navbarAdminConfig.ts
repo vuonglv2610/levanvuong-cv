@@ -20,6 +20,10 @@ const navbarAdminConfig = [
     title: "Quản lý người dùng",
   },
   {
+    href: "/admin/orders",
+    title: "Quản lý đơn hàng",
+  },
+  {
     href: "/admin/inventory",
     title: "Quản lý kho hàng",
   },
