@@ -1,19 +1,64 @@
 import { getCookie } from 'libs/getCookie';
 import React, { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { toast } from "react-toastify";
 import { get, post } from 'services/api';
+import ProductFilter from '../components/ProductFilter';
+
+interface ProductFilterParams {
+  name?: string;
+  sku?: string;
+  categoryId?: string;
+  brandId?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  sort_by?: string;
+  sort_order?: 'ASC' | 'DESC';
+}
 
 const ProductList = () => {
+    const [searchParams] = useSearchParams();
     const [products, setProducts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(8);
 
+    // Khởi tạo filterParams từ URL search params
+    const initialFilterParams = useMemo(() => {
+        const params: ProductFilterParams = {};
+
+        if (searchParams.get('name')) params.name = searchParams.get('name')!;
+        if (searchParams.get('sku')) params.sku = searchParams.get('sku')!;
+        if (searchParams.get('categoryId')) params.categoryId = searchParams.get('categoryId')!;
+        if (searchParams.get('brandId')) params.brandId = searchParams.get('brandId')!;
+        if (searchParams.get('minPrice')) params.minPrice = Number(searchParams.get('minPrice'));
+        if (searchParams.get('maxPrice')) params.maxPrice = Number(searchParams.get('maxPrice'));
+        if (searchParams.get('sort_by')) params.sort_by = searchParams.get('sort_by')!;
+        if (searchParams.get('sort_order')) params.sort_order = searchParams.get('sort_order') as 'ASC' | 'DESC';
+
+        return params;
+    }, [searchParams]);
+
+    const [filterParams, setFilterParams] = useState<ProductFilterParams>(initialFilterParams);
+
+    // Tạo URL với query parameters
+    const apiUrl = useMemo(() => {
+        const params = new URLSearchParams();
+
+        Object.entries(filterParams).forEach(([key, value]) => {
+            if (value !== undefined && value !== null && value !== '') {
+                params.append(key, value.toString());
+            }
+        });
+
+        const queryString = params.toString();
+        return queryString ? `/products?${queryString}` : '/products';
+    }, [filterParams]);
+
     const getProducts = async () => {
         try {
             setLoading(true);
-            const data = await get('/products');
+            const data = await get(apiUrl);
             if(data?.data) {
                 setProducts(data?.data?.result?.data || []);
             }
@@ -108,12 +153,18 @@ const ProductList = () => {
         }
     }
 
+    // Handler cho filter change
+    const handleFilterChange = (newParams: ProductFilterParams) => {
+        setFilterParams(newParams);
+        setCurrentPage(1); // Reset về trang đầu khi filter thay đổi
+    };
+
     useEffect(() => {
         getProducts().then(() => {
             console.log('Products data:', products);
         });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [apiUrl]); // Thay đổi dependency từ [] thành [apiUrl]
 
     if (loading) {
         return (
@@ -138,8 +189,21 @@ const ProductList = () => {
         <div className="bg-white">
             <div className="container mx-auto px-4 py-12 sm:py-16">
                 <h2 id="products-heading" className="text-2xl font-bold text-gray-900 mb-8">Sản phẩm nổi bật</h2>
-                {/* Products Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+
+                {/* Layout with Filter and Products */}
+                <div className="lg:grid lg:grid-cols-4 lg:gap-8">
+                    {/* Filter Sidebar */}
+                    <div className="lg:col-span-1 mb-8 lg:mb-0">
+                        <ProductFilter
+                            onFilterChange={handleFilterChange}
+                            initialParams={filterParams}
+                        />
+                    </div>
+
+                    {/* Products Section */}
+                    <div className="lg:col-span-3">
+                        {/* Products Grid */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                     {currentProducts.map((product, index) => (
                         <div key={product.id || index} className="group relative bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 hover:border-gray-200 flex flex-col h-full">
                             {/* Image Container */}
@@ -311,6 +375,8 @@ const ProductList = () => {
                         </div>
                     </div>
                 )}
+                    </div>
+                </div>
             </div>
         </div>
     );

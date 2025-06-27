@@ -28,9 +28,9 @@ const SearchForm: React.FC<SearchFormProps> = ({
     } else {
       // Default behavior - navigate to search page with query params
       const params = new URLSearchParams();
-      if (searchTerm) params.append('q', searchTerm);
-      if (selectedCategory) params.append('category', selectedCategory);
-      
+      if (searchTerm) params.append('name', searchTerm);
+      if (selectedCategory) params.append('categoryId', selectedCategory);
+
       navigate(`/search?${params.toString()}`);
     }
   };

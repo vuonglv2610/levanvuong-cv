@@ -2,6 +2,7 @@ import React from "react";
 import MainInfor from "./MainInfor";
 // import { getCookie } from "libs/getCookie";
 import { useAuthProvider } from "contexts/AuthContext";
+import ProductsList from "pages/Products";
 import SwiperComponent from "./SwiperComponent";
 
 const HomePage = () => {
@@ -28,6 +29,10 @@ const HomePage = () => {
             })} */}
         {/* </div> */}
       </div>
+
+      {/* Product List with Filter */}
+      <ProductsList />
+
       {/* <Footer /> */}
     </>
   );
