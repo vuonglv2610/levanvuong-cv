@@ -1,8 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import AOS from "aos";
 import "aos/dist/aos.css";
-import AuthProvider from "contexts/AuthContext";
-import Cart from "pages/Cart";
 import React, { useEffect } from "react";
 import {
   Route,
@@ -12,20 +10,35 @@ import {
 } from "react-router-dom";
 import ScrollToTop from "react-scroll-to-top";
 import "./App.css";
+
+// Context imports
+import AuthProvider from "contexts/AuthContext";
+
+// Component imports
+import ProductManager from "components/ProductManager";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import HomePage from "./components/HomePage";
 import TableManage from "./components/TableManage";
+
+// Layout imports
 import AdminLayout from "./layouts/Admin";
 import ClientLayout from "./layouts/Client";
+
+// Page imports
+import Cart from "pages/Cart";
+import Checkout from "pages/Checkout";
+import SearchPage from "pages/SearchPage";
 import NotFoundPage from "./pages/404";
 import Dashboard from "./pages/Dashboard";
 import DetailPage from "./pages/Detail";
 import LoginPage from "./pages/Login";
+import OrdersPage from "./pages/OrdersPage";
 import ProductsList from "./pages/Products";
+import UserProfilePage from "./pages/ProfilePage";
 import RegisterPage from "./pages/RegisterPage";
-// import "./src/fontawasome.js";
+import WishlistPage from "./pages/WishlistPage";
 
-// Thêm import cho các trang quản lý người dùng
-import ProductManager from "components/ProductManager";
+// Admin page imports
 import AddBrandPage from "pages/admin/AddBrandPage";
 import AddCategoryPage from "pages/admin/AddCategoryPage";
 import AddInventoryReceipt from "pages/admin/AddInventoryReceipt";
@@ -40,14 +53,10 @@ import EditUserPage from "pages/admin/EditUserPage";
 import InventoryManagement from "pages/admin/InventoryManagement";
 import OrderManagement from "pages/admin/OrderManagement";
 import UserManagement from "pages/admin/UserManagement";
-import Checkout from "pages/Checkout";
-import SearchPage from "pages/SearchPage";
-import { ErrorBoundary } from "./components/ErrorBoundary";
 import ChangePasswordPage from "./pages/admin/ChangePasswordPage";
 import ProfilePage from "./pages/admin/ProfilePage";
-import OrdersPage from "./pages/OrdersPage";
-import UserProfilePage from "./pages/ProfilePage";
-import WishlistPage from "./pages/WishlistPage";
+
+
 
 function App() {
   const router = createBrowserRouter(

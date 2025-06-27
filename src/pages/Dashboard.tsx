@@ -248,147 +248,287 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500">
-          <div className="flex items-center">
-            <div className="flex-1">
-              <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">Tổng sản phẩm</h3>
-              <p className="text-2xl font-bold text-gray-900">{stats.totalProducts}</p>
-            </div>
-            <div className="flex-shrink-0">
-              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
-                </svg>
-              </div>
-            </div>
+    <div className="space-y-8">
+      {/* Welcome Section */}
+      <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 rounded-2xl p-8 text-white shadow-xl">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Chào mừng trở lại! 👋</h1>
+            <p className="text-blue-100 text-lg">Đây là tổng quan về hoạt động kinh doanh của bạn hôm nay</p>
           </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-green-500">
-          <div className="flex items-center">
-            <div className="flex-1">
-              <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">Tổng người dùng</h3>
-              <p className="text-2xl font-bold text-gray-900">{stats.totalUsers}</p>
-            </div>
-            <div className="flex-shrink-0">
-              <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/>
-                </svg>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-yellow-500">
-          <div className="flex items-center">
-            <div className="flex-1">
-              <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">Tổng đơn hàng</h3>
-              <p className="text-2xl font-bold text-gray-900">{stats.totalOrders}</p>
-            </div>
-            <div className="flex-shrink-0">
-              <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
-                <svg className="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                </svg>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-purple-500">
-          <div className="flex items-center">
-            <div className="flex-1">
-              <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">Tổng doanh thu</h3>
-              <p className="text-2xl font-bold text-gray-900">{formatCurrency(stats.totalRevenue)}</p>
-            </div>
-            <div className="flex-shrink-0">
-              <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
-                </svg>
-              </div>
+          <div className="hidden md:block">
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+              <div className="text-sm text-blue-100">Hôm nay</div>
+              <div className="text-2xl font-bold">{new Date().toLocaleDateString('vi-VN')}</div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Enhanced Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Products Card */}
+        <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+          <div className="flex items-center justify-between mb-4">
+            <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-3 rounded-xl">
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+              </svg>
+            </div>
+            <div className="text-right">
+              <div className="text-sm text-green-600 font-medium flex items-center">
+                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 11l5-5m0 0l5 5m-5-5v12"/>
+                </svg>
+                +12%
+              </div>
+            </div>
+          </div>
+          <div>
+            <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wide mb-1">Tổng sản phẩm</h3>
+            <p className="text-3xl font-bold text-slate-800 mb-2">{stats.totalProducts}</p>
+            <div className="w-full bg-slate-200 rounded-full h-2">
+              <div className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full" style={{width: '75%'}}></div>
+            </div>
+            <p className="text-xs text-slate-500 mt-2">75% mục tiêu tháng</p>
+          </div>
+        </div>
+
+        {/* Users Card */}
+        <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+          <div className="flex items-center justify-between mb-4">
+            <div className="bg-gradient-to-r from-green-500 to-green-600 p-3 rounded-xl">
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/>
+              </svg>
+            </div>
+            <div className="text-right">
+              <div className="text-sm text-green-600 font-medium flex items-center">
+                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 11l5-5m0 0l5 5m-5-5v12"/>
+                </svg>
+                +8%
+              </div>
+            </div>
+          </div>
+          <div>
+            <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wide mb-1">Tổng người dùng</h3>
+            <p className="text-3xl font-bold text-slate-800 mb-2">{stats.totalUsers}</p>
+            <div className="w-full bg-slate-200 rounded-full h-2">
+              <div className="bg-gradient-to-r from-green-500 to-green-600 h-2 rounded-full" style={{width: '60%'}}></div>
+            </div>
+            <p className="text-xs text-slate-500 mt-2">60% người dùng hoạt động</p>
+          </div>
+        </div>
+
+        {/* Orders Card */}
+        <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+          <div className="flex items-center justify-between mb-4">
+            <div className="bg-gradient-to-r from-yellow-500 to-orange-500 p-3 rounded-xl">
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+            </div>
+            <div className="text-right">
+              <div className="text-sm text-green-600 font-medium flex items-center">
+                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 11l5-5m0 0l5 5m-5-5v12"/>
+                </svg>
+                +15%
+              </div>
+            </div>
+          </div>
+          <div>
+            <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wide mb-1">Tổng đơn hàng</h3>
+            <p className="text-3xl font-bold text-slate-800 mb-2">{stats.totalOrders}</p>
+            <div className="w-full bg-slate-200 rounded-full h-2">
+              <div className="bg-gradient-to-r from-yellow-500 to-orange-500 h-2 rounded-full" style={{width: '85%'}}></div>
+            </div>
+            <p className="text-xs text-slate-500 mt-2">85% đơn hàng hoàn thành</p>
+          </div>
+        </div>
+
+        {/* Revenue Card */}
+        <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+          <div className="flex items-center justify-between mb-4">
+            <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-3 rounded-xl">
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
+              </svg>
+            </div>
+            <div className="text-right">
+              <div className="text-sm text-green-600 font-medium flex items-center">
+                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 11l5-5m0 0l5 5m-5-5v12"/>
+                </svg>
+                +22%
+              </div>
+            </div>
+          </div>
+          <div>
+            <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wide mb-1">Tổng doanh thu</h3>
+            <p className="text-3xl font-bold text-slate-800 mb-2">{formatCurrency(stats.totalRevenue)}</p>
+            <div className="w-full bg-slate-200 rounded-full h-2">
+              <div className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full" style={{width: '90%'}}></div>
+            </div>
+            <p className="text-xs text-slate-500 mt-2">90% mục tiêu doanh thu</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Enhanced Charts Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Revenue Chart */}
-        <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-lg font-semibold text-slate-800">Doanh thu theo tháng</h3>
+              <p className="text-sm text-slate-500">Biểu đồ doanh thu 12 tháng gần nhất</p>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="flex items-center">
+                <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                <span className="text-xs text-slate-600">Doanh thu</span>
+              </div>
+            </div>
+          </div>
           <div className="h-80">
             <Line data={revenueData} options={lineOptions} />
           </div>
         </div>
 
         {/* Sales Chart */}
-        <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-lg font-semibold text-slate-800">Đơn hàng theo tháng</h3>
+              <p className="text-sm text-slate-500">Thống kê số lượng đơn hàng</p>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="flex items-center">
+                <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                <span className="text-xs text-slate-600">Đơn hàng</span>
+              </div>
+            </div>
+          </div>
           <div className="h-80">
             <Bar data={salesData} options={barOptions} />
           </div>
         </div>
       </div>
 
-      {/* Bottom Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Enhanced Bottom Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Category Distribution */}
-        <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-lg font-semibold text-slate-800">Phân bố danh mục</h3>
+              <p className="text-sm text-slate-500">Tỷ lệ sản phẩm theo danh mục</p>
+            </div>
+          </div>
           <div className="h-80">
             <Doughnut data={categoryData} options={doughnutOptions} />
           </div>
         </div>
 
         {/* Top Products */}
-        <div className="lg:col-span-2 bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Sản phẩm bán chạy</h3>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Sản phẩm
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Đã bán
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Doanh thu
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {topProducts.map((product, index) => (
-                  <tr key={product.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0 h-8 w-8">
-                          <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
-                            <span className="text-sm font-medium text-blue-600">#{index + 1}</span>
-                          </div>
-                        </div>
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">{product.name}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{product.sales}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{formatCurrency(product.revenue)}</div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        <div className="lg:col-span-2 bg-white rounded-2xl shadow-lg p-6 border border-slate-200">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-lg font-semibold text-slate-800">Sản phẩm bán chạy</h3>
+              <p className="text-sm text-slate-500">Top 5 sản phẩm có doanh số cao nhất</p>
+            </div>
+            <div className="text-sm text-slate-500">
+              Cập nhật: {new Date().toLocaleDateString('vi-VN')}
+            </div>
+          </div>
+          <div className="space-y-4">
+            {topProducts.map((product, index) => (
+              <div key={product.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors duration-200">
+                <div className="flex items-center space-x-4">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white ${
+                    index === 0 ? 'bg-gradient-to-r from-yellow-400 to-yellow-500' :
+                    index === 1 ? 'bg-gradient-to-r from-gray-400 to-gray-500' :
+                    index === 2 ? 'bg-gradient-to-r from-orange-400 to-orange-500' :
+                    'bg-gradient-to-r from-blue-400 to-blue-500'
+                  }`}>
+                    #{index + 1}
+                  </div>
+                  <div>
+                    <div className="font-medium text-slate-800">{product.name}</div>
+                    <div className="text-sm text-slate-500">{product.sales} đã bán</div>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="font-semibold text-slate-800">{formatCurrency(product.revenue)}</div>
+                  <div className="text-sm text-green-600 font-medium">
+                    +{Math.floor(Math.random() * 20 + 5)}%
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
+
+      {/* Quick Actions */}
+      <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200">
+        <h3 className="text-lg font-semibold text-slate-800 mb-6">Thao tác nhanh</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <button
+            onClick={() => {
+              // Demo notification
+              const notification = {
+                id: Math.random().toString(36).substr(2, 9),
+                type: 'success' as const,
+                title: 'Thành công!',
+                message: 'Sản phẩm đã được thêm thành công',
+                timestamp: new Date(),
+                duration: 5000
+              };
+              console.log('Demo notification:', notification);
+            }}
+            className="flex flex-col items-center p-4 bg-blue-50 hover:bg-blue-100 rounded-xl transition-colors duration-200 group"
+          >
+            <div className="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-200">
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+              </svg>
+            </div>
+            <span className="text-sm font-medium text-slate-700">Thêm sản phẩm</span>
+          </button>
+
+          <button className="flex flex-col items-center p-4 bg-green-50 hover:bg-green-100 rounded-xl transition-colors duration-200 group">
+            <div className="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-200">
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+              </svg>
+            </div>
+            <span className="text-sm font-medium text-slate-700">Xem đơn hàng</span>
+          </button>
+
+          <button className="flex flex-col items-center p-4 bg-purple-50 hover:bg-purple-100 rounded-xl transition-colors duration-200 group">
+            <div className="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-200">
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+              </svg>
+            </div>
+            <span className="text-sm font-medium text-slate-700">Quản lý user</span>
+          </button>
+
+          <button className="flex flex-col items-center p-4 bg-orange-50 hover:bg-orange-100 rounded-xl transition-colors duration-200 group">
+            <div className="w-12 h-12 bg-orange-500 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-200">
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+              </svg>
+            </div>
+            <span className="text-sm font-medium text-slate-700">Báo cáo</span>
+          </button>
+        </div>
+      </div>
     </div>
+    // </div>
   );
 };
 
