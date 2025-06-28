@@ -105,7 +105,7 @@ const LoginPage = () => {
                 <path d="M12 16L20 24L28 16" stroke="#1435c3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
-            <h2 className="text-4xl font-extrabold mb-6">GoShop</h2>
+            <h2 className="text-4xl font-extrabold mb-6">HV Shop</h2>
             <p className="text-xl mb-8">Welcome back! Sign in to access your account and continue shopping.</p>
             <div className="space-y-4">
               <div className="flex items-center">

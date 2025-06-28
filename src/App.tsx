@@ -9,6 +9,12 @@ import {
   createRoutesFromElements
 } from "react-router-dom";
 import ScrollToTop from "react-scroll-to-top";
+
+// Swiper CSS imports
+import 'swiper/css';
+import 'swiper/css/effect-fade';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
 import "./App.css";
 
 // Context imports
@@ -33,6 +39,7 @@ import Dashboard from "./pages/Dashboard";
 import DetailPage from "./pages/Detail";
 import LoginPage from "./pages/Login";
 import OrdersPage from "./pages/OrdersPage";
+import OrderSuccessPage from "./pages/OrderSuccessPage";
 import ProductsList from "./pages/Products";
 import UserProfilePage from "./pages/ProfilePage";
 import RegisterPage from "./pages/RegisterPage";
@@ -84,6 +91,7 @@ function App() {
             <Route path="/search" element={<SearchPage />} />
             <Route path="/profile" element={<UserProfilePage />} />
             <Route path="/orders" element={<OrdersPage />} />
+            <Route path="/order-success" element={<OrderSuccessPage />} />
             <Route path="/wishlist" element={<WishlistPage />} />
             <Route path="/404" element={<NotFoundPage />} />
             <Route path="/cart" element={<Cart />} />
@@ -104,13 +112,13 @@ function App() {
             <Route index element={<Dashboard />} />
             <Route path="profile" element={<ProfilePage />} />
             <Route path="change-password" element={<ChangePasswordPage />} />
-            
+
             {/* Route cho sản phẩm */}
             <Route path="product" element={<ProductManager />} />
             <Route path="product/:id" element={<DetailPage />} />
             <Route path="product/edit/:id" element={<EditProductPage />} />
             <Route path="product/add" element={<AddProductPage />} />
-            
+
             {/* Route cho danh mục */}
             <Route
               path="category"
@@ -137,7 +145,7 @@ function App() {
             <Route path="category/:id" element={<DetailPage />} />
             <Route path="category/edit/:id" element={<EditCategoryPage />} />
             <Route path="category/add" element={<AddCategoryPage />} />
-            
+
             {/* Route cho thương hiệu */}
             <Route path="brand" element={<BrandManagement />} />
             <Route path="brand/edit/:id" element={<EditBrandPage />} />

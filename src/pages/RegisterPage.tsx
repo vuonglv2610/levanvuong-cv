@@ -42,7 +42,7 @@ const RegisterPage = () => {
                 <path d="M12 16L20 24L28 16" stroke="#1435c3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </div>
-            <h2 className="text-4xl font-extrabold mb-6">GoShop</h2>
+            <h2 className="text-4xl font-extrabold mb-6">HV Shop</h2>
             <p className="text-xl mb-8">Create an account to start shopping with us and enjoy exclusive benefits.</p>
             <div className="space-y-4">
               <div className="flex items-center">

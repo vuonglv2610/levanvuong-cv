@@ -7,31 +7,6 @@ const ProductsList = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-        <div className="container mx-auto px-4 py-16">
-          <div className="text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              Khám Phá Sản Phẩm
-            </h1>
-            <p className="text-xl text-blue-100 max-w-2xl mx-auto">
-              Tìm kiếm những sản phẩm công nghệ tốt nhất với chất lượng cao và giá cả hợp lý
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Breadcrumb */}
-      <div className="bg-white border-b">
-        <div className="container mx-auto px-4 py-4">
-          <nav className="flex items-center space-x-2 text-sm text-gray-600">
-            <a href="/" className="hover:text-blue-600 transition-colors">Trang chủ</a>
-            <span>/</span>
-            <span className="text-gray-900 font-medium">Sản phẩm</span>
-          </nav>
-        </div>
-      </div>
-
       {/* Main Content */}
       <div className="container mx-auto px-4 py-8">
         {/* Filter and Sort Bar */}
