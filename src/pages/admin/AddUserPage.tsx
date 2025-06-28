@@ -17,7 +17,7 @@ const AddUserPage = () => {
   const roles = data?.data?.result?.data || [];
   const roleOptions = roles.length > 0 
     ? roles.map((role: any) => ({
-        value: role.role_key,
+        value: role.id,
         label: role.role
       }))
     : [
@@ -119,7 +119,7 @@ const AddUserPage = () => {
       name: data.name,
       email: data.email,
       password: data.password,
-      role: data.role,
+      roleId: data.role,
       avatar: data.avatar || null,
       address: data.address || "",
       status: data.status || "active"

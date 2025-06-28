@@ -1,21 +1,12 @@
 import {
   faBars,
-  faBell,
-  faChevronDown,
-  faCog,
-  faCompress,
-  faExpand,
-  faMoon,
-  faSignOutAlt,
-  faSun,
-  faUser,
   faXmark
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import navbarAdminConfig from "configs/navbarAdminConfig";
-import { useAuthProvider } from "contexts/AuthContext";
 import React, { useEffect, useState } from "react";
-import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Link, Outlet, useLocation } from "react-router-dom";
+import AdminHeader from './AdminHeader';
 
 // Import useTheme hook
 const useTheme = () => {
@@ -48,49 +39,14 @@ const useTheme = () => {
 };
 
 const AdminLayout = () => {
-  const [toggle, setToggle] = useState<boolean>(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
-  const [scrolled, setScrolled] = useState<boolean>(false);
-  const [fullscreen, setFullscreen] = useState<boolean>(false);
 
   // Use theme context for dark mode
   const { darkMode, toggleDarkMode } = useTheme();
 
   const location = useLocation();
-  const navigate = useNavigate();
-  const auth = useAuthProvider();
-  const userInfo = auth.userInfo;
-  const logout = auth.logout;
 
-  // Xử lý hiệu ứng scroll
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 20) {
-        setScrolled(true);
-      } else {
-        setScrolled(false);
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // Xử lý đăng xuất
-  const handleLogout = () => {
-    try {
-      logout();
-    } catch (error) {
-      console.error("Error during logout:", error);
-      // Fallback manual logout
-      import('libs/getCookie').then(({ removeCookie }) => {
-        removeCookie("accessToken");
-        removeCookie("userId");
-      });
-    }
-    navigate('/login');
-  };
 
   // Lấy tiêu đề trang từ đường dẫn hiện tại
   const getPageTitle = () => {
@@ -171,6 +127,7 @@ const AdminLayout = () => {
     { href: "/admin/product", title: "Quản lý sản phẩm", icon: "faBox" },
     { href: "/admin/category", title: "Quản lý danh mục", icon: "faList" },
     { href: "/admin/brand", title: "Quản lý thương hiệu", icon: "faTags" },
+    { href: "/admin/articles", title: "Quản lý bài viết", icon: "faNewspaper" },
     { href: "/admin/user", title: "Quản lý người dùng", icon: "faUsers" },
     { href: "/admin/orders", title: "Quản lý đơn hàng", icon: "faShoppingCart" },
     { href: "/admin/inventory", title: "Quản lý kho hàng", icon: "faWarehouse" },
@@ -241,148 +198,16 @@ const AdminLayout = () => {
 
               {/* Main Content Area */}
       <div className={`flex-1 ${sidebarCollapsed ? 'ml-16' : 'ml-64'} transition-all duration-300 ease-in-out`}>
-        {/* Top Header */}
-        <header className={`${darkMode
-          ? 'bg-gray-800/80 border-gray-700'
-          : 'bg-white/80 border-slate-200'
-        } backdrop-blur-sm border-b sticky top-0 z-20 shadow-sm transition-colors duration-200`}>
-          <div className="px-6 py-4">
-            <div className="flex items-center justify-between">
-              {/* Page Title & Breadcrumb */}
-              <div className="flex items-center space-x-4">
-                <h1 className={`text-2xl font-bold ${darkMode
-                  ? 'text-white bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent'
-                  : 'text-slate-800 bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent'
-                }`}>
-                  {getPageTitle()}
-                </h1>
-              </div>
-
-              {/* Header Actions */}
-              <div className="flex items-center space-x-4">
-                {/* Enhanced Search */}
-                <div className="relative hidden md:block">
-                  <input
-                    type="text"
-                    placeholder="Tìm kiếm sản phẩm, đơn hàng, người dùng..."
-                    className={`w-80 pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${darkMode
-                      ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
-                      : 'bg-white border-slate-300 text-slate-900 placeholder-slate-500'
-                    }`}
-                    onFocus={(e) => {
-                      e.target.parentElement?.classList.add('ring-2', 'ring-blue-500');
-                    }}
-                    onBlur={(e) => {
-                      e.target.parentElement?.classList.remove('ring-2', 'ring-blue-500');
-                    }}
-                  />
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg className={`h-4 w-4 ${darkMode ? 'text-gray-400' : 'text-slate-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                    </svg>
-                  </div>
-                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-                    <kbd className={`px-2 py-1 text-xs rounded ${darkMode ? 'bg-gray-600 text-gray-300' : 'bg-slate-100 text-slate-500'}`}>
-                      Ctrl K
-                    </kbd>
-                  </div>
-                </div>
-
-                {/* Dark Mode Toggle */}
-                <button
-                  onClick={toggleDarkMode}
-                  className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 transition-colors duration-200"
-                >
-                  <FontAwesomeIcon
-                    icon={darkMode ? faSun : faMoon}
-                    className="h-4 w-4 text-slate-600"
-                  />
-                </button>
-
-                {/* Fullscreen Toggle */}
-                <button
-                  onClick={() => setFullscreen(!fullscreen)}
-                  className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 transition-colors duration-200"
-                >
-                  <FontAwesomeIcon
-                    icon={fullscreen ? faCompress : faExpand}
-                    className="h-4 w-4 text-slate-600"
-                  />
-                </button>
-
-                {/* Notifications */}
-                <div className="relative">
-                  <button className="relative p-2 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 transition-colors duration-200">
-                    <FontAwesomeIcon icon={faBell} className="h-4 w-4 text-slate-600 dark:text-slate-300" />
-                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                      3
-                    </span>
-                  </button>
-                </div>
-
-                {/* Profile Dropdown */}
-                <div className="relative">
-                  <button
-                    onClick={() => setToggle(!toggle)}
-                    className="flex items-center space-x-3 p-2 rounded-lg hover:bg-slate-100 transition-colors duration-200"
-                  >
-                    <img
-                      className="h-8 w-8 rounded-full object-cover ring-2 ring-slate-200"
-                      src={userInfo?.avatar || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"}
-                      alt={userInfo?.fullname || "Admin User"}
-                    />
-                    <div className="hidden md:block text-left">
-                      <div className="text-sm font-medium text-slate-700">{userInfo?.fullname || "Admin User"}</div>
-                      <div className="text-xs text-slate-500">{userInfo?.email || "admin@example.com"}</div>
-                    </div>
-                    <FontAwesomeIcon icon={faChevronDown} className="h-3 w-3 text-slate-400" />
-                  </button>
-
-                  {/* Dropdown Menu */}
-                  <div
-                    className={`${toggle ? "hidden" : ""} absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg ring-1 ring-black ring-opacity-5 z-50 transform transition-all duration-200`}
-                  >
-                    <div className="py-1">
-                      <Link
-                        to="/admin/profile"
-                        className="flex items-center px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 transition-colors duration-200"
-                      >
-                        <FontAwesomeIcon icon={faUser} className="mr-3 text-slate-400" />
-                        Thông tin cá nhân
-                      </Link>
-                      <Link
-                        to="/admin/change-password"
-                        className="flex items-center px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 transition-colors duration-200"
-                      >
-                        <FontAwesomeIcon icon={faCog} className="mr-3 text-slate-400" />
-                        Đổi mật khẩu
-                      </Link>
-                      <hr className="my-1" />
-                      <button
-                        onClick={handleLogout}
-                        className="flex items-center w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors duration-200"
-                      >
-                        <FontAwesomeIcon icon={faSignOutAlt} className="mr-3 text-red-400" />
-                        Đăng xuất
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Mobile Menu Button */}
-                <button
-                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                  className="md:hidden p-2 rounded-lg bg-slate-100 hover:bg-slate-200 transition-colors duration-200"
-                >
-                  <FontAwesomeIcon
-                    icon={mobileMenuOpen ? faXmark : faBars}
-                    className="h-4 w-4 text-slate-600"
-                  />
-                </button>
-              </div>
-            </div>
-          </div>
-        </header>
+        {/* Admin Header */}
+        <AdminHeader
+          darkMode={darkMode}
+          toggleDarkMode={toggleDarkMode}
+          sidebarCollapsed={sidebarCollapsed}
+          toggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)}
+          mobileMenuOpen={mobileMenuOpen}
+          setMobileMenuOpen={setMobileMenuOpen}
+          pageTitle={getPageTitle()}
+        />
 
         {/* Mobile Sidebar Overlay */}
         {mobileMenuOpen && (

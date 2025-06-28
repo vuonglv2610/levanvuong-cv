@@ -103,6 +103,13 @@ const ProductManager = () => {
           render: (item: any) => (
             <span className="text-sm text-gray-600">{item?.brandName || "Chưa có thương hiệu"}</span>
           )
+        },
+        { 
+          key: "quantity", 
+          header: "Số lượng tồn kho", 
+          render: (item: any) => (
+            <span className="text-sm text-gray-600">{item?.quantity || "0"}</span>
+          )
         }
       ]}
       filterOptions={{ showCategoryFilter: false, showSearch: false }}

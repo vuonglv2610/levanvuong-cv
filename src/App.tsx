@@ -35,6 +35,8 @@ import Cart from "pages/Cart";
 import Checkout from "pages/Checkout";
 import SearchPage from "pages/SearchPage";
 import NotFoundPage from "./pages/404";
+import ArticleDetailPage from "./pages/ArticleDetailPage";
+import ArticlesPage from "./pages/ArticlesPage";
 import Dashboard from "./pages/Dashboard";
 import DetailPage from "./pages/Detail";
 import LoginPage from "./pages/Login";
@@ -46,12 +48,15 @@ import RegisterPage from "./pages/RegisterPage";
 import WishlistPage from "./pages/WishlistPage";
 
 // Admin page imports
+import { default as AddArticlePage } from "pages/admin/AddArticlePage";
 import AddBrandPage from "pages/admin/AddBrandPage";
 import AddCategoryPage from "pages/admin/AddCategoryPage";
 import AddInventoryReceipt from "pages/admin/AddInventoryReceipt";
 import AddProductPage from "pages/admin/AddProductPage";
 import AddUserPage from "pages/admin/AddUserPage";
+import ArticleManagement from "pages/admin/ArticleManagement";
 import BrandManagement from "pages/admin/BrandManagement";
+import { default as EditArticlePage } from "pages/admin/EditArticlePage";
 import EditBrandPage from "pages/admin/EditBrandPage";
 import EditCategoryPage from "pages/admin/EditCategoryPage";
 import EditInventoryReceipt from "pages/admin/EditInventoryReceipt";
@@ -92,6 +97,8 @@ function App() {
             <Route path="/profile" element={<UserProfilePage />} />
             <Route path="/orders" element={<OrdersPage />} />
             <Route path="/order-success" element={<OrderSuccessPage />} />
+            <Route path="/articles" element={<ArticlesPage />} />
+            <Route path="/articles/:id" element={<ArticleDetailPage />} />
             <Route path="/wishlist" element={<WishlistPage />} />
             <Route path="/404" element={<NotFoundPage />} />
             <Route path="/cart" element={<Cart />} />
@@ -150,6 +157,11 @@ function App() {
             <Route path="brand" element={<BrandManagement />} />
             <Route path="brand/edit/:id" element={<EditBrandPage />} />
             <Route path="brand/add" element={<AddBrandPage />} />
+
+            {/* Route cho bài viết */}
+            <Route path="articles" element={<ArticleManagement />} />
+            <Route path="articles/add" element={<AddArticlePage />} />
+            <Route path="articles/edit/:id" element={<EditArticlePage />} />
 
             {/* Route cho người dùng */}
             <Route

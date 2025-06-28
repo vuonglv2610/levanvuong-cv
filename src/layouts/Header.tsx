@@ -89,7 +89,7 @@ function Header() {
           <div className="flex items-center space-x-4">
             <a href="/" className="flex items-center space-x-2">
               <img
-                src="https://res-console.cloudinary.com/dkiw9eaeh/media_explorer_thumbnails/1d21c353bc001bcaec606c1da043dbb2/detailed"
+                src="https://res.cloudinary.com/dkiw9eaeh/image/upload/v1750743969/nucnvksajdlftfpytprl.png"
                 width={40}
                 height={40}
                 alt="Logo"
@@ -108,8 +108,8 @@ function Header() {
               Sản phẩm
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
             </a>
-            <a href="/search" className="text-gray-700 hover:text-blue-600 font-medium transition-colors relative group">
-              Blog
+            <a href="/articles" className="text-gray-700 hover:text-blue-600 font-medium transition-colors relative group">
+              Bài viết
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
             </a>
           </nav>

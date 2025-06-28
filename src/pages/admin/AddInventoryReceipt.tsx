@@ -71,7 +71,7 @@ const AddInventoryReceipt = () => {
     };
     
     try {
-      await post('/products/serials', receiptData);
+      await post('/serials/bulk', receiptData);
       navigate('/admin/inventory');
     } catch (error) {
       console.error('Error creating inventory receipt:', error);
