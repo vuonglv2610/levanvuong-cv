@@ -1,18 +1,16 @@
 import React from 'react';
-import { usePermissions } from '../hooks/usePermissions';
 import { PermissionLevel, UserRole } from '../configs/permissions';
+import { usePermissions } from '../hooks/usePermissions';
 
 const NavigationWithPermissions: React.FC = () => {
-  const { 
-    isAuthenticated, 
-    isAdmin, 
+  const {
+    isAuthenticated,
+    isAdmin,
     hasPermissionLevel,
     hasRole,
     currentUserRole,
-    getUserInfo
+    userInfo
   } = usePermissions();
-
-  const userInfo = getUserInfo();
 
   return (
     <nav className="bg-white shadow-lg">
@@ -112,7 +110,7 @@ const NavigationWithPermissions: React.FC = () => {
             ) : (
               <div className="flex items-center space-x-3">
                 <span className="text-sm text-gray-600">
-                  Xin chào, <span className="font-medium">{userInfo.userInfo?.fullname || 'User'}</span>
+                  Xin chào, <span className="font-medium">{userInfo?.result?.data?.fullname || 'User'}</span>
                 </span>
                 <button
                   onClick={() => {

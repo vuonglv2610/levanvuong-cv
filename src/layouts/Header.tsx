@@ -5,19 +5,13 @@ import { useAuthProvider } from 'contexts/AuthContext';
 import { getCookie } from 'libs/getCookie';
 import React, { useEffect, useRef, useState } from 'react';
 import { get } from 'services/api';
-import { usePermissions } from '../hooks/usePermissions';
 
 function Header() {
   const isLogin = getCookie("userId");
-  const { userInfo, logout } = useAuthProvider();
-  const { isAdmin } = usePermissions();
+  const { userInfo, logout, userRole } = useAuthProvider();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Debug log để xem dữ liệu user
-  // console.log('Header - isLogin:', isLogin);
-  // console.log('Header - userInfo:', userInfo);
 
   // Tạo avatar URL với fallback đẹp hơn
   const getAvatarUrl = () => {
@@ -242,7 +236,7 @@ function Header() {
                         Danh sách yêu thích
                       </a>
                       {/* Chỉ hiển thị link admin cho admin */}
-                      {isAdmin() && (
+                      {(userRole === "admin" || userRole === "user") && (
                         <a
                           href="/admin"
                           className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"

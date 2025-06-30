@@ -1,8 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import React, { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { get, remove } from "services/api";
+import PermissionButton from "./PermissionButton";
 
 interface Column {
   key: string;
@@ -29,18 +30,24 @@ interface TableManageProps {
       options: Array<{ value: string; label: string }>;
     }>;
   };
+  permissions?: {
+    create?: string;
+    update?: string;
+    delete?: string;
+  };
 }
 
-const TableManage = ({ 
-  isShowFooter = true, 
-  url, 
+const TableManage = ({
+  isShowFooter = true,
+  url,
   title = "Quản lý dữ liệu",
   addButtonText = "Thêm mới",
   addPath = "add",
   editPath = "edit",
   deletePath = "",
   columns = [],
-  filterOptions = { showCategoryFilter: false, showSearch: true }
+  filterOptions = { showCategoryFilter: false, showSearch: true },
+  permissions = {}
 }: TableManageProps) => {
   const [items, setItems] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -349,7 +356,8 @@ const TableManage = ({
 
       {/* Add Button */}
       <div className="flex justify-end mb-6">
-        <button
+        <PermissionButton
+          permission={permissions.create}
           className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-5 rounded-lg transition-colors duration-200 flex items-center"
           onClick={() => navigate(`${addPath}`)}
         >
@@ -357,7 +365,7 @@ const TableManage = ({
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
           </svg>
           {addButtonText}
-        </button>
+        </PermissionButton>
       </div>
 
       {/* Items Table */}
@@ -393,13 +401,16 @@ const TableManage = ({
                   ))}
                   <td className="px-6 py-4 text-right">
                     <div className="flex gap-2 justify-end">
-                      <Link
+                      <PermissionButton
+                        permission={permissions.update}
+                        type="link"
                         to={`${editPath}/${item.id}`}
                         className="font-medium text-blue-600 hover:text-blue-800 bg-blue-50 px-3 py-1.5 rounded-md transition-colors duration-200"
                       >
                         Sửa
-                      </Link>
-                      <button
+                      </PermissionButton>
+                      <PermissionButton
+                        permission={permissions.delete}
                         className="font-medium text-red-600 hover:text-red-800 bg-red-50 px-3 py-1.5 rounded-md transition-colors duration-200"
                         onClick={() => {
                           if (window.confirm('Bạn có chắc chắn muốn xóa?')) {
@@ -408,7 +419,7 @@ const TableManage = ({
                         }}
                       >
                         Xóa
-                      </button>
+                      </PermissionButton>
                     </div>
                   </td>
                 </tr>
@@ -422,12 +433,13 @@ const TableManage = ({
             </svg>
             <p className="text-lg font-medium text-gray-600 mb-2">Không tìm thấy dữ liệu</p>
             <p className="text-gray-500 mb-4">Hãy thêm mới hoặc thay đổi bộ lọc tìm kiếm</p>
-            <button
+            <PermissionButton
+              permission={permissions.create}
               className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
               onClick={() => navigate(`${addPath}`)}
             >
               {addButtonText}
-            </button>
+            </PermissionButton>
           </div>
         )}
       </div>

@@ -85,7 +85,11 @@ const AuthProvider = ({ children }: AuthProviderInterface) => {
 
   // Tính toán các giá trị derived - dựa trên cấu trúc API thực tế
   const roleKey = userInfo?.result?.data?.role?.role_key;
-  const userRole = roleKey ? getUserRoleFromString(roleKey) : UserRole.PUBLIC;
+  const hasRoleId = !!userInfo?.result?.data?.roleId;
+
+  // Xác định role: nếu không có roleId thì là customer
+  const actualRole = hasRoleId ? roleKey : 'customer';
+  const userRole = actualRole ? getUserRoleFromString(actualRole) : UserRole.PUBLIC;
   const isAuthenticated = !!userInfo && !!getCookie("accessToken");
   const isAdmin = roleKey === 'admin';
 

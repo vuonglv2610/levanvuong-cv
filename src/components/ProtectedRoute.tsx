@@ -2,19 +2,27 @@ import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { UserRole } from '../configs/permissions';
 import { useAuthProvider } from '../contexts/AuthContext';
+import { usePermissionCheck } from '../hooks/usePermissionCheck';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requiredRole?: UserRole;
+  requiredPermission?: string;
+  requiredPermissions?: string[];
+  requireAllPermissions?: boolean;
   redirectTo?: string;
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children,
   requiredRole,
+  requiredPermission,
+  requiredPermissions,
+  requireAllPermissions = true,
   redirectTo = '/login'
 }) => {
   const { userInfo, isLoading } = useAuthProvider();
+  const { hasPermission, hasAllPermissions, hasAnyPermission } = usePermissionCheck();
   const location = useLocation();
 
   // Debug logs
@@ -36,12 +44,19 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // Lấy role từ API response thực tế
   const roleKey = userInfo?.result?.data?.role?.role_key;
+  const hasRoleId = !!userInfo?.result?.data?.roleId;
   console.log("- roleKey:", roleKey);
+  console.log("- hasRoleId:", hasRoleId);
 
-  // Check admin dựa trên role_key
+  // Check roles dựa trên role_key và roleId
   const isAdmin = roleKey === 'admin';
+  const isUser = roleKey === 'user';
+  const isCustomer = !hasRoleId; // Customer không có roleId
   const hasUserInfo = !!userInfo?.result?.data;
+
   console.log("- isAdmin:", isAdmin);
+  console.log("- isUser:", isUser);
+  console.log("- isCustomer:", isCustomer);
   console.log("- hasUserInfo:", hasUserInfo);
 
   // Nếu không có userInfo sau khi loading xong, redirect to login
@@ -51,14 +66,38 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   // Check specific role requirements
-  if (requiredRole === UserRole.ADMIN && !isAdmin) {
-    console.log("ProtectedRoute - Admin required but user is not admin");
-    return <Navigate to="/" replace />;
+  if (requiredRole === UserRole.ADMIN) {
+    // Cho phép cả admin và user truy cập admin area
+    if (!isAdmin && !isUser) {
+      console.log("ProtectedRoute - Admin area requires admin or user role");
+      return <Navigate to="/" replace />;
+    }
   }
 
-  if ((requiredRole === UserRole.USER || requiredRole === UserRole.CUSTOMER) && !roleKey) {
-    console.log("ProtectedRoute - User role required but no role found");
-    return <Navigate to="/" replace />;
+  if (requiredRole === UserRole.USER || requiredRole === UserRole.CUSTOMER) {
+    if (!isUser && !isCustomer && !isAdmin) {
+      console.log("ProtectedRoute - User area requires valid role");
+      return <Navigate to="/" replace />;
+    }
+  }
+
+  // Check specific permissions if provided
+  if (requiredPermission) {
+    if (!hasPermission(requiredPermission)) {
+      console.log(`ProtectedRoute - Missing required permission: ${requiredPermission}`);
+      return <Navigate to="/" replace />;
+    }
+  }
+
+  if (requiredPermissions && requiredPermissions.length > 0) {
+    const hasRequiredPermissions = requireAllPermissions
+      ? hasAllPermissions(requiredPermissions)
+      : hasAnyPermission(requiredPermissions);
+
+    if (!hasRequiredPermissions) {
+      console.log(`ProtectedRoute - Missing required permissions: ${requiredPermissions.join(', ')}`);
+      return <Navigate to="/" replace />;
+    }
   }
 
   console.log("ProtectedRoute - Access granted!");

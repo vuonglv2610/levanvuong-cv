@@ -10,6 +10,8 @@ import {
 } from "react-router-dom";
 import ScrollToTop from "react-scroll-to-top";
 
+// Permission system imports
+
 // Swiper CSS imports
 import 'swiper/css';
 import 'swiper/css/effect-fade';
@@ -66,12 +68,18 @@ import EditProductPage from "pages/admin/EditProductPage";
 import EditUserPage from "pages/admin/EditUserPage";
 import InventoryManagement from "pages/admin/InventoryManagement";
 import OrderManagement from "pages/admin/OrderManagement";
+
+// Permission system components
 import UserManagement from "pages/admin/UserManagement";
 import ChangePasswordPage from "./pages/admin/ChangePasswordPage";
+import PermissionTestPage from "./pages/admin/PermissionTestPage";
 import ProfilePage from "./pages/admin/ProfilePage";
 import PermissionDemoPage from "./pages/PermissionDemoPage";
 
 // Import permission components
+import PermissionAdminPanel from "components/PermissionAdminPanel";
+import PermissionExamples from "examples/PermissionExamples";
+import AdminRouteGuard from "./components/AdminRouteGuard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { UserRole } from "./configs/permissions";
 
@@ -147,67 +155,167 @@ function App() {
             <Route path="change-password" element={<ChangePasswordPage />} />
 
             {/* Route cho sản phẩm */}
-            <Route path="product" element={<ProductManager />} />
-            <Route path="product/:id" element={<DetailPage />} />
-            <Route path="product/edit/:id" element={<EditProductPage />} />
-            <Route path="product/add" element={<AddProductPage />} />
+            <Route path="product" element={
+              <AdminRouteGuard requiredPermission="product:view">
+                <ProductManager />
+              </AdminRouteGuard>
+            } />
+            <Route path="product/:id" element={
+              <AdminRouteGuard requiredPermission="product:view">
+                <DetailPage />
+              </AdminRouteGuard>
+            } />
+            <Route path="product/edit/:id" element={
+              <AdminRouteGuard requiredPermission="product:update">
+                <EditProductPage />
+              </AdminRouteGuard>
+            } />
+            <Route path="product/add" element={
+              <AdminRouteGuard requiredPermission="product:create">
+                <AddProductPage />
+              </AdminRouteGuard>
+            } />
 
             {/* Route cho danh mục */}
             <Route
               path="category"
               element={
-                <TableManage
-                  url="/categories"
-                  isShowFooter={true}
-                  title="Quản lý danh mục"
-                  addButtonText="Thêm danh mục mới"
-                  addPath="/admin/category/add"
-                  editPath="/admin/category/edit"
-                  columns={[
-                    { key: "name", header: "Tên danh mục", render: (item: any) => (
-                      <span className="font-medium text-gray-900">{item?.name || "Không có tên"}</span>
-                    )},
-                    { key: "description", header: "Mô tả", render: (item: any) => (
-                      <span>{item?.description || "Không có mô tả"}</span>
-                    )}
-                  ]}
-                  filterOptions={{ showCategoryFilter: false }}
-                />
+                <AdminRouteGuard requiredPermission="category:view">
+                  <TableManage
+                    url="/categories"
+                    isShowFooter={true}
+                    title="Quản lý danh mục"
+                    addButtonText="Thêm danh mục mới"
+                    addPath="/admin/category/add"
+                    editPath="/admin/category/edit"
+                    permissions={{
+                      create: "category:create",
+                      update: "category:update",
+                      delete: "category:delete"
+                    }}
+                    columns={[
+                      { key: "name", header: "Tên danh mục", render: (item: any) => (
+                        <span className="font-medium text-gray-900">{item?.name || "Không có tên"}</span>
+                      )},
+                      { key: "description", header: "Mô tả", render: (item: any) => (
+                        <span>{item?.description || "Không có mô tả"}</span>
+                      )}
+                    ]}
+                    filterOptions={{ showCategoryFilter: false }}
+                  />
+                </AdminRouteGuard>
               }
             />
-            <Route path="category/:id" element={<DetailPage />} />
-            <Route path="category/edit/:id" element={<EditCategoryPage />} />
-            <Route path="category/add" element={<AddCategoryPage />} />
+            <Route path="category/:id" element={
+              <AdminRouteGuard requiredPermission="category:view">
+                <DetailPage />
+              </AdminRouteGuard>
+            } />
+            <Route path="category/edit/:id" element={
+              <AdminRouteGuard requiredPermission="category:update">
+                <EditCategoryPage />
+              </AdminRouteGuard>
+            } />
+            <Route path="category/add" element={
+              <AdminRouteGuard requiredPermission="category:create">
+                <AddCategoryPage />
+              </AdminRouteGuard>
+            } />
 
             {/* Route cho thương hiệu */}
-            <Route path="brand" element={<BrandManagement />} />
-            <Route path="brand/edit/:id" element={<EditBrandPage />} />
-            <Route path="brand/add" element={<AddBrandPage />} />
+            <Route path="brand" element={
+              <AdminRouteGuard requiredPermission="brand:view">
+                <BrandManagement />
+              </AdminRouteGuard>
+            } />
+            <Route path="brand/edit/:id" element={
+              <AdminRouteGuard requiredPermission="brand:update">
+                <EditBrandPage />
+              </AdminRouteGuard>
+            } />
+            <Route path="brand/add" element={
+              <AdminRouteGuard requiredPermission="brand:create">
+                <AddBrandPage />
+              </AdminRouteGuard>
+            } />
 
             {/* Route cho bài viết */}
-            <Route path="articles" element={<ArticleManagement />} />
-            <Route path="articles/add" element={<AddArticlePage />} />
-            <Route path="articles/edit/:id" element={<EditArticlePage />} />
+            <Route path="articles" element={
+              <AdminRouteGuard requiredPermission="article:view">
+                <ArticleManagement />
+              </AdminRouteGuard>
+            } />
+            <Route path="articles/add" element={
+              <AdminRouteGuard requiredPermission="article:create">
+                <AddArticlePage />
+              </AdminRouteGuard>
+            } />
+            <Route path="articles/edit/:id" element={
+              <AdminRouteGuard requiredPermission="article:update">
+                <EditArticlePage />
+              </AdminRouteGuard>
+            } />
 
             {/* Route cho người dùng */}
             <Route
               path="user"
-              element={<UserManagement />}
+              element={
+                <AdminRouteGuard requiredPermission="user:view">
+                  <UserManagement />
+                </AdminRouteGuard>
+              }
             />
-            <Route path="user/add" element={<AddUserPage />} />
-            <Route path="user/edit/:id" element={<EditUserPage />} />
+            <Route path="user/add" element={
+              <AdminRouteGuard requiredPermission="user:create">
+                <AddUserPage />
+              </AdminRouteGuard>
+            } />
+            <Route path="user/edit/:id" element={
+              <AdminRouteGuard requiredPermission="user:update">
+                <EditUserPage />
+              </AdminRouteGuard>
+            } />
 
             {/* Route cho đơn hàng */}
-            <Route path="orders" element={<OrderManagement />} />
+            <Route path="orders" element={
+              <AdminRouteGuard requiredPermission="order:view">
+                <OrderManagement />
+              </AdminRouteGuard>
+            } />
 
             <Route
               path="inventory"
-              element={<InventoryManagement />}
+              element={
+                <AdminRouteGuard requiredPermission="serial:view">
+                  <InventoryManagement />
+                </AdminRouteGuard>
+              }
             />
-            <Route path="inventory/add" element={<AddInventoryReceipt />} />
-            <Route path="inventory/edit/:id" element={<EditInventoryReceipt />} />
+            <Route path="inventory/add" element={
+              <AdminRouteGuard requiredPermission="serial:create">
+                <AddInventoryReceipt />
+              </AdminRouteGuard>
+            } />
+            <Route path="inventory/edit/:id" element={
+              <AdminRouteGuard requiredPermission="serial:update">
+                <EditInventoryReceipt />
+              </AdminRouteGuard>
+            } />
+
+            {/* Permission Management Routes */}
+            <Route path="permissions" element={
+              <AdminRouteGuard requiredPermission="role:manage">
+                <PermissionAdminPanel />
+              </AdminRouteGuard>
+            } />
+
+            {/* Permission Test Page */}
+            <Route path="permission-test" element={<PermissionTestPage />} />
           </Route>
         </Route>
+
+        {/* Permission Demo Routes - Public access for testing */}
+        <Route path="/permission-examples" element={<PermissionExamples />} />
       </Route>
     )
   );
@@ -219,6 +327,13 @@ function App() {
       duration: 1000,
     });
     AOS.refresh();
+
+    // Initialize permission watcher in development
+    if (process.env.NODE_ENV === 'development') {
+      import('./utils/PermissionWatcher').then(({ permissionWatcher }) => {
+        permissionWatcher.startWatching();
+      });
+    }
   }, []);
 
   return (

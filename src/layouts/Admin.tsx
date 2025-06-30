@@ -4,6 +4,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import navbarAdminConfig from "configs/navbarAdminConfig";
+import usePermissionCheck from "hooks/usePermissionCheck";
 import React, { useEffect, useState } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import AdminHeader from './AdminHeader';
@@ -44,6 +45,9 @@ const AdminLayout = () => {
 
   // Use theme context for dark mode
   const { darkMode, toggleDarkMode } = useTheme();
+
+  // Use permission checking
+  const { hasPermission } = usePermissionCheck();
 
   const location = useLocation();
 
@@ -121,18 +125,28 @@ const AdminLayout = () => {
     return "Dashboard";
   };
 
-  // Sidebar menu items với icons
-  const sidebarItems = [
+  // Sidebar menu items với icons và permissions
+  const allSidebarItems = [
     { href: "/admin", title: "Trang chủ", icon: "faHome" },
-    { href: "/admin/product", title: "Quản lý sản phẩm", icon: "faBox" },
-    { href: "/admin/category", title: "Quản lý danh mục", icon: "faList" },
-    { href: "/admin/brand", title: "Quản lý thương hiệu", icon: "faTags" },
-    { href: "/admin/articles", title: "Quản lý bài viết", icon: "faNewspaper" },
-    { href: "/admin/user", title: "Quản lý người dùng", icon: "faUsers" },
-    { href: "/admin/orders", title: "Quản lý đơn hàng", icon: "faShoppingCart" },
-    { href: "/admin/inventory", title: "Quản lý kho hàng", icon: "faWarehouse" },
+    { href: "/admin/product", title: "Quản lý sản phẩm", icon: "faBox", permission: "product:view" },
+    { href: "/admin/category", title: "Quản lý danh mục", icon: "faList", permission: "category:view" },
+    { href: "/admin/brand", title: "Quản lý thương hiệu", icon: "faTags", permission: "brand:view" },
+    { href: "/admin/articles", title: "Quản lý bài viết", icon: "faNewspaper", permission: "article:view" },
+    { href: "/admin/user", title: "Quản lý người dùng", icon: "faUsers", permission: "user:view" },
+    { href: "/admin/orders", title: "Quản lý đơn hàng", icon: "faShoppingCart", permission: "order:view" },
+    { href: "/admin/inventory", title: "Quản lý kho hàng", icon: "faWarehouse", permission: "serial:view" },
+    { href: "/admin/permissions", title: "Quản lý phân quyền", icon: "faShield", permission: "role:manage" },
+    { href: "/admin/permission-test", title: "Test phân quyền", icon: "faFlask" },
     { href: "/", title: "Trang khách hàng", icon: "faHome" },
   ];
+
+  // Filter sidebar items dựa trên permissions
+  const sidebarItems = allSidebarItems.filter(item => {
+    // Nếu không có permission requirement, cho phép hiển thị
+    if (!item.permission) return true;
+    // Kiểm tra permission
+    return hasPermission(item.permission);
+  });
 
   return (
     <div className={`min-h-screen flex ${darkMode ? 'dark' : ''}`}>

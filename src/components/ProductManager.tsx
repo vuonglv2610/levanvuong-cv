@@ -50,6 +50,11 @@ const ProductManager = () => {
         addButtonText="Thêm sản phẩm mới"
         addPath="/admin/product/add"
         editPath="/admin/product/edit"
+        permissions={{
+          create: "product:create",
+          update: "product:update",
+          delete: "product:delete"
+        }}
       columns={[
         { 
           key: "name", 

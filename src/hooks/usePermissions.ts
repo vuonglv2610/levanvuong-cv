@@ -1,29 +1,69 @@
 import { useLocation } from 'react-router-dom';
-import {
-  apiPermissions,
-  PermissionLevel,
-  UserRole
-} from '../configs/permissions';
+import { PermissionLevel, UserRole } from '../configs/permissions';
 import { useAuthProvider } from '../contexts/AuthContext';
+import { usePermissionCheck } from './usePermissionCheck';
 
+/**
+ * Legacy usePermissions hook - now delegates to usePermissionCheck
+ * Maintains backward compatibility while using the new permission system
+ */
 export const usePermissions = () => {
-  const { userInfo, isAuthenticated: authStatus, isAdmin: adminStatus } = useAuthProvider();
+  const { userInfo } = useAuthProvider();
   const location = useLocation();
+  const permissionCheck = usePermissionCheck();
 
-  // Lấy role từ API thực tế
-  const roleKey = userInfo?.result?.data?.role?.role_key;
+  // Delegate to usePermissionCheck for all permission logic
+  const {
+    hasPermission,
+    hasAllPermissions,
+    hasAnyPermission,
+    canAccessAdmin: canAccessAdminArea,
+    roleKey,
+    getUserPermissions,
+    getRoleInfo,
+    canCreateProduct,
+    canUpdateProduct,
+    canDeleteProduct,
+    canViewProduct,
+    canCreateCategory,
+    canUpdateCategory,
+    canDeleteCategory,
+    canViewCategory,
+    canCreateBrand,
+    canUpdateBrand,
+    canDeleteBrand,
+    canViewBrand,
+    canCreateUser,
+    canUpdateUser,
+    canDeleteUser,
+    canViewUser,
+    canCreateArticle,
+    canUpdateArticle,
+    canDeleteArticle,
+    canViewArticle,
+    canViewOrder,
+    canUpdateOrderStatus,
+    canDeleteOrder,
+    canViewAnalytics,
+    canViewReport,
+    canViewBasicReport,
+    canManageRole,
+    canViewRole
+  } = permissionCheck;
 
-  // Simple checks
+  // Legacy compatibility
+  const hasRoleId = !!userInfo?.result?.data?.roleId;
   const isAdminUser = roleKey === 'admin';
-  const isAuthenticatedUser = !!userInfo && !!roleKey;
+  const isUserRole = roleKey === 'user';
+  const isCustomerRole = !hasRoleId && !!userInfo?.result?.data;
+  const isAuthenticatedUser = !!userInfo?.result?.data;
 
-  // Check permission cho route hiện tại
+  // Simple route permission logic using new permission system
   const hasRoutePermission = (path?: string) => {
     const checkPath = path || location.pathname;
 
-    // Simple route permission logic
     if (checkPath.startsWith('/admin')) {
-      return isAdminUser;
+      return canAccessAdminArea();
     }
 
     if (checkPath.startsWith('/profile') || checkPath.startsWith('/orders') ||
@@ -35,38 +75,43 @@ export const usePermissions = () => {
     return true; // Public routes
   };
 
-  // Check xem user có phải admin không
-  const isAdmin = () => {
-    return isAdminUser;
-  };
+  // Legacy API compatibility - delegate to new permission system
+  const isAdmin = () => isAdminUser;
+  const isAuthenticated = () => isAuthenticatedUser;
+  const canAccessAdmin = () => canAccessAdminArea();
 
-  // Check xem user đã đăng nhập chưa
-  const isAuthenticated = () => {
+  // API permission check using new system
+  const hasApiPermission = (endpoint: string, method: string = 'GET') => {
+    // Use permission-based checking instead of hardcoded lists
+    const action = method.toLowerCase();
+
+    // Map common API patterns to permissions
+    if (endpoint.includes('/products')) {
+      if (action === 'post') return hasPermission('product:create');
+      if (action === 'put' || action === 'patch') return hasPermission('product:update');
+      if (action === 'delete') return hasPermission('product:delete');
+      return hasPermission('product:view');
+    }
+
+    if (endpoint.includes('/categories')) {
+      if (action === 'post') return hasPermission('category:create');
+      if (action === 'put' || action === 'patch') return hasPermission('category:update');
+      if (action === 'delete') return hasPermission('category:delete');
+      return hasPermission('category:view');
+    }
+
+    if (endpoint.includes('/users')) {
+      if (action === 'post') return hasPermission('user:create');
+      if (action === 'put' || action === 'patch') return hasPermission('user:update');
+      if (action === 'delete') return hasPermission('user:delete');
+      return hasPermission('user:view');
+    }
+
+    // Default: allow if authenticated for most APIs
     return isAuthenticatedUser;
   };
 
-  // Check xem user có thể truy cập admin area không
-  const canAccessAdmin = () => {
-    return isAdminUser;
-  };
-
-  // Check permission cho API endpoint
-  const hasApiPermission = (endpoint: string, method: string = 'GET') => {
-    const fullEndpoint = `${method.toUpperCase()} ${endpoint}`;
-
-    // Simple API permission logic
-    if (isAdminUser) {
-      return apiPermissions.admin.includes(fullEndpoint);
-    }
-
-    if (isAuthenticatedUser) {
-      return apiPermissions.auth.includes(fullEndpoint) || apiPermissions.public.includes(fullEndpoint);
-    }
-
-    return apiPermissions.public.includes(fullEndpoint);
-  };
-
-  // Check permission level
+  // Permission level check
   const hasPermissionLevel = (level: PermissionLevel) => {
     switch (level) {
       case PermissionLevel.PUBLIC:
@@ -74,20 +119,21 @@ export const usePermissions = () => {
       case PermissionLevel.AUTH:
         return isAuthenticatedUser;
       case PermissionLevel.ADMIN:
-        return isAdminUser;
+        return canAccessAdminArea();
       default:
         return false;
     }
   };
 
-  // Check specific role
+  // Role check
   const hasRole = (role: UserRole) => {
     switch (role) {
       case UserRole.ADMIN:
         return isAdminUser;
       case UserRole.USER:
+        return isUserRole;
       case UserRole.CUSTOMER:
-        return isAuthenticatedUser;
+        return isCustomerRole;
       case UserRole.PUBLIC:
         return true;
       default:
@@ -95,38 +141,44 @@ export const usePermissions = () => {
     }
   };
 
-  // Check multiple roles
   const hasAnyRole = (roles: UserRole[]) => {
     return roles.some(role => hasRole(role));
-  };
-
-  // Get user info
-  const getUserInfo = () => {
-    return {
-      userInfo,
-      role: roleKey || 'public',
-      isLoggedIn: isAuthenticatedUser,
-      isAdmin: isAdminUser
-    };
   };
 
   return {
     // User info
     userInfo,
-    currentUserRole: roleKey || 'public',
-    getUserInfo,
+    currentUserRole: isCustomerRole ? 'customer' : (roleKey || 'public'),
+    getUserInfo: getRoleInfo,
 
     // Authentication checks
     isAuthenticated,
     isAdmin,
 
-    // Permission checks
+    // Permission checks (delegate to new system)
+    hasPermission,
+    hasAllPermissions,
+    hasAnyPermission,
     hasRoutePermission,
     canAccessAdmin,
     hasApiPermission,
     hasPermissionLevel,
     hasRole,
     hasAnyRole,
+
+    // Specific permission checks
+    canCreateProduct,
+    canUpdateProduct,
+    canDeleteProduct,
+    canViewProduct,
+    canCreateCategory,
+    canUpdateCategory,
+    canDeleteCategory,
+    canViewCategory,
+    canCreateUser,
+    canUpdateUser,
+    canDeleteUser,
+    canViewUser,
 
     // Utility
     location

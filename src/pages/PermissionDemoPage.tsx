@@ -1,23 +1,21 @@
 import React, { useState } from 'react';
-import { usePermissions } from '../hooks/usePermissions';
-import { PermissionLevel, UserRole } from '../configs/permissions';
-import ProductCardWithPermissions from '../components/ProductCardWithPermissions';
 import NavigationWithPermissions from '../components/NavigationWithPermissions';
+import ProductCardWithPermissions from '../components/ProductCardWithPermissions';
+import { PermissionLevel, UserRole } from '../configs/permissions';
+import { usePermissions } from '../hooks/usePermissions';
 
 const PermissionDemoPage: React.FC = () => {
-  const { 
-    isAuthenticated, 
-    isAdmin, 
+  const {
+    isAuthenticated,
+    isAdmin,
     hasPermissionLevel,
     hasRole,
     hasApiPermission,
     currentUserRole,
-    getUserInfo
+    userInfo: authUserInfo
   } = usePermissions();
 
   const [apiTestResult, setApiTestResult] = useState<string>('');
-
-  const userInfo = getUserInfo();
 
   // Sample product data
   const sampleProduct = {
@@ -85,7 +83,7 @@ const PermissionDemoPage: React.FC = () => {
             </div>
             <div className="bg-purple-50 p-4 rounded-lg">
               <h3 className="font-semibold text-purple-800">Tên hiển thị</h3>
-              <p className="text-purple-600">{userInfo.userInfo?.fullname || 'Guest'}</p>
+              <p className="text-purple-600">{authUserInfo?.result?.data?.fullname || 'Guest'}</p>
             </div>
           </div>
         </div>

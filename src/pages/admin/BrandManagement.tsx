@@ -3,13 +3,18 @@ import TableManage from '../../components/TableManage';
 
 const BrandManagement = () => {
   return (
-    <TableManage 
-      url="/brands" 
+    <TableManage
+      url="/brands"
       isShowFooter={true}
       title="Quản lý thương hiệu"
       addButtonText="Thêm thương hiệu mới"
       addPath="/admin/brand/add"
       editPath="/admin/brand/edit"
+      permissions={{
+        create: "brand:create",
+        update: "brand:update",
+        delete: "brand:delete"
+      }}
       columns={[
         { 
           key: "name", 
