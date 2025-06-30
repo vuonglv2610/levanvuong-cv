@@ -36,14 +36,6 @@ const AddArticlePage = () => {
       placeholder: "Nhập tiêu đề bài viết"
     },
     {
-      name: "excerpt",
-      label: "Mô tả ngắn",
-      type: "textarea" as const,
-      required: true,
-      placeholder: "Nhập mô tả ngắn cho bài viết",
-      rows: 3
-    },
-    {
       name: "content",
       label: "Nội dung bài viết",
       type: "textarea" as const,
@@ -54,21 +46,8 @@ const AddArticlePage = () => {
     {
       name: "featuredImage",
       label: "Ảnh đại diện",
-      type: "text" as const,
+      type: "image" as const,
       placeholder: "URL ảnh đại diện"
-    },
-    {
-      name: "categoryId",
-      label: "Danh mục",
-      type: "select" as const,
-      required: true,
-      options: categoryOptions
-    },
-    {
-      name: "tags",
-      label: "Tags",
-      type: "text" as const,
-      placeholder: "Nhập các tag, cách nhau bởi dấu phẩy"
     },
     {
       name: "status",
@@ -81,26 +60,10 @@ const AddArticlePage = () => {
         { value: "archived", label: "Lưu trữ" }
       ]
     },
-    {
-      name: "publishedAt",
-      label: "Ngày xuất bản",
-      type: "text" as const,
-      placeholder: "YYYY-MM-DD HH:MM (để trống nếu xuất bản ngay)"
-    }
   ];
 
   const handleSubmit = async (formData: any) => {
     try {
-      // Process tags
-      if (formData.tags) {
-        formData.tags = formData.tags.split(',').map((tag: string) => tag.trim()).filter((tag: string) => tag);
-      }
-      
-      // Set publishedAt to current time if status is published and no date is set
-      if (formData.status === 'published' && !formData.publishedAt) {
-        formData.publishedAt = new Date().toISOString();
-      }
-      
       const response = await post('/articles', formData);
       
       if (response?.data) {

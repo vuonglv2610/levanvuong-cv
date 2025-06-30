@@ -47,13 +47,13 @@ const UserManagement = () => {
           key: "role", 
           header: "Vai trò", 
           render: (item) => {
-            const roleColor = item?.role === "admin" 
+            const roleColor = item?.roleKey === "admin" 
               ? "bg-purple-100 text-purple-800" 
               : "bg-green-100 text-green-800";
             
             return (
               <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${roleColor}`}>
-                {item?.role || "user"}
+                {item?.roleName || "user"}
               </span>
             );
           }

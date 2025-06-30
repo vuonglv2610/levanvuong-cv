@@ -21,6 +21,17 @@ const ArticleManagement = () => {
             </div>
           )
         },
+        {
+          key: "content",
+          header: "Nội dung",
+          render: (item: any) => (
+            <div className="max-w-xs">
+              <p className="text-sm text-gray-900 line-clamp-3">
+                {item?.content ? item.content.substring(0, 100) + '...' : "Không có nội dung"}
+              </p>
+            </div>
+          )
+        },
         { 
           key: "featuredImage", 
           header: "Ảnh đại diện", 
@@ -36,33 +47,6 @@ const ArticleManagement = () => {
                 <span className="text-gray-400 text-xs">Không có ảnh</span>
               </div>
             )
-          )
-        },
-        { 
-          key: "author", 
-          header: "Tác giả", 
-          render: (item: any) => (
-            <div className="flex items-center">
-              <div className="h-8 w-8 flex-shrink-0">
-                <img 
-                  className="h-8 w-8 rounded-full object-cover" 
-                  src={item?.author?.avatar || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"} 
-                  alt={item?.author?.name || "Author"} 
-                />
-              </div>
-              <div className="ml-3">
-                <div className="text-sm font-medium text-gray-900">{item?.author?.name || "Không rõ"}</div>
-              </div>
-            </div>
-          )
-        },
-        { 
-          key: "category", 
-          header: "Danh mục", 
-          render: (item: any) => (
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-              {item?.category?.name || "Chưa phân loại"}
-            </span>
           )
         },
         { 
@@ -114,20 +98,8 @@ const ArticleManagement = () => {
         }
       ]}
       filterOptions={{
-        showCategoryFilter: true,
-        customFilters: [
-          {
-            name: 'status',
-            label: 'Trạng thái',
-            type: 'select',
-            options: [
-              { value: 'ALL', label: 'Tất cả' },
-              { value: 'published', label: 'Đã xuất bản' },
-              { value: 'draft', label: 'Bản nháp' },
-              { value: 'archived', label: 'Đã lưu trữ' }
-            ]
-          }
-        ]
+        showCategoryFilter: false,
+        showSearch: true,
       }}
     />
   );

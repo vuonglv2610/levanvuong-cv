@@ -81,7 +81,7 @@ const AddUserPage = () => {
       }
     },
     {
-      name: "role",
+      name: "roleId",
       label: "Vai trò",
       type: "select" as const,
       required: true,
@@ -119,7 +119,7 @@ const AddUserPage = () => {
       name: data.name,
       email: data.email,
       password: data.password,
-      roleId: data.role,
+      roleId: data.roleId,
       avatar: data.avatar || null,
       address: data.address || "",
       status: data.status || "active"

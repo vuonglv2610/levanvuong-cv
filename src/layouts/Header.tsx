@@ -1,4 +1,4 @@
-import { faCartShopping } from '@fortawesome/free-solid-svg-icons';
+import { faCartShopping, faUserTie } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthProvider } from 'contexts/AuthContext';
@@ -50,12 +50,12 @@ function Header() {
   }, []);
 
   // Lấy danh sách categories cho dropdown
-  const { data } = useQuery({ 
-    queryKey: ['/categories'], 
+  const { data } = useQuery({
+    queryKey: ['/categories'],
     queryFn: () => get('/categories'),
     staleTime: 60000
   });
-  
+
   const categories = data?.data?.result?.data || [];
   const categoryOptions = categories.map((cat: any) => ({
     value: cat.id,
@@ -238,6 +238,16 @@ function Header() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                         </svg>
                         Danh sách yêu thích
+                      </a>
+                      <a
+                        href="/admin"
+                        className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                        onClick={() => setShowUserMenu(false)}
+                      >
+                        <div className='pr-4'>
+                          <FontAwesomeIcon icon={faUserTie} />
+                        </div>
+                        Quản lý admin
                       </a>
                       <div className="border-t border-gray-100 mt-2">
                         <button

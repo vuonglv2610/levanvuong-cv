@@ -91,7 +91,30 @@ const TableManage = ({
   const filteredItems = useMemo(() => {
     return items && items.length > 0
       ? items.filter(item => {
-        const matchesSearch = !filterOptions.showSearch || item?.name?.toLowerCase().includes((searchTerm || "").toLowerCase());
+        // Improved search logic for different types of items
+        let matchesSearch = true;
+        if (filterOptions.showSearch && searchTerm) {
+          const searchLower = searchTerm.toLowerCase();
+
+          // For articles: search in title and content
+          if (item?.title !== undefined) {
+            matchesSearch =
+              item?.title?.toLowerCase().includes(searchLower) ||
+              item?.content?.toLowerCase().includes(searchLower) ||
+              item?.excerpt?.toLowerCase().includes(searchLower);
+          }
+          // For other items: search in name
+          else if (item?.name !== undefined) {
+            matchesSearch = item?.name?.toLowerCase().includes(searchLower);
+          }
+          // Fallback: search in any string field
+          else {
+            matchesSearch = Object.values(item).some(value =>
+              typeof value === 'string' && value.toLowerCase().includes(searchLower)
+            );
+          }
+        }
+
         const matchesCategory = !filterOptions.showCategoryFilter ||
                                filterCategory === "ALL" ||
                                item?.category === filterCategory;
@@ -289,7 +312,7 @@ const TableManage = ({
                     setCurrentPage(1);
                   }}
                   className="block w-full p-2.5 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Tìm kiếm theo tên..."
+                  placeholder={title.includes('bài viết') ? "Tìm kiếm theo tiêu đề, nội dung..." : "Tìm kiếm theo tên..."}
                 />
               </div>
             </div>

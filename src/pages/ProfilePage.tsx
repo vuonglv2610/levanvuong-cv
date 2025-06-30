@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
 import { useAuthProvider } from 'contexts/AuthContext';
+import React, { useState } from 'react';
 
 const ProfilePage = () => {
   const { userInfo } = useAuthProvider();
@@ -49,13 +49,6 @@ const ProfilePage = () => {
                   alt="Avatar"
                   className="w-full h-full object-cover"
                 />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">{formData.fullname}</h1>
-                <p className="text-gray-600">{formData.email}</p>
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 mt-1">
-                  Tài khoản đã xác thực
-                </span>
               </div>
             </div>
             <button
@@ -248,6 +241,13 @@ const ProfilePage = () => {
                 >
                   ❤️ Danh sách yêu thích
                 </a>
+                {/* todo: check admin sẽ hiển thị ra */}
+                {/* <a
+                  href="/admin"
+                  className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                >
+                  ❤️ quản lý admin
+                </a> */}
                 <a
                   href="/change-password"
                   className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
