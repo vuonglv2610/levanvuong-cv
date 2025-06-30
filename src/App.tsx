@@ -20,6 +20,8 @@ import "./App.css";
 // Context imports
 import AuthProvider from "contexts/AuthContext";
 
+// Permission imports
+
 // Component imports
 import ProductManager from "components/ProductManager";
 import { ErrorBoundary } from "./components/ErrorBoundary";
@@ -67,8 +69,11 @@ import OrderManagement from "pages/admin/OrderManagement";
 import UserManagement from "pages/admin/UserManagement";
 import ChangePasswordPage from "./pages/admin/ChangePasswordPage";
 import ProfilePage from "./pages/admin/ProfilePage";
+import PermissionDemoPage from "./pages/PermissionDemoPage";
 
-
+// Import permission components
+import ProtectedRoute from "./components/ProtectedRoute";
+import { UserRole } from "./configs/permissions";
 
 function App() {
   const router = createBrowserRouter(
@@ -94,27 +99,48 @@ function App() {
             <Route path="/product" element={<ProductsList />} />
             <Route path="/product/:id" element={<DetailPage />} />
             <Route path="/search" element={<SearchPage />} />
-            <Route path="/profile" element={<UserProfilePage />} />
-            <Route path="/orders" element={<OrdersPage />} />
-            <Route path="/order-success" element={<OrderSuccessPage />} />
+            <Route path="/profile" element={
+              <ProtectedRoute requiredRole={UserRole.USER}>
+                <UserProfilePage />
+              </ProtectedRoute>
+            } />
+            <Route path="/orders" element={
+              <ProtectedRoute requiredRole={UserRole.USER}>
+                <OrdersPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/order-success" element={
+              <ProtectedRoute requiredRole={UserRole.USER}>
+                <OrderSuccessPage />
+              </ProtectedRoute>
+            } />
             <Route path="/articles" element={<ArticlesPage />} />
             <Route path="/articles/:id" element={<ArticleDetailPage />} />
-            <Route path="/wishlist" element={<WishlistPage />} />
+            <Route path="/permission-demo" element={<PermissionDemoPage />} />
+            <Route path="/wishlist" element={
+              <ProtectedRoute requiredRole={UserRole.USER}>
+                <WishlistPage />
+              </ProtectedRoute>
+            } />
             <Route path="/404" element={<NotFoundPage />} />
-            <Route path="/cart" element={<Cart />} />
-            <Route path="/checkout" element={<Checkout />} />
+            <Route path="/cart" element={
+              <ProtectedRoute requiredRole={UserRole.USER}>
+                <Cart />
+              </ProtectedRoute>
+            } />
+            <Route path="/checkout" element={
+              <ProtectedRoute requiredRole={UserRole.USER}>
+                <Checkout />
+              </ProtectedRoute>
+            } />
           </Route>
           <Route
             path="admin"
-            element={<AdminLayout />}
-          // loader={async () => {
-          // check auth role
-          // const token = getCookie('accessToken')
-          // const userId = getCookie('userId')
-          // const res = await get(`/users/${getCookie("userId")}`);
-          // if (!token || userId && res?.data?.role === 'admin') return redirect('/')
-          // return null
-          // }}
+            element={
+              <ProtectedRoute requiredRole={UserRole.ADMIN}>
+                <AdminLayout />
+              </ProtectedRoute>
+            }
           >
             <Route index element={<Dashboard />} />
             <Route path="profile" element={<ProfilePage />} />

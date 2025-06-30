@@ -1,4 +1,5 @@
 import { REGEX_EMAIL } from "configs/regexConfig";
+import { useAuthProvider } from "contexts/AuthContext";
 import { setCookie } from "libs/getCookie";
 import React, { useEffect, useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
@@ -29,9 +30,10 @@ const LoginPage = () => {
   const param = new URLSearchParams(useLocation().search).get("code");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { refreshProfile } = useAuthProvider();
 
   // Xử lý response đăng nhập
-  const checkResponse = (response: LoginResponse) => {
+  const checkResponse = async (response: LoginResponse) => {
 
     // Kiểm tra response có tồn tại không
     if (!response) {
@@ -45,6 +47,9 @@ const LoginPage = () => {
       // Lưu token và userId vào cookie
       setCookie("accessToken", response.data.result.token);
       setCookie("userId", param || response.data?.result?.data?.userId);
+
+      // Refresh profile để load user data
+      await refreshProfile();
 
       // Hiển thị thông báo thành công
       toast.success("Đăng nhập thành công!");
@@ -65,7 +70,7 @@ const LoginPage = () => {
         try {
           const response: LoginResponse = await loginSuccess({ id: param });
           if (response) {
-            checkResponse(response);
+            await checkResponse(response);
           }
         } catch (error: any) {
           console.error("Google login error:", error);
@@ -84,7 +89,7 @@ const LoginPage = () => {
     try {
       const response: LoginResponse = await login(data);
       if (response) {
-        checkResponse(response);
+        await checkResponse(response);
       }
     } catch (error: any) {
       console.error("Login error:", error);

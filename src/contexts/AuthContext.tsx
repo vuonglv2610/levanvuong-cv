@@ -1,12 +1,13 @@
 import React, {
-  ReactNode,
   createContext,
+  ReactNode,
   useContext,
   useEffect,
   useMemo,
   useState,
 } from "react";
 import { getProfile } from "services/api";
+import { getUserRoleFromString, UserRole } from "../configs/permissions";
 import { getCookie, removeCookie } from "../libs/getCookie";
 
 // Thêm interface để định nghĩa kiểu dữ liệu cho context
@@ -14,6 +15,11 @@ interface AuthContextType {
   userInfo: any;
   setUserInfo: React.Dispatch<React.SetStateAction<any>>;
   logout: () => void;
+  userRole: UserRole;
+  isAuthenticated: boolean;
+  isAdmin: boolean;
+  isLoading: boolean;
+  refreshProfile: () => Promise<void>;
 }
 
 // Khởi tạo context với kiểu dữ liệu đúng
@@ -33,16 +39,22 @@ interface AuthProviderInterface {
 
 const AuthProvider = ({ children }: AuthProviderInterface) => {
   const [userInfo, setUserInfo] = useState<any>(undefined);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const fetchProfile = async () => {
     if (getCookie("accessToken") && getCookie("userId")) {
       try {
+        setIsLoading(true);
         const res = await getProfile()
         setUserInfo(res.data);
       } catch (error) {
         console.log(error);
+        setUserInfo(null);
+      } finally {
+        setIsLoading(false);
       }
     } else {
+      setIsLoading(false);
       // if (
       //   window.location.pathname !== "/login" &&
       //   window.location.pathname !== "/register"
@@ -68,13 +80,27 @@ const AuthProvider = ({ children }: AuthProviderInterface) => {
     window.location.href = "/login";
   };
 
+  // Expose fetchProfile để có thể gọi từ bên ngoài
+  const refreshProfile = fetchProfile;
+
+  // Tính toán các giá trị derived - dựa trên cấu trúc API thực tế
+  const roleKey = userInfo?.result?.data?.role?.role_key;
+  const userRole = roleKey ? getUserRoleFromString(roleKey) : UserRole.PUBLIC;
+  const isAuthenticated = !!userInfo && !!getCookie("accessToken");
+  const isAdmin = roleKey === 'admin';
+
   const authContextValue: AuthContextType = useMemo(
     () => ({
       userInfo,
       setUserInfo,
       logout,
+      userRole,
+      isAuthenticated,
+      isAdmin,
+      isLoading,
+      refreshProfile,
     }),
-    [userInfo]
+    [userInfo, userRole, isAuthenticated, isAdmin, isLoading, refreshProfile]
   );
 
   useEffect(() => {

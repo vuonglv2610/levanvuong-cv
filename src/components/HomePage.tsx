@@ -2,11 +2,13 @@ import { useAuthProvider } from "contexts/AuthContext";
 import ProductList from "layouts/ProductList";
 import ProductsList from "pages/Products";
 import React from "react";
+import { usePermissions } from "../hooks/usePermissions";
 import HotDeals from "./HotDeals";
 import SwiperComponent from "./SwiperComponent";
 
 const HomePage = () => {
   const { userInfo } = useAuthProvider();
+  const { isAuthenticated, isAdmin } = usePermissions();
   const user: any = userInfo;
 
   return (
@@ -22,9 +24,44 @@ const HomePage = () => {
               <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
                 Chào mừng trở lại, {user?.fullname}! 👋
               </h2>
-              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-8">
                 Khám phá những sản phẩm mới nhất và ưu đãi đặc biệt dành riêng cho bạn
               </p>
+
+              {/* Quick Actions based on user role */}
+              <div className="flex flex-wrap justify-center gap-4">
+                {isAuthenticated() && (
+                  <>
+                    <a
+                      href="/profile"
+                      className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                    >
+                      📋 Thông tin cá nhân
+                    </a>
+                    <a
+                      href="/orders"
+                      className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+                    >
+                      📦 Đơn hàng của tôi
+                    </a>
+                    <a
+                      href="/cart"
+                      className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
+                    >
+                      🛒 Giỏ hàng
+                    </a>
+                  </>
+                )}
+
+                {isAdmin() && (
+                  <a
+                    href="/admin"
+                    className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+                  >
+                    ⚙️ Quản lý Admin
+                  </a>
+                )}
+              </div>
             </div>
           </div>
         </section>
