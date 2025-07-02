@@ -43,14 +43,11 @@ const PaymentProcessingPage: React.FC = () => {
       // Gọi API tạo thanh toán
       const response = await paymentService.createPaymentFromCart(state.paymentData);
 
-      console.log('response vnpay', response);
-
       // Kiểm tra response structure mới
       if (response.statusCode === "Tạo thanh toán thành công" || response.statusCode === 200) {
-        console.log('Payment response data:', response.result);
 
         // Kiểm tra cấu trúc response mới với token
-        const paymentToken = response.result?.token;
+        const paymentToken = response?.result?.data?.result?.token;
 
         if (paymentToken) {
           // Response mới có cấu trúc với token
