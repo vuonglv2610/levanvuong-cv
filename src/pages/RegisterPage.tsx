@@ -1,9 +1,9 @@
 import { REGEX_EMAIL } from "configs/regexConfig";
 import useRouter from "hooks/useRouter";
+import useToast from "hooks/useToast";
 import React from "react";
 import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
-import { toast } from "react-toastify";
 import { register as registerUser } from "../services/api";
 
 const RegisterPage = () => {
@@ -14,20 +14,21 @@ const RegisterPage = () => {
   } = useForm();
 
   const { navigate } = useRouter();
+  const toast = useToast();
 
   const onSubmit = async (data: any) => {
     try {
       if (data) {
         const signup = await registerUser(data);
         if (signup) {
-          toast.success("Registration successful!");
+          toast.success("Đăng ký thành công!", "Bạn có thể đăng nhập ngay bây giờ");
           navigate("/login");
         }
       } else {
-        toast.error("Error during registration");
+        toast.error("Lỗi đăng ký", "Vui lòng kiểm tra lại thông tin");
       }
     } catch (error) {
-      toast.error("Error during registration");
+      toast.error("Lỗi đăng ký", "Có lỗi xảy ra trong quá trình đăng ký");
     }
   };
 

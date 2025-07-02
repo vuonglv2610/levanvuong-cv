@@ -1,7 +1,5 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import App from "./App";
 import "./index.css";
 import reportWebVitals from "./reportWebVitals";
@@ -15,7 +13,6 @@ root.render(
   <>
     <link rel="stylesheet" href="path/to/font-awesome/css/font-awesome.min.css"></link>
     <App />
-    <ToastContainer />
   </>
   // {/* </React.StrictMode> */}
 );

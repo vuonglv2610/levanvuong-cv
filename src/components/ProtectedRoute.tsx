@@ -45,8 +45,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   // Lấy role từ API response thực tế
   const roleKey = userInfo?.result?.data?.role?.role_key;
   const hasRoleId = !!userInfo?.result?.data?.roleId;
-  console.log("- roleKey:", roleKey);
-  console.log("- hasRoleId:", hasRoleId);
+  // console.log("- roleKey:", roleKey);
+  // console.log("- hasRoleId:", hasRoleId);
 
   // Check roles dựa trên role_key và roleId
   const isAdmin = roleKey === 'admin';
@@ -54,10 +54,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const isCustomer = !hasRoleId; // Customer không có roleId
   const hasUserInfo = !!userInfo?.result?.data;
 
-  console.log("- isAdmin:", isAdmin);
-  console.log("- isUser:", isUser);
-  console.log("- isCustomer:", isCustomer);
-  console.log("- hasUserInfo:", hasUserInfo);
+  // console.log("- isAdmin:", isAdmin);
+  // console.log("- isUser:", isUser);
+  // console.log("- isCustomer:", isCustomer);
+  // console.log("- hasUserInfo:", hasUserInfo);
 
   // Nếu không có userInfo sau khi loading xong, redirect to login
   if (!hasUserInfo) {

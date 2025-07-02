@@ -1,15 +1,16 @@
 import { faAngleRight, faCartPlus, faStar } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useQuery } from "@tanstack/react-query";
+import useToast from "hooks/useToast";
 import { getCookie } from "libs/getCookie";
 import React, { useEffect } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { toast } from "react-toastify";
 import { get, post } from "services/api";
 
 const DetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const toast = useToast();
   
   const { data: productData, isLoading } = useQuery({
     queryKey: [`/products/${id}`],
@@ -31,21 +32,21 @@ const DetailPage = () => {
     const userId = getCookie("userId");
     
     if (!userId) {
-      toast.info("Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng");
+      toast.info("Thông báo", "Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng");
       navigate("/login");
       return;
     }
-    
+
     try {
       post(`/shoppingcart`, {
         product_id: product.id,
         customer_id: userId,
         quantity: 1
       });
-      toast.success(`Đã thêm ${product.name} vào giỏ hàng!`);
+      toast.success("Thành công", `Đã thêm ${product.name} vào giỏ hàng!`);
     } catch (error) {
       console.error("Error adding to cart:", error);
-      toast.error("Không thể thêm sản phẩm vào giỏ hàng");
+      toast.error("Lỗi", "Không thể thêm sản phẩm vào giỏ hàng");
     }
   };
 

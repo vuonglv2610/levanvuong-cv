@@ -1,7 +1,7 @@
+import useToast from 'hooks/useToast';
 import { getCookie } from 'libs/getCookie';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { toast } from "react-toastify";
 import { get, post } from 'services/api';
 import ProductFilter from '../components/ProductFilter';
 
@@ -22,6 +22,7 @@ const ProductList = () => {
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(8);
+    const toast = useToast();
 
     // Khởi tạo filterParams từ URL search params
     const initialFilterParams = useMemo(() => {
@@ -64,7 +65,7 @@ const ProductList = () => {
             }
         } catch (error) {
             console.error('Error fetching products:', error);
-            toast.error('Không thể tải danh sách sản phẩm');
+            toast.error('Lỗi', 'Không thể tải danh sách sản phẩm');
         } finally {
             setLoading(false);
         }
@@ -135,7 +136,7 @@ const ProductList = () => {
         const userId = getCookie("userId");
         
         if (!userId) {
-            toast.info("Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng");
+            toast.info("Thông báo", "Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng");
             window.location.href = "/login";
             return;
         }
@@ -146,10 +147,10 @@ const ProductList = () => {
                 customer_id: userId,
                 quantity: 1
             });
-            toast.success(`Đã thêm ${product.name} vào giỏ hàng!`);
+            toast.success("Thành công", `Đã thêm ${product.name} vào giỏ hàng!`);
         } catch (error) {
             console.error("Error adding to cart:", error);
-            toast.error("Không thể thêm sản phẩm vào giỏ hàng");
+            toast.error("Lỗi", "Không thể thêm sản phẩm vào giỏ hàng");
         }
     }
 
@@ -160,9 +161,7 @@ const ProductList = () => {
     };
 
     useEffect(() => {
-        getProducts().then(() => {
-            console.log('Products data:', products);
-        });
+        getProducts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [apiUrl]); // Thay đổi dependency từ [] thành [apiUrl]
 

@@ -1,8 +1,8 @@
 import { useQueryClient } from '@tanstack/react-query';
+import useToast from 'hooks/useToast';
 import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
 
 interface FormField {
   name: string;
@@ -48,6 +48,7 @@ const FormComponent: React.FC<FormProps> = ({
   transformBeforeSubmit
 }) => {
   const navigate = useNavigate();
+  const toast = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const queryClient = useQueryClient();
@@ -133,8 +134,8 @@ const FormComponent: React.FC<FormProps> = ({
           await queryClient.invalidateQueries({ queryKey: [invalidateQueryKey] });
         }
         
-        toast.success('Thao tác thành công!');
-        
+        toast.success('Thành công', 'Thao tác đã được thực hiện thành công!');
+
         // Redirect after successful submission
         if (redirectAfterSubmit) {
           navigate(redirectAfterSubmit);
@@ -142,7 +143,7 @@ const FormComponent: React.FC<FormProps> = ({
       }
     } catch (error) {
       console.error('Error submitting form:', error);
-      toast.error('Có lỗi xảy ra!');
+      toast.error('Lỗi', 'Có lỗi xảy ra khi thực hiện thao tác!');
     } finally {
       setIsSubmitting(false);
     }

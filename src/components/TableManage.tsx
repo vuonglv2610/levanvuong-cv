@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
+import useToast from "hooks/useToast";
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
 import { get, remove } from "services/api";
 import PermissionButton from "./PermissionButton";
 
@@ -55,6 +55,7 @@ const TableManage = ({
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
   const navigate = useNavigate();
+  const toast = useToast();
 
   // State để lưu thời gian cập nhật cuối cùng
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
@@ -78,10 +79,10 @@ const TableManage = ({
   const refreshData = async () => {
     try {
       await refetch();
-      toast.success("Dữ liệu đã được cập nhật!");
+      toast.success("Thành công", "Dữ liệu đã được cập nhật!");
     } catch (error) {
       console.error('Error refreshing data:', error);
-      toast.error('Không thể cập nhật dữ liệu!');
+      toast.error('Lỗi', 'Không thể cập nhật dữ liệu!');
     }
   };
 
@@ -207,29 +208,22 @@ const TableManage = ({
   const handleRemoveItem = async (id: any) => {
     try {
       setDeletingId(id);
-      
-      toast.loading("Đang xóa...", { 
-        toastId: "delete-loading",
-        autoClose: false
-      });
-      
+
       const deleteUrl = deletePath ? `${deletePath}/${id}` : `${url}/${id}`;
       const res = await remove(deleteUrl);
-      
+
       if (res.data) {
-        toast.dismiss("delete-loading");
-        toast.success('Xóa thành công!');
-        
+        toast.success('Thành công', 'Xóa thành công!');
+
         await refetch();
-        
+
         if (currentItems.length === 1 && currentPage > 1) {
           setCurrentPage(currentPage - 1);
         }
       }
     } catch (error) {
-      toast.dismiss("delete-loading");
       console.error('Error removing item:', error);
-      toast.error('Có lỗi xảy ra khi xóa!');
+      toast.error('Lỗi', 'Có lỗi xảy ra khi xóa!');
     } finally {
       setDeletingId(null);
     }

@@ -1,11 +1,12 @@
 import { faAngleRight } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useQuery } from '@tanstack/react-query';
+import useToast from 'hooks/useToast';
 import { getCookie } from 'libs/getCookie';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
-import { get, post } from 'services/api';
+import { get } from 'services/api';
+import { PaymentData } from 'services/paymentService';
 
 function Checkout() {
   const navigate = useNavigate();
@@ -13,6 +14,7 @@ function Checkout() {
   const [selectedItems, setSelectedItems] = useState<any[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [discount, setDiscount] = useState(0);
+  const toast = useToast();
   
   // Form state
   const [formData, setFormData] = useState({
@@ -37,7 +39,7 @@ function Checkout() {
   // Redirect if not logged in
   useEffect(() => {
     if (!userId) {
-      toast.error('Vui lòng đăng nhập để tiếp tục thanh toán');
+      toast.error('Lỗi', 'Vui lòng đăng nhập để tiếp tục thanh toán');
       navigate('/login');
     }
   }, [userId, navigate]);
@@ -49,7 +51,7 @@ function Checkout() {
       setSelectedItems(JSON.parse(items));
     } else {
       navigate('/cart');
-      toast.error('Vui lòng chọn sản phẩm để thanh toán');
+      toast.error('Lỗi', 'Vui lòng chọn sản phẩm để thanh toán');
     }
   }, [navigate]);
 
@@ -92,20 +94,37 @@ function Checkout() {
     
     // Validate form
     if (!formData.fullName || !formData.phone || !formData.address || !formData.city) {
-      toast.error('Vui lòng điền đầy đủ thông tin giao hàng');
+      toast.error('Lỗi', 'Vui lòng điền đầy đủ thông tin giao hàng');
       return;
     }
 
-    // Process checkout
+    // Process payment
     try {
       setIsProcessing(true);
-      
-      const orderData = {
-        customerId: userId,
+
+      // Map frontend payment method to backend format
+      const getBackendPaymentMethod = (method: string) => {
+        switch (method) {
+          case 'cod': return 'cash';
+          case 'banking': return 'vnpay'; // Sử dụng VNPay cho chuyển khoản
+          case 'momo': return 'momo';
+          default: return 'cash';
+        }
+      };
+
+      const paymentData: PaymentData = {
+        customerId: userId!,
+        paymentMethod: getBackendPaymentMethod(formData.paymentMethod) as any,
+        description: `Thanh toán đơn hàng - ${formData.notes || 'Không có ghi chú'}`
+      };
+
+      // Prepare order info for payment processing page
+      const orderInfo = {
         items: selectedItems.map(item => ({
           productId: item.product.id,
           quantity: item.quantity,
-          price: item.product.price
+          price: item.product.price,
+          name: item.product.name
         })),
         shippingInfo: {
           fullName: formData.fullName,
@@ -116,34 +135,26 @@ function Checkout() {
           district: formData.district,
           ward: formData.ward
         },
-        paymentMethod: formData.paymentMethod,
         notes: formData.notes,
         subtotal: subtotal,
         discount: discountAmount,
         total: finalTotal
       };
-      
-      // Call API to create order
-      const response = await post('/orders', orderData);
-      
-      if (response?.data) {
-        // Clear checkout items from localStorage
-        localStorage.removeItem('checkoutItems');
-        
-        // Show success message
-        toast.success('Đặt hàng thành công!');
-        
-        // Redirect to order confirmation page
-        navigate('/order-success', { 
-          state: { 
-            orderId: response.data.result.data.id,
-            total: finalTotal 
-          } 
-        });
-      }
+
+      // Clear checkout items from localStorage
+      localStorage.removeItem('checkoutItems');
+
+      // Navigate to payment processing page
+      navigate('/payment-processing', {
+        state: {
+          paymentData,
+          orderInfo
+        }
+      });
+
     } catch (error) {
-      console.error('Error processing order:', error);
-      toast.error('Không thể hoàn tất đơn hàng. Vui lòng thử lại sau.');
+      console.error('Error processing payment:', error);
+      toast.error('Lỗi', 'Không thể xử lý thanh toán. Vui lòng thử lại sau.');
     } finally {
       setIsProcessing(false);
     }
@@ -290,7 +301,7 @@ function Checkout() {
                       onChange={handleInputChange}
                       className="w-4 h-4 accent-primary mr-2"
                     />
-                    <label htmlFor="banking" className="text-gray-700">Chuyển khoản ngân hàng</label>
+                    <label htmlFor="banking" className="text-gray-700">Thanh toán qua VNPay</label>
                   </div>
                   
                   <div className="flex items-center">

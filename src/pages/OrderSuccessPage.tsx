@@ -1,12 +1,13 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import paymentService from '../services/paymentService';
 
 const OrderSuccessPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   
   // Get order data from navigation state
-  const { orderId, total } = location.state || {};
+  const { orderId, paymentId, total, paymentMethod, paymentStatus, fromCallback } = location.state || {};
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('vi-VN', {
@@ -41,15 +42,43 @@ const OrderSuccessPage = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
                 <div>
                   <p className="text-sm text-gray-600">Mã đơn hàng</p>
-                  <p className="font-semibold text-gray-900">#{orderId}</p>
+                  <p className="font-semibold text-gray-900">#{orderId.slice(-8)}</p>
                 </div>
+                {paymentId && (
+                  <div>
+                    <p className="text-sm text-gray-600">Mã thanh toán</p>
+                    <p className="font-semibold text-gray-900">#{paymentId.slice(-8)}</p>
+                  </div>
+                )}
                 {total && (
                   <div>
                     <p className="text-sm text-gray-600">Tổng tiền</p>
                     <p className="font-semibold text-blue-600">{formatPrice(total)}</p>
                   </div>
                 )}
+                {paymentMethod && (
+                  <div>
+                    <p className="text-sm text-gray-600">Phương thức thanh toán</p>
+                    <p className="font-semibold text-gray-900">
+                      {paymentService.getPaymentMethodDisplayName(paymentMethod)}
+                    </p>
+                  </div>
+                )}
               </div>
+
+              {/* Payment Status */}
+              {paymentStatus && (
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-gray-600">Trạng thái thanh toán</p>
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                      paymentService.getPaymentStatusInfo(paymentStatus).color
+                    } ${paymentService.getPaymentStatusInfo(paymentStatus).bgColor}`}>
+                      {paymentService.getPaymentStatusInfo(paymentStatus).name}
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -57,8 +86,21 @@ const OrderSuccessPage = () => {
           <div className="bg-blue-50 rounded-lg p-4 mb-6 text-left">
             <h3 className="font-medium text-blue-900 mb-2">Thông tin quan trọng:</h3>
             <ul className="text-sm text-blue-800 space-y-1">
-              <li>• Chúng tôi sẽ gửi email xác nhận đơn hàng trong vòng 15 phút</li>
-              <li>• Đơn hàng sẽ được xử lý trong 1-2 ngày làm việc</li>
+              {fromCallback ? (
+                <>
+                  <li>• Thanh toán đã được xác nhận thành công</li>
+                  <li>• Chúng tôi sẽ gửi email xác nhận trong vòng 15 phút</li>
+                  <li>• Đơn hàng sẽ được xử lý ngay lập tức</li>
+                </>
+              ) : (
+                <>
+                  <li>• Chúng tôi sẽ gửi email xác nhận đơn hàng trong vòng 15 phút</li>
+                  <li>• Đơn hàng sẽ được xử lý trong 1-2 ngày làm việc</li>
+                  {paymentMethod === 'cash' && (
+                    <li>• Vui lòng chuẩn bị tiền mặt khi nhận hàng</li>
+                  )}
+                </>
+              )}
               <li>• Bạn có thể theo dõi trạng thái đơn hàng trong mục "Đơn hàng của tôi"</li>
             </ul>
           </div>

@@ -1,24 +1,18 @@
 import { REGEX_EMAIL } from "configs/regexConfig";
 import { useAuthProvider } from "contexts/AuthContext";
+import useToast from "hooks/useToast";
 import { setCookie } from "libs/getCookie";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
 import { login, loginSuccess } from "services/api";
 
 interface LoginResponse {
-  data?: {
-    result: {
-      data: {
-        userId: string;
-      }
-      token?: string;
-    }
-  };
+  data?: any;
   statusText?: string;
   message?: string;
   status?: number;
+  [key: string]: any;
 }
 
 const LoginPage = () => {
@@ -30,37 +24,102 @@ const LoginPage = () => {
   const param = new URLSearchParams(useLocation().search).get("code");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const toast = useToast();
   const { refreshProfile } = useAuthProvider();
 
-  // Xử lý response đăng nhập
-  const checkResponse = async (response: LoginResponse) => {
-
-    // Kiểm tra response có tồn tại không
-    if (!response) {
-      toast.error("Đăng nhập thất bại: Không nhận được phản hồi từ máy chủ");
-      return;
+  // Hàm tìm giá trị trong object nested một cách an toàn
+  const findValueInObject = useCallback((obj: any, paths: string[]): any => {
+    for (const path of paths) {
+      try {
+        const value = path.split('.').reduce((o, k) => o?.[k], obj);
+        if (value !== undefined && value !== null) {
+          return value;
+        }
+      } catch (e) {
+        continue;
+      }
     }
+    return null;
+  }, []);
 
-    // Kiểm tra cấu trúc response
-    if (response.data) {
+  // Xử lý response đăng nhập
+  const checkResponse = useCallback(async (response: LoginResponse) => {
+    try {
+      if (!response) {
+        toast.error("Đăng nhập thất bại", "Không nhận được phản hồi từ máy chủ");
+        return;
+      }
 
-      // Lưu token và userId vào cookie
-      setCookie("accessToken", response.data.result.token);
-      setCookie("userId", param || response.data?.result?.data?.userId);
+      // Tìm token từ nhiều vị trí có thể
+      const tokenPaths = [
+        'data.result.token',
+        'data.token',
+        'data.accessToken',
+        'data.access_token',
+        'token',
+        'accessToken',
+        'access_token'
+      ];
 
-      // Refresh profile để load user data
+      const token = findValueInObject(response, tokenPaths);
+
+      if (!token) {
+        toast.error("Đăng nhập thất bại", "Không tìm thấy token xác thực");
+        return;
+      }
+
+      setCookie("accessToken", token);
+
+      // Tìm userId
+      let userId = null;
+
+      if (param) {
+        // Đăng nhập Google
+        userId = param;
+      } else {
+        // Đăng nhập form - tìm từ nhiều vị trí có thể
+        const userIdPaths = [
+          'data.result.data.customerId',
+          'data.result.data.userId',
+          'data.result.data.id',
+          'data.result.customerId',
+          'data.result.userId',
+          'data.result.id',
+          'data.customerId',
+          'data.userId',
+          'data.id',
+          'data.user.id',
+          'data.user.userId',
+          'data.user.customerId',
+          'userId',
+          'customerId',
+          'id'
+        ];
+
+        userId = findValueInObject(response, userIdPaths);
+      }
+
+      if (!userId) {
+        toast.error("Đăng nhập thất bại", "Không tìm thấy thông tin người dùng");
+        return;
+      }
+
+      setCookie("userId", userId);
+
+      // Refresh profile
       await refreshProfile();
 
-      // Hiển thị thông báo thành công
-      toast.success("Đăng nhập thành công!");
+      // Thông báo thành công
+      toast.success("Thành công", "Đăng nhập thành công!");
 
-      // Chuyển hướng đến trang chủ
+      // Chuyển hướng
       navigate("/");
-    } else {
-      console.error("Invalid response structure:", response);
-      toast.error("Đăng nhập thất bại: Cấu trúc phản hồi không hợp lệ");
+
+    } catch (error) {
+      console.error("Lỗi trong quá trình đăng nhập:", error);
+      toast.error("Lỗi", "Có lỗi xảy ra trong quá trình xử lý đăng nhập");
     }
-  };
+  }, [navigate, refreshProfile, param, findValueInObject, toast]);
 
   // Xử lý đăng nhập bằng Google
   useEffect(() => {
@@ -69,31 +128,37 @@ const LoginPage = () => {
         setIsLoading(true);
         try {
           const response: LoginResponse = await loginSuccess({ id: param });
+
           if (response) {
             await checkResponse(response);
+          } else {
+            toast.error("Lỗi", "Không nhận được phản hồi từ server");
           }
         } catch (error: any) {
           console.error("Google login error:", error);
-          toast.error(error.message || "Đăng nhập bằng Google thất bại");
+          toast.error("Lỗi", error.message || "Đăng nhập bằng Google thất bại");
         } finally {
           setIsLoading(false);
         }
       }
       loginGg();
     }
-  }, [param, navigate]);
+  }, [param, navigate, checkResponse, toast]);
 
   // Xử lý đăng nhập bằng form
   const onSubmit: SubmitHandler<any> = async (data) => {
     setIsLoading(true);
     try {
       const response: LoginResponse = await login(data);
+
       if (response) {
         await checkResponse(response);
+      } else {
+        toast.error("Lỗi", "Không nhận được phản hồi từ server");
       }
     } catch (error: any) {
       console.error("Login error:", error);
-      toast.error(error.response?.data?.message || error.message || "Đăng nhập thất bại");
+      toast.error("Đăng nhập thất bại", error.response?.data?.message || error.message || "Đăng nhập thất bại");
     } finally {
       setIsLoading(false);
     }

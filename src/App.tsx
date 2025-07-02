@@ -21,11 +21,13 @@ import "./App.css";
 
 // Context imports
 import AuthProvider from "contexts/AuthContext";
+import { NotificationProvider } from "contexts/NotificationContext";
 
 // Permission imports
 
 // Component imports
 import ProductManager from "components/ProductManager";
+import ToastContainer from "components/ToastContainer";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import HomePage from "./components/HomePage";
 import TableManage from "./components/TableManage";
@@ -79,6 +81,10 @@ import PermissionDemoPage from "./pages/PermissionDemoPage";
 // Import permission components
 import PermissionAdminPanel from "components/PermissionAdminPanel";
 import PermissionExamples from "examples/PermissionExamples";
+import PaymentCallbackPage from "pages/PaymentCallbackPage";
+import PaymentDebugPage from "pages/PaymentDebugPage";
+import PaymentFailedPage from "pages/PaymentFailedPage";
+import PaymentProcessingPage from "pages/PaymentProcessingPage";
 import AdminRouteGuard from "./components/AdminRouteGuard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { UserRole } from "./configs/permissions";
@@ -139,6 +145,22 @@ function App() {
             <Route path="/checkout" element={
               <ProtectedRoute requiredRole={UserRole.USER}>
                 <Checkout />
+              </ProtectedRoute>
+            } />
+            <Route path="/payment-processing" element={
+              <ProtectedRoute requiredRole={UserRole.USER}>
+                <PaymentProcessingPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/payment-debug" element={
+              <ProtectedRoute requiredRole={UserRole.USER}>
+                <PaymentDebugPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/payment-callback" element={<PaymentCallbackPage />} />
+            <Route path="/payment-failed" element={
+              <ProtectedRoute requiredRole={UserRole.USER}>
+                <PaymentFailedPage />
               </ProtectedRoute>
             } />
           </Route>
@@ -339,9 +361,12 @@ function App() {
   return (
     <div className="App">
       <AuthProvider>
-        <QueryClientProvider client={queryClient}>
-          <RouterProvider router={router} />
-        </QueryClientProvider>
+        <NotificationProvider>
+          <QueryClientProvider client={queryClient}>
+            <RouterProvider router={router} />
+            <ToastContainer />
+          </QueryClientProvider>
+        </NotificationProvider>
       </AuthProvider>
       <ScrollToTop smooth={true} className="bg-primary flex justify-center items-center" color="white" width="20px" height="20px" />
     </div>

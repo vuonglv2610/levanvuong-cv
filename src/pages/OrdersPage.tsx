@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import PaymentStatusTracker from 'components/PaymentStatusTracker';
 import { getCookie } from 'libs/getCookie';
 import React, { useState } from 'react';
 import { get } from 'services/api';
@@ -15,23 +16,37 @@ interface OrderItem {
 
 interface Order {
   id: string;
-  orderNumber: string;
-  orderDate: string;
+  customerId: string;
+  order_date: string;
   status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
-  paymentMethod: string;
-  paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded';
-  shippingAddress: string;
-  items: OrderItem[];
-  subtotal: number;
-  shippingFee: number;
-  tax: number;
-  total: number;
+  total_amount: number;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+  customer: {
+    id: string;
+    name: string;
+    email: string;
+    phone: string | null;
+  };
+  // Optional fields for compatibility with existing UI
+  orderNumber?: string;
+  paymentMethod?: string;
+  paymentStatus?: 'pending' | 'paid' | 'failed' | 'refunded';
+  paymentId?: string;
+  shippingAddress?: string;
+  items?: OrderItem[];
+  subtotal?: number;
+  shippingFee?: number;
+  tax?: number;
   notes?: string;
 }
 
 const OrdersPage = () => {
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [ordersPerPage, setOrdersPerPage] = useState<number>(10);
   const userId = getCookie('userId');
 
   // Fetch user's orders from API
@@ -43,7 +58,7 @@ const OrdersPage = () => {
   });
 
   // Extract orders from API response or use empty array
-  const orders: Order[] = ordersData?.data?.result?.data || [];
+  const orders: Order[] = ordersData?.data?.result?.token || [];
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -99,6 +114,61 @@ const OrdersPage = () => {
   const filteredOrders = selectedStatus === 'all'
     ? orders
     : orders.filter(order => order.status === selectedStatus);
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredOrders.length / ordersPerPage);
+  const indexOfLastOrder = currentPage * ordersPerPage;
+  const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
+  const currentOrders = filteredOrders.slice(indexOfFirstOrder, indexOfLastOrder);
+
+  // Pagination handlers
+  const paginate = (pageNumber: number) => {
+    if (pageNumber > 0 && pageNumber <= totalPages) {
+      setCurrentPage(pageNumber);
+      setSelectedOrder(null); // Close any expanded order when changing page
+      // Scroll to top of orders list
+      window.scrollTo({
+        top: document.getElementById('orders-list')?.offsetTop || 0,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  const handleOrdersPerPageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setOrdersPerPage(Number(e.target.value));
+    setCurrentPage(1); // Reset to first page when changing items per page
+  };
+
+  // Generate page numbers for pagination
+  const pageNumbers = (() => {
+    const pages = [];
+    const maxPagesToShow = 5;
+
+    if (totalPages <= maxPagesToShow) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
+      let endPage = startPage + maxPagesToShow - 1;
+
+      if (endPage > totalPages) {
+        endPage = totalPages;
+        startPage = Math.max(1, endPage - maxPagesToShow + 1);
+      }
+
+      for (let i = startPage; i <= endPage; i++) {
+        pages.push(i);
+      }
+    }
+
+    return pages;
+  })();
+
+  // Reset to first page when status filter changes
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedStatus]);
 
   // Loading state
   if (isLoading) {
@@ -200,8 +270,8 @@ const OrdersPage = () => {
         </div>
 
         {/* Orders List */}
-        <div className="space-y-4">
-          {filteredOrders.length === 0 ? (
+        <div id="orders-list" className="space-y-4">
+          {currentOrders.length === 0 ? (
             <div className="bg-white rounded-lg shadow-sm border p-12 text-center">
               <div className="w-24 h-24 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
                 <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -218,30 +288,32 @@ const OrdersPage = () => {
               </a>
             </div>
           ) : (
-            filteredOrders.map((order) => (
+            currentOrders.map((order) => (
               <div key={order.id} className="bg-white rounded-lg shadow-sm border overflow-hidden">
                 {/* Order Header */}
                 <div className="p-6 border-b bg-gray-50">
                   <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div className="flex flex-col md:flex-row md:items-center gap-4">
                       <div>
-                        <h3 className="font-semibold text-gray-900">Đơn hàng #{order.orderNumber}</h3>
+                        <h3 className="font-semibold text-gray-900">Đơn hàng #{order.orderNumber || order.id.slice(0, 8)}</h3>
                         <p className="text-sm text-gray-600">
-                          Đặt ngày {new Date(order.orderDate).toLocaleDateString('vi-VN')}
+                          Đặt ngày {new Date(order.order_date).toLocaleDateString('vi-VN')}
                         </p>
                       </div>
                       <div className="flex flex-col sm:flex-row gap-2">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
                           {getStatusText(order.status)}
                         </span>
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPaymentStatusColor(order.paymentStatus)}`}>
-                          {getPaymentStatusText(order.paymentStatus)}
-                        </span>
+                        {order.paymentStatus && (
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPaymentStatusColor(order.paymentStatus)}`}>
+                            {getPaymentStatusText(order.paymentStatus)}
+                          </span>
+                        )}
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
                       <span className="text-lg font-bold text-gray-900">
-                        {formatPrice(order.total)}
+                        {formatPrice(order.total_amount)}
                       </span>
                       <button
                         onClick={() => setSelectedOrder(selectedOrder?.id === order.id ? null : order)}
@@ -253,37 +325,62 @@ const OrdersPage = () => {
                   </div>
                 </div>
 
-                {/* Order Items Preview */}
+                {/* Order Info Preview */}
                 <div className="p-6">
-                  <div className="flex items-center gap-4 overflow-x-auto">
-                    {order.items.map((item) => (
-                      <div key={item.id} className="flex items-center gap-3 min-w-0 flex-shrink-0">
-                        <img
-                          src={item.productImage}
-                          alt={item.productName}
-                          className="w-16 h-16 object-cover rounded-lg border"
-                        />
-                        <div className="min-w-0">
-                          <h4 className="font-medium text-gray-900 truncate">{item.productName}</h4>
-                          <p className="text-sm text-gray-600">SKU: {item.productSku}</p>
-                          <p className="text-sm text-gray-600">Số lượng: {item.quantity}</p>
-                          <p className="text-sm font-medium text-blue-600">{formatPrice(item.price)}</p>
-                        </div>
-                      </div>
-                    ))}
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-600">Khách hàng: <span className="font-medium text-gray-900">{order.customer.name}</span></p>
+                      <p className="text-sm text-gray-600">Email: <span className="font-medium text-gray-900">{order.customer.email}</span></p>
+                      {order.customer.phone && (
+                        <p className="text-sm text-gray-600">Điện thoại: <span className="font-medium text-gray-900">{order.customer.phone}</span></p>
+                      )}
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm text-gray-600">Tổng tiền</p>
+                      <p className="text-lg font-bold text-blue-600">{formatPrice(order.total_amount)}</p>
+                    </div>
                   </div>
                 </div>
 
                 {/* Order Details (Expandable) */}
                 {selectedOrder?.id === order.id && (
                   <div className="border-t bg-gray-50 p-6">
+                    {/* Payment Status Tracker */}
+                    {order.paymentId && (
+                      <div className="mb-6">
+                        <PaymentStatusTracker
+                          paymentId={order.paymentId}
+                          orderId={order.id}
+                          onStatusChange={(status) => {
+                            // Có thể cập nhật UI khi payment status thay đổi
+                            console.log('Payment status changed:', status);
+                          }}
+                        />
+                      </div>
+                    )}
+
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                       <div>
-                        <h4 className="font-medium text-gray-900 mb-3">Địa chỉ giao hàng</h4>
-                        <p className="text-gray-600">{order.shippingAddress}</p>
+                        <h4 className="font-medium text-gray-900 mb-3">Thông tin khách hàng</h4>
+                        <p className="text-gray-600">Tên: {order.customer.name}</p>
+                        <p className="text-gray-600">Email: {order.customer.email}</p>
+                        {order.customer.phone && (
+                          <p className="text-gray-600">Điện thoại: {order.customer.phone}</p>
+                        )}
 
-                        <h4 className="font-medium text-gray-900 mb-3 mt-4">Phương thức thanh toán</h4>
-                        <p className="text-gray-600">{order.paymentMethod}</p>
+                        {order.shippingAddress && (
+                          <>
+                            <h4 className="font-medium text-gray-900 mb-3 mt-4">Địa chỉ giao hàng</h4>
+                            <p className="text-gray-600">{order.shippingAddress}</p>
+                          </>
+                        )}
+
+                        {order.paymentMethod && (
+                          <>
+                            <h4 className="font-medium text-gray-900 mb-3 mt-4">Phương thức thanh toán</h4>
+                            <p className="text-gray-600">{order.paymentMethod}</p>
+                          </>
+                        )}
 
                         {order.notes && (
                           <>
@@ -294,24 +391,26 @@ const OrdersPage = () => {
                       </div>
 
                       <div>
-                        <h4 className="font-medium text-gray-900 mb-3">Chi tiết thanh toán</h4>
+                        <h4 className="font-medium text-gray-900 mb-3">Thông tin đơn hàng</h4>
                         <div className="bg-white rounded-lg p-4 space-y-2">
                           <div className="flex justify-between">
-                            <span className="text-gray-600">Tạm tính:</span>
-                            <span className="text-gray-900">{formatPrice(order.subtotal)}</span>
+                            <span className="text-gray-600">Mã đơn hàng:</span>
+                            <span className="text-gray-900 font-mono">{order.id.slice(0, 8)}...</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-600">Phí vận chuyển:</span>
-                            <span className="text-gray-900">{formatPrice(order.shippingFee)}</span>
+                            <span className="text-gray-600">Ngày đặt:</span>
+                            <span className="text-gray-900">{new Date(order.order_date).toLocaleDateString('vi-VN')}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-600">Thuế:</span>
-                            <span className="text-gray-900">{formatPrice(order.tax)}</span>
+                            <span className="text-gray-600">Trạng thái:</span>
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
+                              {getStatusText(order.status)}
+                            </span>
                           </div>
                           <div className="border-t pt-2">
                             <div className="flex justify-between font-semibold">
                               <span className="text-gray-900">Tổng cộng:</span>
-                              <span className="text-blue-600">{formatPrice(order.total)}</span>
+                              <span className="text-blue-600">{formatPrice(order.total_amount)}</span>
                             </div>
                           </div>
                         </div>
@@ -339,6 +438,83 @@ const OrdersPage = () => {
             ))
           )}
         </div>
+
+        {/* Pagination - Always show when there are orders */}
+        {filteredOrders.length > 0 && (
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 mt-8 bg-white rounded-lg shadow-sm border p-6">
+            {/* Items per page selector */}
+            <div className="flex items-center gap-2">
+              <label htmlFor="orders-per-page" className="text-sm text-gray-700">
+                Hiển thị:
+              </label>
+              <select
+                id="orders-per-page"
+                value={ordersPerPage}
+                onChange={handleOrdersPerPageChange}
+                className="p-2 text-sm text-gray-900 border border-gray-300 rounded-md bg-white focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value={5}>5 đơn hàng</option>
+                <option value={10}>10 đơn hàng</option>
+                <option value={20}>20 đơn hàng</option>
+                <option value={50}>50 đơn hàng</option>
+              </select>
+              <span className="text-sm text-gray-600 ml-4">
+                Hiển thị {indexOfFirstOrder + 1}-{Math.min(indexOfLastOrder, filteredOrders.length)} trong tổng số {filteredOrders.length} đơn hàng
+              </span>
+            </div>
+
+            {/* Pagination controls - Only show when more than 1 page */}
+            {totalPages > 1 && (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => paginate(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Trước
+                </button>
+
+                {pageNumbers.map((number) => (
+                  <button
+                    key={number}
+                    onClick={() => paginate(number)}
+                    className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                      currentPage === number
+                        ? 'text-white bg-blue-600 border border-blue-600'
+                        : 'text-gray-500 bg-white border border-gray-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    {number}
+                  </button>
+                ))}
+
+                <button
+                  onClick={() => paginate(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Sau
+                </button>
+              </div>
+            )}
+
+            {/* Show page info when only 1 page */}
+            {totalPages === 1 && (
+              <div className="text-sm text-gray-600">
+                Trang 1 / 1 - Tất cả {filteredOrders.length} đơn hàng
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Show pagination info when no orders match filter */}
+        {filteredOrders.length === 0 && orders.length > 0 && (
+          <div className="text-center py-4">
+            <p className="text-gray-500 text-sm">
+              Không tìm thấy đơn hàng nào với trạng thái "{getStatusText(selectedStatus)}"
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,16 +1,17 @@
 import { faAngleRight, faMinus, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useQuery } from '@tanstack/react-query';
+import useToast from 'hooks/useToast';
 import { getCookie } from 'libs/getCookie';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
 import { get, put, remove } from 'services/api';
 
 function Cart() {
   const url = '/shoppingcart/customer';
   const userId = getCookie('userId');
   const navigate = useNavigate();
+  const toast = useToast();
 
   const [cartItems, setCartItems] = useState<any[]>([]);
   const [isCheckedAll, setCheckedAll] = useState(false);
@@ -58,7 +59,7 @@ function Cart() {
       refetch();
     } catch (error) {
       console.error('Error updating quantity:', error);
-      toast.error('Không thể cập nhật số lượng sản phẩm');
+      toast.error('Lỗi', 'Không thể cập nhật số lượng sản phẩm');
       // Khôi phục lại dữ liệu cũ nếu có lỗi
       refetch();
     } finally {
@@ -73,11 +74,11 @@ function Cart() {
     try {
       setIsUpdating(true);
       await remove(`/shoppingcart/${itemId}`);
-      toast.success('Đã xóa sản phẩm khỏi giỏ hàng');
+      toast.success('Thành công', 'Đã xóa sản phẩm khỏi giỏ hàng');
       refetch();
     } catch (error) {
       console.error('Error removing item:', error);
-      toast.error('Không thể xóa sản phẩm');
+      toast.error('Lỗi', 'Không thể xóa sản phẩm');
     } finally {
       setIsUpdating(false);
     }
@@ -86,7 +87,7 @@ function Cart() {
   // Áp dụng mã giảm giá
   const applyPromoCode = () => {
     if (!promoCode.trim()) {
-      toast.error('Vui lòng nhập mã giảm giá');
+      toast.error('Lỗi', 'Vui lòng nhập mã giảm giá');
       return;
     }
 
@@ -94,12 +95,12 @@ function Cart() {
     // Trong thực tế, bạn sẽ gọi API để kiểm tra
     if (promoCode === 'SALE10') {
       setDiscount(10); // Giảm 10%
-      toast.success('Áp dụng mã giảm giá thành công: Giảm 10%');
+      toast.success('Thành công', 'Áp dụng mã giảm giá thành công: Giảm 10%');
     } else if (promoCode === 'SALE20') {
       setDiscount(20); // Giảm 20%
-      toast.success('Áp dụng mã giảm giá thành công: Giảm 20%');
+      toast.success('Thành công', 'Áp dụng mã giảm giá thành công: Giảm 20%');
     } else {
-      toast.error('Mã giảm giá không hợp lệ hoặc đã hết hạn');
+      toast.error('Lỗi', 'Mã giảm giá không hợp lệ hoặc đã hết hạn');
       setDiscount(0);
     }
     
@@ -164,7 +165,7 @@ function Cart() {
     const selectedItems = cartItems.filter((_, index) => checkedItems[index]);
     
     if (selectedItems.length === 0) {
-      toast.error('Vui lòng chọn ít nhất một sản phẩm');
+      toast.error('Lỗi', 'Vui lòng chọn ít nhất một sản phẩm');
       return;
     }
     

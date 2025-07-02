@@ -39,7 +39,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
 
   const addNotification = useCallback((notification: Omit<Notification, 'id' | 'timestamp'>) => {
     const id = Math.random().toString(36).substring(2, 11);
-    const duration = notification.duration || 5000;
+    const duration = notification.duration || 5000; // Default 5 seconds
     const newNotification: Notification = {
       ...notification,
       id,
@@ -49,13 +49,8 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
 
     setNotifications(prev => [newNotification, ...prev]);
 
-    // Auto remove after duration
-    if (duration > 0) {
-      setTimeout(() => {
-        removeNotification(id);
-      }, duration);
-    }
-  }, [removeNotification]);
+    // Auto remove logic is now handled in Toast component
+  }, []);
 
   const clearAllNotifications = useCallback(() => {
     setNotifications([]);
