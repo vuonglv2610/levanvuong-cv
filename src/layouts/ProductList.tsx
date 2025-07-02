@@ -173,17 +173,6 @@ const ProductList = () => {
         );
     }
 
-    if (products.length === 0) {
-        return (
-            <div className="bg-white py-16">
-                <div className="container mx-auto px-4 text-center">
-                    <h2 className="text-2xl font-semibold text-gray-800 mb-6">Không tìm thấy sản phẩm nào</h2>
-                    <p className="text-gray-600 mb-8">Hiện tại chưa có sản phẩm nào trong danh mục này.</p>
-                </div>
-            </div>
-        );
-    }
-
     return (
         <div className="bg-white">
             <div className="container mx-auto px-4 py-12 sm:py-16">
@@ -201,8 +190,40 @@ const ProductList = () => {
 
                     {/* Products Section */}
                     <div className="lg:col-span-3">
-                        {/* Products Grid */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                        {/* Hiển thị thông báo khi không có sản phẩm */}
+                        {products.length === 0 && !loading ? (
+                            <div className="text-center py-16">
+                                <div className="mb-6">
+                                    <svg className="mx-auto h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.5-.9-6.172-2.172M12 21l9-9-9-9-9 9 9 9z" />
+                                    </svg>
+                                </div>
+                                <h3 className="text-xl font-semibold text-gray-800 mb-4">Không tìm thấy sản phẩm nào</h3>
+                                <p className="text-gray-600 mb-6">
+                                    {Object.keys(filterParams).length > 0
+                                        ? "Không có sản phẩm nào phù hợp với bộ lọc hiện tại. Hãy thử điều chỉnh bộ lọc hoặc xóa một số tiêu chí tìm kiếm."
+                                        : "Hiện tại chưa có sản phẩm nào trong danh mục này."
+                                    }
+                                </p>
+                                {Object.keys(filterParams).length > 0 && (
+                                    <button
+                                        onClick={() => {
+                                            setFilterParams({});
+                                            setCurrentPage(1);
+                                        }}
+                                        className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200"
+                                    >
+                                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                        </svg>
+                                        Xóa tất cả bộ lọc
+                                    </button>
+                                )}
+                            </div>
+                        ) : (
+                            <>
+                                {/* Products Grid */}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                     {currentProducts.map((product, index) => (
                         <div key={product.id || index} className="group relative bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 hover:border-gray-200 flex flex-col h-full">
                             {/* Image Container */}
@@ -374,6 +395,8 @@ const ProductList = () => {
                         </div>
                     </div>
                 )}
+                            </>
+                        )}
                     </div>
                 </div>
             </div>

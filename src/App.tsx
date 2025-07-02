@@ -73,21 +73,14 @@ import OrderManagement from "pages/admin/OrderManagement";
 
 // Permission system components
 import UserManagement from "pages/admin/UserManagement";
-import ChangePasswordPage from "./pages/admin/ChangePasswordPage";
-import PermissionTestPage from "./pages/admin/PermissionTestPage";
-import ProfilePage from "./pages/admin/ProfilePage";
-import PermissionDemoPage from "./pages/PermissionDemoPage";
-
-// Import permission components
-import PermissionAdminPanel from "components/PermissionAdminPanel";
-import PermissionExamples from "examples/PermissionExamples";
 import PaymentCallbackPage from "pages/PaymentCallbackPage";
-import PaymentDebugPage from "pages/PaymentDebugPage";
 import PaymentFailedPage from "pages/PaymentFailedPage";
 import PaymentProcessingPage from "pages/PaymentProcessingPage";
 import AdminRouteGuard from "./components/AdminRouteGuard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { UserRole } from "./configs/permissions";
+import ChangePasswordPage from "./pages/admin/ChangePasswordPage";
+import ProfilePage from "./pages/admin/ProfilePage";
 
 function App() {
   const router = createBrowserRouter(
@@ -130,7 +123,7 @@ function App() {
             } />
             <Route path="/articles" element={<ArticlesPage />} />
             <Route path="/articles/:id" element={<ArticleDetailPage />} />
-            <Route path="/permission-demo" element={<PermissionDemoPage />} />
+
             <Route path="/wishlist" element={
               <ProtectedRoute requiredRole={UserRole.USER}>
                 <WishlistPage />
@@ -152,11 +145,7 @@ function App() {
                 <PaymentProcessingPage />
               </ProtectedRoute>
             } />
-            <Route path="/payment-debug" element={
-              <ProtectedRoute requiredRole={UserRole.USER}>
-                <PaymentDebugPage />
-              </ProtectedRoute>
-            } />
+
             <Route path="/payment-callback" element={<PaymentCallbackPage />} />
             <Route path="/payment-failed" element={
               <ProtectedRoute requiredRole={UserRole.USER}>
@@ -324,20 +313,13 @@ function App() {
               </AdminRouteGuard>
             } />
 
-            {/* Permission Management Routes */}
-            <Route path="permissions" element={
-              <AdminRouteGuard requiredPermission="role:manage">
-                <PermissionAdminPanel />
-              </AdminRouteGuard>
-            } />
 
-            {/* Permission Test Page */}
-            <Route path="permission-test" element={<PermissionTestPage />} />
+
+
           </Route>
         </Route>
 
-        {/* Permission Demo Routes - Public access for testing */}
-        <Route path="/permission-examples" element={<PermissionExamples />} />
+
       </Route>
     )
   );

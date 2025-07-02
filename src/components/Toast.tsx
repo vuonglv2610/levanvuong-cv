@@ -19,8 +19,8 @@ const Toast: React.FC<ToastProps> = ({ notification }) => {
   const [isLeaving, setIsLeaving] = useState(false);
 
   useEffect(() => {
-    // Animate in
-    const showTimer = setTimeout(() => setIsVisible(true), 50);
+    // Animate in with slight delay for better effect
+    const showTimer = setTimeout(() => setIsVisible(true), 100);
 
     // Auto remove after duration
     let autoRemoveTimer: NodeJS.Timeout;
@@ -43,7 +43,7 @@ const Toast: React.FC<ToastProps> = ({ notification }) => {
     setIsLeaving(true);
     setTimeout(() => {
       removeNotification(notification.id);
-    }, 400); // Increased to match animation duration
+    }, 300); // Match animation duration
   };
 
   const getIcon = () => {
@@ -98,28 +98,31 @@ const Toast: React.FC<ToastProps> = ({ notification }) => {
   return (
     <div
       className={`
-        transform transition-all duration-400 mb-3 w-full max-w-sm
+        toast-item transform transition-all duration-300 mb-3 w-full max-w-sm
         ${isVisible && !isLeaving
-          ? 'translate-x-0 opacity-100 scale-100'
+          ? 'toast-enter-active'
           : isLeaving
-            ? 'translate-x-full opacity-0 scale-95'
-            : 'translate-x-full opacity-0 scale-95'
+            ? 'toast-exit-active'
+            : 'toast-enter'
         }
-        ${isVisible && !isLeaving ? 'ease-out' : 'ease-in'}
       `}
+      style={{
+        animationFillMode: 'both',
+        animationDuration: '300ms'
+      }}
     >
       <div className={`
-        w-full shadow-2xl rounded-lg pointer-events-auto relative overflow-hidden
+        w-full shadow-lg rounded-lg pointer-events-auto relative overflow-hidden
         ${getColors()}
-        hover:shadow-3xl transition-shadow duration-200
+        hover:shadow-xl transition-all duration-200 transform hover:scale-105
       `}>
         {/* Progress bar */}
-        <div className="absolute bottom-0 left-0 h-1 w-full bg-black bg-opacity-20">
+        <div className="absolute bottom-0 left-0 h-1 w-full bg-black bg-opacity-10">
           <div
-            className={`h-full ${getProgressBarColor()} transition-all duration-100 ease-linear`}
+            className={`h-full ${getProgressBarColor()} toast-progress-bar`}
             style={{
               width: '100%',
-              animation: `shrink ${notification.duration}ms linear forwards`
+              animation: `toastProgressShrink ${notification.duration}ms linear forwards`
             }}
           />
         </div>
@@ -145,10 +148,10 @@ const Toast: React.FC<ToastProps> = ({ notification }) => {
 
         {/* Close button */}
         <button
-          className="absolute top-2 right-2 p-2 rounded-full hover:bg-black hover:bg-opacity-10 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50"
+          className="toast-close-btn absolute top-3 right-3 p-1.5 rounded-full hover:bg-black hover:bg-opacity-20 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 transform hover:scale-110"
           onClick={handleClose}
         >
-          <FontAwesomeIcon icon={faTimes} className="h-4 w-4 text-white opacity-80 hover:opacity-100" />
+          <FontAwesomeIcon icon={faTimes} className="h-3.5 w-3.5 text-white opacity-70 hover:opacity-100 transition-opacity duration-200" />
         </button>
       </div>
     </div>
