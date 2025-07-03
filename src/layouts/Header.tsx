@@ -139,13 +139,7 @@ function Header() {
               </svg>
             </button>
 
-            {/* Wishlist */}
-            <a href="/wishlist" className="p-2 text-gray-600 hover:text-red-500 transition-colors relative group">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-              </svg>
-              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">0</span>
-            </a>
+
 
             {/* Cart */}
             <a href="/cart" className="p-2 text-gray-600 hover:text-blue-600 transition-colors relative group">
@@ -225,16 +219,7 @@ function Header() {
                         </svg>
                         Đơn hàng của tôi
                       </a>
-                      <a
-                        href="/wishlist"
-                        className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
-                        onClick={() => setShowUserMenu(false)}
-                      >
-                        <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                        </svg>
-                        Danh sách yêu thích
-                      </a>
+
                       {/* Chỉ hiển thị link admin cho admin */}
                       {(userRole === "admin" || userRole === "user") && (
                         <a

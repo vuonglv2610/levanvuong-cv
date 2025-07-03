@@ -235,12 +235,7 @@ const ProfilePage = () => {
                 >
                   📦 Xem đơn hàng
                 </a>
-                <a
-                  href="/wishlist"
-                  className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
-                >
-                  ❤️ Danh sách yêu thích
-                </a>
+
                 {/* todo: check admin sẽ hiển thị ra */}
                 {/* <a
                   href="/admin"

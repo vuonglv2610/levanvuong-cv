@@ -111,12 +111,7 @@ export const routePermissions: RoutePermission[] = [
     roles: [UserRole.USER, UserRole.CUSTOMER, UserRole.ADMIN],
     exact: true
   },
-  {
-    path: '/wishlist',
-    level: PermissionLevel.AUTH,
-    roles: [UserRole.USER, UserRole.CUSTOMER, UserRole.ADMIN],
-    exact: true
-  },
+
 
   // ADMIN ROUTES - Cần quyền Admin
   {

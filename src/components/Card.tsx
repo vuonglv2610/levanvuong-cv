@@ -16,7 +16,7 @@ interface CardProps {
 }
 
 const Card = ({ className = "", product }: CardProps) => {
-  const [isWishlisted, setIsWishlisted] = useState(false);
+
   const [imageLoaded, setImageLoaded] = useState(false);
 
   // Default product data for demo
@@ -82,20 +82,7 @@ const Card = ({ className = "", product }: CardProps) => {
           </span>
         </div>
 
-        {/* Wishlist Button */}
-        <button
-          onClick={() => setIsWishlisted(!isWishlisted)}
-          className="absolute top-3 right-3 p-2 bg-white/80 hover:bg-white rounded-full shadow-md transition-all duration-200 group/wishlist"
-        >
-          <svg
-            className={`w-5 h-5 transition-colors ${isWishlisted ? 'text-red-500 fill-current' : 'text-gray-600 group-hover/wishlist:text-red-500'}`}
-            fill={isWishlisted ? 'currentColor' : 'none'}
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-          </svg>
-        </button>
+
 
         {/* Quick Actions */}
         <div className="absolute bottom-3 left-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">

@@ -3,10 +3,10 @@ import AOS from "aos";
 import "aos/dist/aos.css";
 import React, { useEffect } from "react";
 import {
-  Route,
-  RouterProvider,
-  createBrowserRouter,
-  createRoutesFromElements
+    Route,
+    RouterProvider,
+    createBrowserRouter,
+    createRoutesFromElements
 } from "react-router-dom";
 import ScrollToTop from "react-scroll-to-top";
 
@@ -51,7 +51,7 @@ import OrderSuccessPage from "./pages/OrderSuccessPage";
 import ProductsList from "./pages/Products";
 import UserProfilePage from "./pages/ProfilePage";
 import RegisterPage from "./pages/RegisterPage";
-import WishlistPage from "./pages/WishlistPage";
+
 
 // Admin page imports
 import { default as AddArticlePage } from "pages/admin/AddArticlePage";
@@ -124,11 +124,7 @@ function App() {
             <Route path="/articles" element={<ArticlesPage />} />
             <Route path="/articles/:id" element={<ArticleDetailPage />} />
 
-            <Route path="/wishlist" element={
-              <ProtectedRoute requiredRole={UserRole.USER}>
-                <WishlistPage />
-              </ProtectedRoute>
-            } />
+
             <Route path="/404" element={<NotFoundPage />} />
             <Route path="/cart" element={
               <ProtectedRoute requiredRole={UserRole.USER}>

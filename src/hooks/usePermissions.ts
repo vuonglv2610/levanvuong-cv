@@ -67,8 +67,7 @@ export const usePermissions = () => {
     }
 
     if (checkPath.startsWith('/profile') || checkPath.startsWith('/orders') ||
-        checkPath.startsWith('/cart') || checkPath.startsWith('/checkout') ||
-        checkPath.startsWith('/wishlist')) {
+        checkPath.startsWith('/cart') || checkPath.startsWith('/checkout')) {
       return isAuthenticatedUser;
     }
 

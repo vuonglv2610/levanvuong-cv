@@ -59,7 +59,7 @@ const Footer: React.FC<FooterProps> = ({ isAdminLayout = false, classText = '' }
                 <li><a href="/product" className="text-gray-300 hover:text-white transition-colors">Sản phẩm</a></li>
                 <li><a href="/search" className="text-gray-300 hover:text-white transition-colors">Tìm kiếm</a></li>
                 <li><a href="/cart" className="text-gray-300 hover:text-white transition-colors">Giỏ hàng</a></li>
-                <li><a href="/wishlist" className="text-gray-300 hover:text-white transition-colors">Yêu thích</a></li>
+
               </ul>
             </div>
 
