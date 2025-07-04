@@ -1,4 +1,3 @@
-import { useQuery } from "@tanstack/react-query";
 import {
   ArcElement,
   BarElement,
@@ -12,9 +11,18 @@ import {
   Title,
   Tooltip
 } from 'chart.js';
+import DateRangeFilter, { DateRange } from 'components/common/DateRangeFilter';
+import { useAllStatistics } from 'hooks/useStatisticsWithDateRange';
 import React, { useEffect, useState } from "react";
 import { Bar, Doughnut, Line } from 'react-chartjs-2';
-import { get } from "services/api";
+import {
+  extractCategoriesData,
+  extractDashboardData,
+  extractOrdersData,
+  extractPaymentMethodsData,
+  extractRevenueData,
+  extractTopProductsData
+} from 'utils/apiResponseHelper';
 
 // Đăng ký các thành phần Chart.js
 ChartJS.register(
@@ -32,19 +40,53 @@ ChartJS.register(
 
 // Định nghĩa kiểu dữ liệu cho sản phẩm
 interface Product {
-  id: number;
+  productId: string;
   name: string;
-  sales: number;
+  sku: string;
+  soldQuantity: number;
   revenue: number;
+  rank: number;
 }
 
+// Interface cho Dashboard Stats
+interface DashboardStats {
+  totalRevenue: number;
+  totalOrders: number;
+  totalCustomers: number;
+  totalProducts: number;
+  revenueGrowth: number;
+  orderGrowth: number;
+  customerGrowth: number;
+  topSellingProduct: {
+    name: string;
+    soldQuantity: number;
+  };
+}
+
+
+
 const Dashboard = () => {
+  // Use the new hook for all statistics with date range
+  const {
+    dateRange,
+    setDateRange,
+    isLoading,
+    data: statisticsData
+  } = useAllStatistics();
+
   // State với kiểu dữ liệu rõ ràng
-  const [stats, setStats] = useState({
-    totalProducts: 0,
-    totalUsers: 0,
+  const [stats, setStats] = useState<DashboardStats>({
+    totalRevenue: 0,
     totalOrders: 0,
-    totalRevenue: 0
+    totalCustomers: 0,
+    totalProducts: 0,
+    revenueGrowth: 0,
+    orderGrowth: 0,
+    customerGrowth: 0,
+    topSellingProduct: {
+      name: '',
+      soldQuantity: 0
+    }
   });
 
   // Dữ liệu cho các biểu đồ
@@ -63,106 +105,254 @@ const Dashboard = () => {
     datasets: []
   });
 
+  const [ordersData, setOrdersData] = useState<any>({
+    labels: [],
+    datasets: []
+  });
+
+  const [paymentMethodsData, setPaymentMethodsData] = useState<any>({
+    labels: [],
+    datasets: []
+  });
+
   const [topProducts, setTopProducts] = useState<Product[]>([]);
 
-  // Fetch data
-  const { data: productsData, isLoading: productsLoading } = useQuery({
-    queryKey: ['/products'],
-    queryFn: () => get('/products')
-  });
+  // Handle date range change
+  const handleDateRangeChange = (newDateRange: DateRange) => {
+    setDateRange(newDateRange);
+  };
 
-  const { data: usersData, isLoading: usersLoading } = useQuery({
-    queryKey: ['/users'],
-    queryFn: () => get('/users')
-  });
-
-  // Cập nhật dữ liệu biểu đồ
+  // Cập nhật dashboard stats từ API
   useEffect(() => {
-    // Dữ liệu doanh thu theo tháng
-    const months = ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'];
-    const revenueByMonth = [1500000, 2200000, 1800000, 2400000, 2100000, 2700000, 3100000, 2900000, 3300000, 3500000, 3200000, 3800000];
+    console.log('Dashboard data full:', statisticsData.dashboard);
 
-    setRevenueData({
-      labels: months,
-      datasets: [
-        {
-          label: 'Doanh thu (VNĐ)',
-          data: revenueByMonth,
-          borderColor: 'rgb(59, 130, 246)',
-          backgroundColor: 'rgba(59, 130, 246, 0.1)',
-          tension: 0.4,
-          fill: true,
-        }
-      ]
-    });
+    const dashboardData = extractDashboardData(statisticsData.dashboard);
+    if (dashboardData) {
+      console.log('Extracted dashboard data:', dashboardData);
+      setStats(dashboardData);
+    }
+  }, [statisticsData.dashboard]);
 
-    // Dữ liệu bán hàng theo tuần
-    const weeks = ['Tuần 1', 'Tuần 2', 'Tuần 3', 'Tuần 4'];
-    const salesByWeek = [45, 52, 38, 61];
-
-    setSalesData({
-      labels: weeks,
-      datasets: [
-        {
-          label: 'Đơn hàng',
-          data: salesByWeek,
-          backgroundColor: [
-            'rgba(34, 197, 94, 0.8)',
-            'rgba(59, 130, 246, 0.8)',
-            'rgba(249, 115, 22, 0.8)',
-            'rgba(168, 85, 247, 0.8)',
-          ],
-          borderColor: [
-            'rgb(34, 197, 94)',
-            'rgb(59, 130, 246)',
-            'rgb(249, 115, 22)',
-            'rgb(168, 85, 247)',
-          ],
-          borderWidth: 2,
-        }
-      ]
-    });
-
-    // Dữ liệu phân bố theo danh mục
-    setCategoryData({
-      labels: ['Điện thoại', 'Laptop', 'Tablet', 'Phụ kiện', 'Khác'],
-      datasets: [
-        {
-          data: [35, 25, 15, 20, 5],
-          backgroundColor: [
-            '#FF6384',
-            '#36A2EB',
-            '#FFCE56',
-            '#4BC0C0',
-            '#9966FF'
-          ],
-          borderWidth: 2,
-          borderColor: '#fff'
-        }
-      ]
-    });
-
-    // Giả lập dữ liệu top sản phẩm
-    setTopProducts([
-      { id: 1, name: 'iPhone 15 Pro Max', sales: 142, revenue: 213000000 },
-      { id: 2, name: 'Samsung Galaxy S24 Ultra', sales: 98, revenue: 147000000 },
-      { id: 3, name: 'MacBook Pro M3', sales: 67, revenue: 201000000 },
-      { id: 4, name: 'iPad Pro 12.9"', sales: 54, revenue: 135000000 },
-      { id: 5, name: 'AirPods Pro 2', sales: 89, revenue: 44500000 },
-    ]);
-  }, []);
-
-  // Cập nhật thống kê
+  // Cập nhật revenue chart từ API
   useEffect(() => {
-    if (productsData?.data?.result?.data && usersData?.data) {
-      setStats({
-        totalProducts: productsData.data.result.data.length || 0,
-        totalUsers: usersData.data.length || 0,
-        totalOrders: 1247,
-        totalRevenue: 2847500000
+    console.log('Revenue data full:', statisticsData.revenue);
+
+    // Xử lý cấu trúc response thực tế
+    const revenueData = extractRevenueData(statisticsData.revenue);
+
+    if (revenueData && revenueData.length > 0) {
+      console.log('Extracted revenue data:', revenueData);
+      const periods = revenueData.map((item: any) => {
+        // Convert period format from "2025-07" to "T7"
+        if (item.period && item.period.includes('-')) {
+          const month = item.period.split('-')[1];
+          return `T${parseInt(month)}`;
+        }
+        return item.period || 'N/A';
+      });
+      const revenues = revenueData.map((item: any) => item.revenue || 0);
+      const orderCounts = revenueData.map((item: any) => item.orderCount || 0);
+
+      setRevenueData({
+        labels: periods,
+        datasets: [
+          {
+            label: 'Doanh thu (VNĐ)',
+            data: revenues,
+            borderColor: 'rgb(59, 130, 246)',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            tension: 0.4,
+            fill: true,
+          }
+        ]
+      });
+
+      setSalesData({
+        labels: periods,
+        datasets: [
+          {
+            label: 'Đơn hàng',
+            data: orderCounts,
+            backgroundColor: [
+              'rgba(34, 197, 94, 0.8)',
+              'rgba(59, 130, 246, 0.8)',
+              'rgba(249, 115, 22, 0.8)',
+              'rgba(168, 85, 247, 0.8)',
+              'rgba(236, 72, 153, 0.8)',
+              'rgba(139, 69, 19, 0.8)',
+            ],
+            borderColor: [
+              'rgb(34, 197, 94)',
+              'rgb(59, 130, 246)',
+              'rgb(249, 115, 22)',
+              'rgb(168, 85, 247)',
+              'rgb(236, 72, 153)',
+              'rgb(139, 69, 19)',
+            ],
+            borderWidth: 2,
+          }
+        ]
       });
     }
-  }, [productsData, usersData]);
+  }, [statisticsData.revenue]);
+
+  // Cập nhật top products từ API
+  useEffect(() => {
+    console.log('Top products data full:', statisticsData.topProducts);
+
+    const productsData = extractTopProductsData(statisticsData.topProducts);
+    if (productsData && productsData.length > 0) {
+      console.log('Extracted products data:', productsData);
+      setTopProducts(productsData);
+    }
+  }, [statisticsData.topProducts]);
+
+  // Cập nhật category chart từ API
+  useEffect(() => {
+    console.log('Categories data full:', statisticsData.categories);
+
+    const categoriesData = extractCategoriesData(statisticsData.categories);
+    if (categoriesData && categoriesData.length > 0) {
+      console.log('Extracted categories data:', categoriesData);
+      const labels = categoriesData.map((cat: any) => cat.name);
+      const data = categoriesData.map((cat: any) => cat.revenue); // Sử dụng revenue thay vì percentage
+      const colors = [
+        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+        '#FF9F40', '#FF6384', '#C9CBCF', '#4BC0C0', '#FF6384'
+      ];
+
+      setCategoryData({
+        labels: labels,
+        datasets: [
+          {
+            data: data,
+            backgroundColor: colors.slice(0, labels.length),
+            borderWidth: 2,
+            borderColor: '#fff'
+          }
+        ]
+      });
+    } else {
+      // Nếu không có dữ liệu, hiển thị thông báo
+      console.log('No category data available');
+      setCategoryData({
+        labels: ['Không có dữ liệu'],
+        datasets: [
+          {
+            data: [1],
+            backgroundColor: ['#E5E7EB'],
+            borderWidth: 2,
+            borderColor: '#fff'
+          }
+        ]
+      });
+    }
+  }, [statisticsData.categories]);
+
+  // Cập nhật orders chart từ API
+  useEffect(() => {
+    console.log('Orders data full:', statisticsData.orders);
+
+    const ordersApiData = extractOrdersData(statisticsData.orders);
+    if (ordersApiData && ordersApiData.length > 0) {
+      console.log('Extracted orders data:', ordersApiData);
+
+      // Tạo labels với tên trạng thái tiếng Việt
+      const statusLabels: { [key: string]: string } = {
+        'pending': 'Chờ xử lý',
+        'processing': 'Đang xử lý',
+        'confirmed': 'Đã xác nhận',
+        'shipped': 'Đã gửi hàng',
+        'delivered': 'Đã giao hàng',
+        'cancelled': 'Đã hủy'
+      };
+
+      const labels = ordersApiData.map((order: any) => statusLabels[order.status] || order.status);
+      const data = ordersApiData.map((order: any) => order.count);
+      const colors = [
+        '#FFA726', // pending - orange
+        '#42A5F5', // processing - blue
+        '#66BB6A', // confirmed - green
+        '#AB47BC', // shipped - purple
+        '#26C6DA', // delivered - cyan
+        '#EF5350'  // cancelled - red
+      ];
+
+      setOrdersData({
+        labels: labels,
+        datasets: [
+          {
+            data: data,
+            backgroundColor: colors.slice(0, labels.length),
+            borderWidth: 2,
+            borderColor: '#fff'
+          }
+        ]
+      });
+    } else {
+      // Nếu không có dữ liệu
+      console.log('No orders data available');
+      setOrdersData({
+        labels: ['Không có dữ liệu'],
+        datasets: [
+          {
+            data: [1],
+            backgroundColor: ['#E5E7EB'],
+            borderWidth: 2,
+            borderColor: '#fff'
+          }
+        ]
+      });
+    }
+  }, [statisticsData.orders]);
+
+  // Cập nhật payment methods chart từ API
+  useEffect(() => {
+    console.log('Payment methods data full:', statisticsData.paymentMethods);
+
+    const paymentApiData = extractPaymentMethodsData(statisticsData.paymentMethods);
+    if (paymentApiData && paymentApiData.length > 0) {
+      console.log('Extracted payment methods data:', paymentApiData);
+
+      const labels = paymentApiData.map((payment: any) => payment.methodLabel);
+      const data = paymentApiData.map((payment: any) => payment.amount);
+      const colors = [
+        '#FF6B6B', // VNPay - red
+        '#4ECDC4', // MoMo - teal
+        '#45B7D1', // ZaloPay - blue
+        '#96CEB4', // Cash - green
+        '#FFEAA7', // Bank transfer - yellow
+        '#DDA0DD', // Credit card - plum
+        '#98D8C8'  // Debit card - mint
+      ];
+
+      setPaymentMethodsData({
+        labels: labels,
+        datasets: [
+          {
+            data: data,
+            backgroundColor: colors.slice(0, labels.length),
+            borderWidth: 2,
+            borderColor: '#fff'
+          }
+        ]
+      });
+    } else {
+      // Nếu không có dữ liệu
+      console.log('No payment methods data available');
+      setPaymentMethodsData({
+        labels: ['Không có dữ liệu'],
+        datasets: [
+          {
+            data: [1],
+            backgroundColor: ['#E5E7EB'],
+            borderWidth: 2,
+            borderColor: '#fff'
+          }
+        ]
+      });
+    }
+  }, [statisticsData.paymentMethods]);
 
   // Format currency
   const formatCurrency = (amount: number) => {
@@ -239,10 +429,11 @@ const Dashboard = () => {
     },
   };
 
-  if (productsLoading || usersLoading) {
+  if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <span className="ml-3 text-gray-600">Đang tải dữ liệu thống kê...</span>
       </div>
     );
   }
@@ -264,6 +455,16 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* Date Range Filter */}
+      <DateRangeFilter
+        onDateRangeChange={handleDateRangeChange}
+        initialStartDate={dateRange.startDate}
+        initialEndDate={dateRange.endDate}
+        className="mb-6"
+      />
+
+
 
       {/* Enhanced Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -290,7 +491,7 @@ const Dashboard = () => {
             <div className="w-full bg-slate-200 rounded-full h-2">
               <div className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full" style={{width: '75%'}}></div>
             </div>
-            <p className="text-xs text-slate-500 mt-2">75% mục tiêu tháng</p>
+            <p className="text-xs text-slate-500 mt-2">Tăng trưởng: +{stats.revenueGrowth.toFixed(1)}%</p>
           </div>
         </div>
 
@@ -312,12 +513,12 @@ const Dashboard = () => {
             </div>
           </div>
           <div>
-            <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wide mb-1">Tổng người dùng</h3>
-            <p className="text-3xl font-bold text-slate-800 mb-2">{stats.totalUsers}</p>
+            <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wide mb-1">Tổng khách hàng</h3>
+            <p className="text-3xl font-bold text-slate-800 mb-2">{stats.totalCustomers}</p>
             <div className="w-full bg-slate-200 rounded-full h-2">
-              <div className="bg-gradient-to-r from-green-500 to-green-600 h-2 rounded-full" style={{width: '60%'}}></div>
+              <div className="bg-gradient-to-r from-green-500 to-green-600 h-2 rounded-full" style={{width: `${Math.min(stats.customerGrowth * 5, 100)}%`}}></div>
             </div>
-            <p className="text-xs text-slate-500 mt-2">60% người dùng hoạt động</p>
+            <p className="text-xs text-slate-500 mt-2">Tăng trưởng: +{stats.customerGrowth.toFixed(1)}%</p>
           </div>
         </div>
 
@@ -342,9 +543,9 @@ const Dashboard = () => {
             <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wide mb-1">Tổng đơn hàng</h3>
             <p className="text-3xl font-bold text-slate-800 mb-2">{stats.totalOrders}</p>
             <div className="w-full bg-slate-200 rounded-full h-2">
-              <div className="bg-gradient-to-r from-yellow-500 to-orange-500 h-2 rounded-full" style={{width: '85%'}}></div>
+              <div className="bg-gradient-to-r from-yellow-500 to-orange-500 h-2 rounded-full" style={{width: `${Math.min(stats.orderGrowth * 5, 100)}%`}}></div>
             </div>
-            <p className="text-xs text-slate-500 mt-2">85% đơn hàng hoàn thành</p>
+            <p className="text-xs text-slate-500 mt-2">Tăng trưởng: +{stats.orderGrowth.toFixed(1)}%</p>
           </div>
         </div>
 
@@ -369,9 +570,9 @@ const Dashboard = () => {
             <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wide mb-1">Tổng doanh thu</h3>
             <p className="text-3xl font-bold text-slate-800 mb-2">{formatCurrency(stats.totalRevenue)}</p>
             <div className="w-full bg-slate-200 rounded-full h-2">
-              <div className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full" style={{width: '90%'}}></div>
+              <div className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full" style={{width: `${Math.min(stats.revenueGrowth * 4, 100)}%`}}></div>
             </div>
-            <p className="text-xs text-slate-500 mt-2">90% mục tiêu doanh thu</p>
+            <p className="text-xs text-slate-500 mt-2">Tăng trưởng: +{stats.revenueGrowth.toFixed(1)}%</p>
           </div>
         </div>
       </div>
@@ -432,6 +633,32 @@ const Dashboard = () => {
           </div>
         </div>
 
+        {/* Orders Status Chart */}
+        <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-lg font-semibold text-slate-800">Trạng thái đơn hàng</h3>
+              <p className="text-sm text-slate-500">Phân bố đơn hàng theo trạng thái</p>
+            </div>
+          </div>
+          <div className="h-80">
+            <Doughnut data={ordersData} options={doughnutOptions} />
+          </div>
+        </div>
+
+        {/* Payment Methods Chart */}
+        <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-lg font-semibold text-slate-800">Phương thức thanh toán</h3>
+              <p className="text-sm text-slate-500">Phân bố theo phương thức thanh toán</p>
+            </div>
+          </div>
+          <div className="h-80">
+            <Doughnut data={paymentMethodsData} options={doughnutOptions} />
+          </div>
+        </div>
+
         {/* Top Products */}
         <div className="lg:col-span-2 bg-white rounded-2xl shadow-lg p-6 border border-slate-200">
           <div className="flex items-center justify-between mb-6">
@@ -444,8 +671,8 @@ const Dashboard = () => {
             </div>
           </div>
           <div className="space-y-4">
-            {topProducts.map((product, index) => (
-              <div key={product.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors duration-200">
+            {topProducts.length > 0 ? topProducts.map((product, index) => (
+              <div key={product.productId} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors duration-200">
                 <div className="flex items-center space-x-4">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white ${
                     index === 0 ? 'bg-gradient-to-r from-yellow-400 to-yellow-500' :
@@ -453,80 +680,30 @@ const Dashboard = () => {
                     index === 2 ? 'bg-gradient-to-r from-orange-400 to-orange-500' :
                     'bg-gradient-to-r from-blue-400 to-blue-500'
                   }`}>
-                    #{index + 1}
+                    #{product.rank}
                   </div>
                   <div>
                     <div className="font-medium text-slate-800">{product.name}</div>
-                    <div className="text-sm text-slate-500">{product.sales} đã bán</div>
+                    <div className="text-sm text-slate-500">SKU: {product.sku} • {product.soldQuantity} đã bán</div>
                   </div>
                 </div>
                 <div className="text-right">
                   <div className="font-semibold text-slate-800">{formatCurrency(product.revenue)}</div>
-                  <div className="text-sm text-green-600 font-medium">
-                    +{Math.floor(Math.random() * 20 + 5)}%
+                  <div className="text-sm text-blue-600 font-medium">
+                    Rank #{product.rank}
                   </div>
                 </div>
               </div>
-            ))}
+            )) : (
+              <div className="text-center py-8 text-gray-500">
+                <p>Chưa có dữ liệu sản phẩm bán chạy</p>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200">
-        <h3 className="text-lg font-semibold text-slate-800 mb-6">Thao tác nhanh</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <button
-            onClick={() => {
-              // Demo notification
-              const notification = {
-                id: Math.random().toString(36).substr(2, 9),
-                type: 'success' as const,
-                title: 'Thành công!',
-                message: 'Sản phẩm đã được thêm thành công',
-                timestamp: new Date(),
-                duration: 5000
-              };
-              console.log('Demo notification:', notification);
-            }}
-            className="flex flex-col items-center p-4 bg-blue-50 hover:bg-blue-100 rounded-xl transition-colors duration-200 group"
-          >
-            <div className="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-200">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-              </svg>
-            </div>
-            <span className="text-sm font-medium text-slate-700">Thêm sản phẩm</span>
-          </button>
 
-          <button className="flex flex-col items-center p-4 bg-green-50 hover:bg-green-100 rounded-xl transition-colors duration-200 group">
-            <div className="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-200">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
-              </svg>
-            </div>
-            <span className="text-sm font-medium text-slate-700">Xem đơn hàng</span>
-          </button>
-
-          <button className="flex flex-col items-center p-4 bg-purple-50 hover:bg-purple-100 rounded-xl transition-colors duration-200 group">
-            <div className="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-200">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-              </svg>
-            </div>
-            <span className="text-sm font-medium text-slate-700">Quản lý user</span>
-          </button>
-
-          <button className="flex flex-col items-center p-4 bg-orange-50 hover:bg-orange-100 rounded-xl transition-colors duration-200 group">
-            <div className="w-12 h-12 bg-orange-500 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-200">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-              </svg>
-            </div>
-            <span className="text-sm font-medium text-slate-700">Báo cáo</span>
-          </button>
-        </div>
-      </div>
     </div>
     // </div>
   );

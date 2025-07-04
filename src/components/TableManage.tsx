@@ -75,6 +75,21 @@ const TableManage = ({
     refetchOnWindowFocus: false,
   });
 
+  // Debug logging for API response
+  useEffect(() => {
+    if (data) {
+      console.log(`TableManage API Response for ${url}:`, data);
+      console.log('Data structure:', {
+        'data.data': data.data,
+        'data.data?.result': data.data?.result,
+        'data.data?.result?.data': data.data?.result?.data
+      });
+    }
+    if (error) {
+      console.error(`TableManage API Error for ${url}:`, error);
+    }
+  }, [data, error, url]);
+
   // Hàm refetch để cập nhật dữ liệu từ server
   const refreshData = async () => {
     try {
@@ -89,9 +104,31 @@ const TableManage = ({
   // Cập nhật state items khi data thay đổi
   useEffect(() => {
     if (data?.data?.result?.data) {
-      const itemsData = data.data.result.data;
-      setItems(itemsData);
-      setLastUpdated(new Date());
+      let itemsData = data.data.result.data;
+
+      // Check if data is wrapped in a specific property (like articles, categories, etc.)
+      // This handles the new API response structure
+      if (itemsData && typeof itemsData === 'object' && !Array.isArray(itemsData)) {
+        // Look for common array properties
+        const possibleArrayProps = ['articles', 'categories', 'products', 'users', 'orders'];
+        for (const prop of possibleArrayProps) {
+          if (Array.isArray(itemsData[prop])) {
+            console.log(`Found data array in property: ${prop}`);
+            itemsData = itemsData[prop];
+            break;
+          }
+        }
+      }
+
+      // Ensure itemsData is an array
+      if (Array.isArray(itemsData)) {
+        setItems(itemsData);
+        setLastUpdated(new Date());
+        console.log(`TableManage: Loaded ${itemsData.length} items`);
+      } else {
+        console.warn('TableManage: Expected array but got:', itemsData);
+        setItems([]);
+      }
     }
   }, [data]);
 

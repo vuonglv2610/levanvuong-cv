@@ -8,6 +8,7 @@ import { get } from 'services/api';
 
 function Header() {
   const isLogin = getCookie("userId");
+  const userId = getCookie("userId");
   const { userInfo, logout, userRole } = useAuthProvider();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
@@ -52,7 +53,21 @@ function Header() {
     staleTime: 60000
   });
 
+  // Lấy dữ liệu giỏ hàng để hiển thị số lượng sản phẩm
+  const { data: cartData } = useQuery({
+    queryKey: ['/shoppingcart/customer', userId],
+    queryFn: () => get(`/shoppingcart/customer/${userId}`),
+    enabled: !!userId, // Chỉ gọi API khi user đã đăng nhập
+    staleTime: 30000, // Cache trong 30 giây
+    refetchOnWindowFocus: false
+  });
+
   const categories = data?.data?.result?.data || [];
+
+  // Tính tổng số lượng sản phẩm trong giỏ hàng
+  const cartItemCount = cartData?.data?.result?.data?.reduce((total: number, item: any) => {
+    return total + (item.quantity || 0);
+  }, 0) || 0;
   const categoryOptions = categories.map((cat: any) => ({
     value: cat.id,
     label: cat.name
@@ -144,7 +159,11 @@ function Header() {
             {/* Cart */}
             <a href="/cart" className="p-2 text-gray-600 hover:text-blue-600 transition-colors relative group">
               <FontAwesomeIcon icon={faCartShopping} className="w-6 h-6" />
-              <span className="absolute -top-2 -right-2 bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">0</span>
+              {cartItemCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  {cartItemCount > 99 ? '99+' : cartItemCount}
+                </span>
+              )}
             </a>
 
             {/* User Account */}

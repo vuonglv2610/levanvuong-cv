@@ -1,6 +1,6 @@
 import { faAngleRight, faCartPlus, faStar } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import useToast from "hooks/useToast";
 import { getCookie } from "libs/getCookie";
 import React, { useEffect } from "react";
@@ -11,6 +11,7 @@ const DetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const toast = useToast();
+  const queryClient = useQueryClient();
   
   const { data: productData, isLoading } = useQuery({
     queryKey: [`/products/${id}`],
@@ -28,9 +29,9 @@ const DetailPage = () => {
     }
   }, [product]);
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     const userId = getCookie("userId");
-    
+
     if (!userId) {
       toast.info("Thông báo", "Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng");
       navigate("/login");
@@ -38,11 +39,15 @@ const DetailPage = () => {
     }
 
     try {
-      post(`/shoppingcart`, {
+      await post(`/shoppingcart`, {
         product_id: product.id,
         customer_id: userId,
         quantity: 1
       });
+
+      // Invalidate cart cache để cập nhật số lượng trong Header
+      queryClient.invalidateQueries({ queryKey: ['/shoppingcart/customer', userId] });
+
       toast.success("Thành công", `Đã thêm ${product.name} vào giỏ hàng!`);
     } catch (error) {
       console.error("Error adding to cart:", error);

@@ -128,6 +128,7 @@ const AdminLayout = () => {
   // Sidebar menu items với icons và permissions
   const allSidebarItems = [
     { href: "/admin", title: "Trang chủ", icon: "faHome" },
+    { href: "/admin/statistics", title: "Thống kê", icon: "faChartBar", permission: "dashboard:view" },
     { href: "/admin/product", title: "Quản lý sản phẩm", icon: "faBox", permission: "product:view" },
     { href: "/admin/category", title: "Quản lý danh mục", icon: "faList", permission: "category:view" },
     { href: "/admin/brand", title: "Quản lý thương hiệu", icon: "faTags", permission: "brand:view" },
@@ -136,7 +137,6 @@ const AdminLayout = () => {
     { href: "/admin/orders", title: "Quản lý đơn hàng", icon: "faShoppingCart", permission: "order:view" },
     { href: "/admin/inventory", title: "Quản lý kho hàng", icon: "faWarehouse", permission: "serial:view" },
     { href: "/admin/permissions", title: "Quản lý phân quyền", icon: "faShield", permission: "role:manage" },
-    { href: "/admin/permission-test", title: "Test phân quyền", icon: "faFlask" },
     { href: "/", title: "Trang khách hàng", icon: "faHome" },
   ];
 

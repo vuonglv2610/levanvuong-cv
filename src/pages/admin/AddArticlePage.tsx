@@ -1,31 +1,16 @@
-import { useQuery } from '@tanstack/react-query';
+import Cookies from 'js-cookie';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { get, post } from "services/api";
+import { post } from "services/api";
 import FormComponent from '../../components/Form';
 
 const AddArticlePage = () => {
   const navigate = useNavigate();
+  const userId  = Cookies.get('userId');
+
+
   
-  // Fetch categories for dropdown
-  const { data: categoriesData, isLoading: loadingCategories } = useQuery({ 
-    queryKey: ['/article-categories'], 
-    queryFn: () => get('/article-categories'),
-    staleTime: 60000
-  });
-  
-  const categories = categoriesData?.data?.result?.data || [];
-  const categoryOptions = categories.length > 0 
-    ? categories.map((category: any) => ({
-        value: category.id,
-        label: category.name
-      }))
-    : [
-        { value: "tech", label: "Công nghệ" },
-        { value: "news", label: "Tin tức" },
-        { value: "review", label: "Đánh giá" },
-        { value: "tutorial", label: "Hướng dẫn" }
-      ];
+
 
   const formFields = [
     {
@@ -44,7 +29,7 @@ const AddArticlePage = () => {
       rows: 15
     },
     {
-      name: "featuredImage",
+      name: "img",
       label: "Ảnh đại diện",
       type: "image" as const,
       placeholder: "URL ảnh đại diện"
@@ -59,13 +44,14 @@ const AddArticlePage = () => {
         { value: "published", label: "Xuất bản" },
         { value: "archived", label: "Lưu trữ" }
       ]
-    },
+    }
   ];
 
   const handleSubmit = async (formData: any) => {
     try {
+      formData.userId = userId;
       const response = await post('/articles', formData);
-      
+
       if (response?.data) {
         navigate('/admin/articles');
         return { success: true, message: 'Thêm bài viết thành công!' };
@@ -76,13 +62,7 @@ const AddArticlePage = () => {
     }
   };
 
-  if (loadingCategories) {
-    return (
-      <div className="flex justify-center items-center py-20">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
+
 
   return (
     <div className="max-w-4xl mx-auto">

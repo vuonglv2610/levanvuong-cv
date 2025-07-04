@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { get } from 'services/api';
 
@@ -10,33 +10,171 @@ const ArticlesPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const articlesPerPage = 12;
 
-  // Fetch articles
-  const { data: articlesData, isLoading: loadingArticles } = useQuery({
+  // Fetch articles with fallback
+  const { data: articlesData, isLoading: loadingArticles, error: articlesError } = useQuery({
     queryKey: ['/articles', { status: 'published' }],
-    queryFn: () => get('/articles?status=published'),
+    queryFn: async () => {
+      try {
+        // Try with status parameter first
+        return await get('/articles?status=published');
+      } catch (error) {
+        console.warn('Failed to fetch with status parameter, trying without:', error);
+        // Fallback to basic endpoint
+        return await get('/articles');
+      }
+    },
     staleTime: 60000,
+    retry: 2,
   });
 
-  // Fetch categories
-  const { data: categoriesData, isLoading: loadingCategories } = useQuery({
+  // Fetch categories with fallback
+  const { data: categoriesData, isLoading: loadingCategories, error: categoriesError } = useQuery({
     queryKey: ['/article-categories'],
-    queryFn: () => get('/article-categories'),
+    queryFn: async () => {
+      try {
+        return await get('/article-categories');
+      } catch (error) {
+        console.warn('Failed to fetch article-categories, trying categories:', error);
+        // Fallback to basic categories endpoint
+        return await get('/categories');
+      }
+    },
     staleTime: 60000,
+    retry: 2,
   });
 
-  const articles = articlesData?.data?.result?.data || [];
-  const categories = categoriesData?.data?.result?.data || [];
+  // Debug logging
+  useEffect(() => {
+    if (articlesData) {
+      console.log('Articles API Response:', articlesData);
+      console.log('Articles data structure:', {
+        'articlesData': articlesData,
+        'articlesData.data': articlesData.data,
+        'articlesData.data?.result': articlesData.data?.result,
+        'articlesData.data?.result?.data': articlesData.data?.result?.data,
+        'articlesData.data?.result?.data?.articles': articlesData.data?.result?.data?.articles,
+        'articlesData.data?.data': articlesData.data?.data,
+        // 'articlesData.result': articlesData.result,
+        // 'articlesData.result?.data': articlesData.result?.data
+      });
 
-  // Filter articles
+      // Check if articles array exists in the expected location
+      const articlesArray = articlesData?.data?.result?.data?.articles;
+      if (Array.isArray(articlesArray)) {
+        console.log(`✅ Found articles array with ${articlesArray.length} items at data.result.data.articles`);
+      } else {
+        console.warn('❌ Articles array not found at expected location data.result.data.articles');
+      }
+    }
+    if (articlesError) {
+      console.error('Articles API Error:', articlesError);
+    }
+  }, [articlesData, articlesError]);
+
+  useEffect(() => {
+    if (categoriesData) {
+      console.log('Categories API Response:', categoriesData);
+    }
+    if (categoriesError) {
+      console.error('Categories API Error:', categoriesError);
+    }
+  }, [categoriesData, categoriesError]);
+
+  // Safely extract articles data with comprehensive fallback paths
+  const articles = (() => {
+    if (!articlesData) return [];
+
+    // Try different possible data paths based on the actual API response structure
+    const possiblePaths = [
+      articlesData?.data?.result?.data?.articles,  // New: Based on actual API response
+      articlesData?.data?.result?.data,
+      articlesData?.data?.result?.articles,        // New: Alternative path
+      articlesData?.data?.result,
+      articlesData?.data?.data?.articles,          // New: Alternative path
+      articlesData?.data?.data,
+      articlesData?.data?.articles,                // New: Alternative path
+      articlesData?.data,
+      // articlesData?.result?.data?.articles,        // New: Alternative path
+      // articlesData?.result?.data,
+      // articlesData?.result?.articles,              // New: Alternative path
+      // articlesData?.result,
+      // articlesData?.articles,                      // New: Direct articles property
+      articlesData
+    ];
+
+    for (const path of possiblePaths) {
+      if (Array.isArray(path)) {
+        console.log('Found articles array at path:', path);
+        return path;
+      }
+    }
+
+    console.warn('No valid articles array found in response:', articlesData);
+    return [];
+  })();
+
+  const categories = (() => {
+    if (!categoriesData) return [];
+
+    // Try different possible data paths (similar to articles)
+    const possiblePaths = [
+      categoriesData?.data?.result?.data?.categories,  // New: Based on similar API structure
+      categoriesData?.data?.result?.data,
+      categoriesData?.data?.result?.categories,        // New: Alternative path
+      categoriesData?.data?.result,
+      categoriesData?.data?.data?.categories,          // New: Alternative path
+      categoriesData?.data?.data,
+      categoriesData?.data?.categories,                // New: Alternative path
+      categoriesData?.data,
+      categoriesData?.data?.result?.data?.categories,  // New: Alternative path
+      // categoriesData?.result?.data,
+      // categoriesData?.result?.categories,              // New: Alternative path
+      // categoriesData?.result,
+      // categoriesData?.categories,                      // New: Direct categories property
+      categoriesData
+    ];
+
+    for (const path of possiblePaths) {
+      if (Array.isArray(path)) {
+        console.log('Found categories array at path:', path);
+        return path;
+      }
+    }
+
+    console.warn('No valid categories array found in response:', categoriesData);
+    return [];
+  })();
+
+  // Debug articles count
+  useEffect(() => {
+    console.log(`Found ${articles.length} articles`);
+    if (articles.length > 0) {
+      console.log('First article sample:', articles[0]);
+    }
+  }, [articles]);
+
+  // Filter articles with safety check
   const filteredArticles = useMemo(() => {
-    return articles.filter((article: any) => {
+    if (!Array.isArray(articles)) {
+      console.warn('Articles is not an array:', articles);
+      return [];
+    }
+
+    console.log(`Filtering ${articles.length} articles with category: ${selectedCategory}, search: ${searchTerm}`);
+
+    const filtered = articles.filter((article: any) => {
+      if (!article) return false;
+
       const matchesCategory = selectedCategory === 'all' || article.categoryId === selectedCategory;
-      const matchesSearch = searchTerm === '' || 
-        article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        article.excerpt.toLowerCase().includes(searchTerm.toLowerCase());
-      
+      const matchesSearch = searchTerm === '' ||
+        (article.title && article.title.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (article.excerpt && article.excerpt.toLowerCase().includes(searchTerm.toLowerCase()));
+
       return matchesCategory && matchesSearch;
     });
+
+    console.log(`Filtered to ${filtered.length} articles`);
+    return filtered;
   }, [articles, selectedCategory, searchTerm]);
 
   // Pagination
@@ -90,6 +228,48 @@ const ArticlesPage = () => {
     );
   }
 
+  // Error handling
+  if (articlesError || categoriesError) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex justify-center items-center py-20">
+            <div className="text-center">
+              <div className="text-red-500 text-xl mb-4">⚠️ Có lỗi xảy ra</div>
+              <p className="text-gray-600 mb-4">
+                {articlesError ? 'Không thể tải danh sách bài viết' : 'Không thể tải danh mục'}
+              </p>
+              <div className="space-x-4">
+                <button
+                  onClick={() => window.location.reload()}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                >
+                  Thử lại
+                </button>
+                <button
+                  onClick={async () => {
+                    try {
+                      console.log('Testing API endpoints...');
+                      const testArticles = await get('/articles');
+                      console.log('Articles endpoint response:', testArticles);
+                      const testCategories = await get('/categories');
+                      console.log('Categories endpoint response:', testCategories);
+                    } catch (error) {
+                      console.error('API test failed:', error);
+                    }
+                  }}
+                  className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700"
+                >
+                  Test API
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4">
@@ -98,6 +278,30 @@ const ArticlesPage = () => {
           <h1 className="text-4xl font-bold text-gray-900 mb-4">Bài viết</h1>
           <p className="text-xl text-gray-600">Khám phá những bài viết mới nhất về công nghệ và sản phẩm</p>
         </div>
+
+        {/* Debug Panel - Remove in production */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-8">
+            <h3 className="font-semibold text-yellow-800 mb-2">Debug Info</h3>
+            <div className="text-sm text-yellow-700 space-y-1">
+              <div>Articles loaded: {articles.length}</div>
+              <div>Categories loaded: {categories.length}</div>
+              <div>Filtered articles: {filteredArticles.length}</div>
+              <div>Loading articles: {loadingArticles ? 'Yes' : 'No'}</div>
+              <div>Loading categories: {loadingCategories ? 'Yes' : 'No'}</div>
+              <div>Articles error: {articlesError ? 'Yes' : 'No'}</div>
+              <div>Categories error: {categoriesError ? 'Yes' : 'No'}</div>
+              <div>API Response structure: {articlesData ? 'data.result.data.articles' : 'No data'}</div>
+              <div>Raw articles data: {articlesData?.data?.result?.data?.articles ? 'Found' : 'Not found'}</div>
+            </div>
+            <details className="mt-2">
+              <summary className="cursor-pointer text-yellow-800 font-medium">View Raw Response</summary>
+              <pre className="mt-2 text-xs bg-yellow-100 p-2 rounded overflow-auto max-h-40">
+                {JSON.stringify(articlesData, null, 2)}
+              </pre>
+            </details>
+          </div>
+        )}
 
         {/* Search and Filter */}
         <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">

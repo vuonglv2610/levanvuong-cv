@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query';
 import useToast from 'hooks/useToast';
 import { getCookie } from 'libs/getCookie';
 import React, { useEffect, useMemo, useState } from 'react';
@@ -23,6 +24,7 @@ const ProductList = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(8);
     const toast = useToast();
+    const queryClient = useQueryClient();
 
     // Khởi tạo filterParams từ URL search params
     const initialFilterParams = useMemo(() => {
@@ -129,24 +131,28 @@ const ProductList = () => {
         setCurrentPage(1); // Reset về trang đầu tiên khi thay đổi số lượng sản phẩm trên mỗi trang
     };
 
-    const handleAddToCart = (e: React.MouseEvent, product: any) => {
+    const handleAddToCart = async (e: React.MouseEvent, product: any) => {
         e.preventDefault();
         e.stopPropagation();
-        
+
         const userId = getCookie("userId");
-        
+
         if (!userId) {
             toast.info("Thông báo", "Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng");
             window.location.href = "/login";
             return;
         }
-        
+
         try {
-            post(`/shoppingcart`, {
+            await post(`/shoppingcart`, {
                 product_id: product.id,
                 customer_id: userId,
                 quantity: 1
             });
+
+            // Invalidate cart cache để cập nhật số lượng trong Header
+            queryClient.invalidateQueries({ queryKey: ['/shoppingcart/customer', userId] });
+
             toast.success("Thành công", `Đã thêm ${product.name} vào giỏ hàng!`);
         } catch (error) {
             console.error("Error adding to cart:", error);

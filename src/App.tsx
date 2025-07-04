@@ -3,10 +3,10 @@ import AOS from "aos";
 import "aos/dist/aos.css";
 import React, { useEffect } from "react";
 import {
-    Route,
-    RouterProvider,
-    createBrowserRouter,
-    createRoutesFromElements
+  Route,
+  RouterProvider,
+  createBrowserRouter,
+  createRoutesFromElements
 } from "react-router-dom";
 import ScrollToTop from "react-scroll-to-top";
 
@@ -70,6 +70,7 @@ import EditProductPage from "pages/admin/EditProductPage";
 import EditUserPage from "pages/admin/EditUserPage";
 import InventoryManagement from "pages/admin/InventoryManagement";
 import OrderManagement from "pages/admin/OrderManagement";
+import StatisticsPage from "pages/admin/StatisticsPage";
 
 // Permission system components
 import UserManagement from "pages/admin/UserManagement";
@@ -287,6 +288,13 @@ function App() {
             <Route path="orders" element={
               <AdminRouteGuard requiredPermission="order:view">
                 <OrderManagement />
+              </AdminRouteGuard>
+            } />
+
+            {/* Route cho thống kê */}
+            <Route path="statistics" element={
+              <AdminRouteGuard requiredPermission="dashboard:view">
+                <StatisticsPage />
               </AdminRouteGuard>
             } />
 
