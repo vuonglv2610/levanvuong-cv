@@ -160,7 +160,7 @@ const AdminLayout = () => {
           <Link to="/admin" className="flex items-center space-x-3">
             <img
               className="h-8 w-auto"
-              src="https://res-console.cloudinary.com/dkiw9eaeh/media_explorer_thumbnails/1d21c353bc001bcaec606c1da043dbb2/detailed"
+              src="https://res.cloudinary.com/dkiw9eaeh/image/upload/v1750743969/nucnvksajdlftfpytprl.png"
               alt="Admin Dashboard"
             />
             {!sidebarCollapsed && (
@@ -233,7 +233,7 @@ const AdminLayout = () => {
                 <Link to="/admin" className="flex items-center space-x-3">
                   <img
                     className="h-8 w-auto"
-                    src="https://res-console.cloudinary.com/dkiw9eaeh/media_explorer_thumbnails/1d21c353bc001bcaec606c1da043dbb2/detailed"
+                    src="https://res.cloudinary.com/dkiw9eaeh/image/upload/v1750743969/nucnvksajdlftfpytprl.png"
                     alt="Admin Dashboard"
                   />
                   <span className="text-white font-bold text-xl">Admin Panel</span>

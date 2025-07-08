@@ -109,12 +109,21 @@ const ProductManager = () => {
             <span className="text-sm text-gray-600">{item?.brandName || "Chưa có thương hiệu"}</span>
           )
         },
-        { 
-          key: "quantity", 
-          header: "Số lượng tồn kho", 
-          render: (item: any) => (
-            <span className="text-sm text-gray-600">{item?.quantity || "0"}</span>
-          )
+        {
+          key: "quantity",
+          header: "Số lượng tồn kho",
+          render: (item: any) => {
+            const quantity = item?.quantity || 0;
+            return (
+              <span className={`text-sm font-medium ${
+                quantity === 0 ? 'text-red-500' :
+                quantity < 10 ? 'text-orange-500' :
+                'text-green-600'
+              }`}>
+                {quantity === 0 ? 'Hết hàng' : quantity}
+              </span>
+            );
+          }
         }
       ]}
       filterOptions={{ showCategoryFilter: false, showSearch: false }}

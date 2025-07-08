@@ -16,7 +16,7 @@ const Footer: React.FC<FooterProps> = ({ isAdminLayout = false, classText = '' }
             <div className="space-y-4">
               <div className="flex items-center space-x-2">
                 <img
-                  src="https://res-console.cloudinary.com/dkiw9eaeh/media_explorer_thumbnails/1d21c353bc001bcaec606c1da043dbb2/detailed"
+                  src="https://res.cloudinary.com/dkiw9eaeh/image/upload/v1750743969/nucnvksajdlftfpytprl.png"
                   width={40}
                   height={40}
                   alt="Logo"

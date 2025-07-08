@@ -38,6 +38,12 @@ const DetailPage = () => {
       return;
     }
 
+    // Kiểm tra số lượng trong kho
+    if (product.quantity === 0) {
+      toast.error("Lỗi", "Sản phẩm đã hết hàng");
+      return;
+    }
+
     try {
       await post(`/shoppingcart`, {
         product_id: product.id,
@@ -153,16 +159,31 @@ const DetailPage = () => {
               <div>{product.sku || "N/A"}</div>
               
               <div className="text-gray-600">Số lượng trong kho:</div>
-              <div>{product.quantity !== undefined ? product.quantity : "N/A"}</div>
+              <div className={`font-medium ${
+                product.quantity === 0 ? 'text-red-500' :
+                product.quantity < 10 ? 'text-orange-500' :
+                'text-green-600'
+              }`}>
+                {product.quantity !== undefined ?
+                  (product.quantity === 0 ? 'Hết hàng' :
+                   product.quantity < 10 ? `${product.quantity} sản phẩm` :
+                   `${product.quantity} sản phẩm`) :
+                  "N/A"}
+              </div>
             </div>
           </div>
           
-          <button 
+          <button
             onClick={handleAddToCart}
-            className="w-full bg-primary text-white py-3 px-6 rounded-md hover:bg-blue-700 transition-colors font-medium flex items-center justify-center"
+            disabled={product.quantity === 0}
+            className={`w-full py-3 px-6 rounded-md transition-colors font-medium flex items-center justify-center ${
+              product.quantity === 0
+                ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                : 'bg-primary text-white hover:bg-blue-700'
+            }`}
           >
             <FontAwesomeIcon icon={faCartPlus} className="mr-2" />
-            Thêm vào giỏ hàng
+            {product.quantity === 0 ? 'Hết hàng' : 'Thêm vào giỏ hàng'}
           </button>
         </div>
       </div>

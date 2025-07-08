@@ -22,7 +22,7 @@ const ProductList = () => {
     const [products, setProducts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage, setItemsPerPage] = useState(8);
+    const [itemsPerPage, setItemsPerPage] = useState(6);
     const toast = useToast();
     const queryClient = useQueryClient();
 
@@ -143,6 +143,12 @@ const ProductList = () => {
             return;
         }
 
+        // Kiểm tra số lượng trong kho
+        if (product.quantity === 0) {
+            toast.error("Lỗi", "Sản phẩm đã hết hàng");
+            return;
+        }
+
         try {
             await post(`/shoppingcart`, {
                 product_id: product.id,
@@ -259,16 +265,28 @@ const ProductList = () => {
                                     </div>
                                 )}
 
+                                {/* Out of Stock Badge */}
+                                {product.quantity === 0 && (
+                                    <div className="absolute bottom-3 left-3 bg-gray-600 text-white text-xs font-semibold px-2.5 py-1 rounded-full shadow-lg">
+                                        Hết hàng
+                                    </div>
+                                )}
+
                                 {/* Quick Add Button - Hiện khi hover */}
                                 <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
                                     <button
                                         onClick={(e) => handleAddToCart(e, product)}
-                                        className="bg-white text-gray-900 px-4 py-2 rounded-lg font-medium shadow-lg hover:bg-gray-50 transition-colors transform translate-y-2 group-hover:translate-y-0 flex items-center gap-2"
+                                        disabled={product.quantity === 0}
+                                        className={`px-4 py-2 rounded-lg font-medium shadow-lg transition-colors transform translate-y-2 group-hover:translate-y-0 flex items-center gap-2 ${
+                                            product.quantity === 0
+                                                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                                : 'bg-white text-gray-900 hover:bg-gray-50'
+                                        }`}
                                     >
                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
                                         </svg>
-                                        Thêm vào giỏ
+                                        {product.quantity === 0 ? 'Hết hàng' : 'Thêm vào giỏ'}
                                     </button>
                                 </div>
                             </div>
@@ -315,15 +333,29 @@ const ProductList = () => {
                                     </div>
                                 </div>
 
+                                {/* Stock Information */}
+                                <div className="mt-2 text-sm">
+                                    <span className={`${product.quantity === 0 ? 'text-red-500' : product.quantity < 10 ? 'text-orange-500' : 'text-green-600'}`}>
+                                        {product.quantity === 0 ? 'Hết hàng' :
+                                         product.quantity < 10 ? `Còn ${product.quantity} sản phẩm` :
+                                         'Còn hàng'}
+                                    </span>
+                                </div>
+
                                 {/* Add to Cart Button */}
                                 <button
                                     onClick={(e) => handleAddToCart(e, product)}
-                                    className="w-full mt-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-2.5 px-4 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                                    disabled={product.quantity === 0}
+                                    className={`w-full mt-4 py-2.5 px-4 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 shadow-md ${
+                                        product.quantity === 0
+                                            ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                                            : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white hover:shadow-lg transform hover:-translate-y-0.5'
+                                    }`}
                                 >
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
                                     </svg>
-                                    Thêm vào giỏ
+                                    {product.quantity === 0 ? 'Hết hàng' : 'Thêm vào giỏ'}
                                 </button>
                             </div>
                         </div>
@@ -351,6 +383,7 @@ const ProductList = () => {
                                 }}
                             >
                                 <option value="4">4</option>
+                                <option value="6">6</option>
                                 <option value="8">8</option>
                                 <option value="12">12</option>
                                 <option value="16">16</option>
