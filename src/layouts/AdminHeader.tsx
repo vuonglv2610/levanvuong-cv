@@ -1,6 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
 import { useAuthProvider } from 'contexts/AuthContext';
-import { getCookie } from 'libs/getCookie';
+import React, { useEffect, useRef, useState } from 'react';
 
 interface AdminHeaderProps {
   darkMode: boolean;

@@ -67,11 +67,6 @@ export const usePermissionCheck = () => {
   const canDeleteUser = () => hasPermission('user:delete');
   const canViewUser = () => hasPermission('user:view');
   
-  const canCreateArticle = () => hasPermission('article:create');
-  const canUpdateArticle = () => hasPermission('article:update');
-  const canDeleteArticle = () => hasPermission('article:delete');
-  const canViewArticle = () => hasPermission('article:view');
-  
   const canViewOrder = () => hasPermission('order:view');
   const canUpdateOrderStatus = () => hasPermission('order:update_status');
   const canDeleteOrder = () => hasPermission('order:delete');
@@ -129,12 +124,6 @@ export const usePermissionCheck = () => {
     canUpdateUser,
     canDeleteUser,
     canViewUser,
-    
-    // Article permissions
-    canCreateArticle,
-    canUpdateArticle,
-    canDeleteArticle,
-    canViewArticle,
     
     // Order permissions
     canViewOrder,

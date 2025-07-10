@@ -3,10 +3,10 @@ import AOS from "aos";
 import "aos/dist/aos.css";
 import React, { useEffect } from "react";
 import {
-    Route,
-    RouterProvider,
-    createBrowserRouter,
-    createRoutesFromElements
+  Route,
+  RouterProvider,
+  createBrowserRouter,
+  createRoutesFromElements
 } from "react-router-dom";
 import ScrollToTop from "react-scroll-to-top";
 
@@ -59,6 +59,7 @@ import AddInventoryReceipt from "pages/admin/AddInventoryReceipt";
 import AddProductPage from "pages/admin/AddProductPage";
 import AddUserPage from "pages/admin/AddUserPage";
 import BrandManagement from "pages/admin/BrandManagement";
+import CommentsPage from "pages/admin/CommentsPage";
 import EditBrandPage from "pages/admin/EditBrandPage";
 import EditCategoryPage from "pages/admin/EditCategoryPage";
 import EditInventoryReceipt from "pages/admin/EditInventoryReceipt";
@@ -268,6 +269,13 @@ function App() {
             <Route path="orders" element={
               <AdminRouteGuard requiredPermission="order:view">
                 <OrderManagement />
+              </AdminRouteGuard>
+            } />
+
+            {/* Route cho comments */}
+            <Route path="comments" element={
+              <AdminRouteGuard requiredPermission="comment:view">
+                <CommentsPage />
               </AdminRouteGuard>
             } />
 
