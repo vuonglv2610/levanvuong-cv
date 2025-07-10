@@ -15,10 +15,7 @@ const navbarAdminConfig = [
     href: "/admin/brand",
     title: "Quản lý thương hiệu",
   },
-  {
-    href: "/admin/articles",
-    title: "Quản lý bài viết",
-  },
+
   {
     href: "/admin/user",
     title: "Quản lý người dùng",

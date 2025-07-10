@@ -61,18 +61,7 @@ export const routePermissions: RoutePermission[] = [
     roles: [UserRole.PUBLIC, UserRole.USER, UserRole.CUSTOMER, UserRole.ADMIN],
     exact: true
   },
-  {
-    path: '/articles',
-    level: PermissionLevel.PUBLIC,
-    roles: [UserRole.PUBLIC, UserRole.USER, UserRole.CUSTOMER, UserRole.ADMIN],
-    exact: true
-  },
-  {
-    path: '/articles/:id',
-    level: PermissionLevel.PUBLIC,
-    roles: [UserRole.PUBLIC, UserRole.USER, UserRole.CUSTOMER, UserRole.ADMIN],
-    exact: false
-  },
+
   {
     path: '/404',
     level: PermissionLevel.PUBLIC,
@@ -153,13 +142,7 @@ export const routePermissions: RoutePermission[] = [
     roles: [UserRole.ADMIN],
     exact: false
   },
-  // Article management
-  {
-    path: '/admin/articles',
-    level: PermissionLevel.ADMIN,
-    roles: [UserRole.ADMIN],
-    exact: false
-  },
+
   // User management
   {
     path: '/admin/user',
@@ -193,8 +176,7 @@ export const apiPermissions = {
     'GET /categories/:id', 
     'GET /brands',
     'GET /brands/:id',
-    'GET /articles',
-    'GET /articles/:id',
+
     'POST /auth/login',
     'POST /auth/login-success',
     'POST /auth/register',
@@ -251,9 +233,7 @@ export const apiPermissions = {
     'POST /brands',
     'PUT /brands/:id',
     'DELETE /brands/:id',
-    'POST /articles',
-    'PUT /articles/:id',
-    'DELETE /articles/:id',
+
     'POST /vouchers',
     'PUT /vouchers/:id',
     'DELETE /vouchers/:id',

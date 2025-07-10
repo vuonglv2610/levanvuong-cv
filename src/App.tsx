@@ -3,10 +3,10 @@ import AOS from "aos";
 import "aos/dist/aos.css";
 import React, { useEffect } from "react";
 import {
-  Route,
-  RouterProvider,
-  createBrowserRouter,
-  createRoutesFromElements
+    Route,
+    RouterProvider,
+    createBrowserRouter,
+    createRoutesFromElements
 } from "react-router-dom";
 import ScrollToTop from "react-scroll-to-top";
 
@@ -41,8 +41,7 @@ import Cart from "pages/Cart";
 import Checkout from "pages/Checkout";
 import SearchPage from "pages/SearchPage";
 import NotFoundPage from "./pages/404";
-import ArticleDetailPage from "./pages/ArticleDetailPage";
-import ArticlesPage from "./pages/ArticlesPage";
+
 import Dashboard from "./pages/Dashboard";
 import DetailPage from "./pages/Detail";
 import LoginPage from "./pages/Login";
@@ -54,15 +53,12 @@ import RegisterPage from "./pages/RegisterPage";
 
 
 // Admin page imports
-import { default as AddArticlePage } from "pages/admin/AddArticlePage";
 import AddBrandPage from "pages/admin/AddBrandPage";
 import AddCategoryPage from "pages/admin/AddCategoryPage";
 import AddInventoryReceipt from "pages/admin/AddInventoryReceipt";
 import AddProductPage from "pages/admin/AddProductPage";
 import AddUserPage from "pages/admin/AddUserPage";
-import ArticleManagement from "pages/admin/ArticleManagement";
 import BrandManagement from "pages/admin/BrandManagement";
-import { default as EditArticlePage } from "pages/admin/EditArticlePage";
 import EditBrandPage from "pages/admin/EditBrandPage";
 import EditCategoryPage from "pages/admin/EditCategoryPage";
 import EditInventoryReceipt from "pages/admin/EditInventoryReceipt";
@@ -122,8 +118,7 @@ function App() {
                 <OrderSuccessPage />
               </ProtectedRoute>
             } />
-            <Route path="/articles" element={<ArticlesPage />} />
-            <Route path="/articles/:id" element={<ArticleDetailPage />} />
+
 
 
             <Route path="/404" element={<NotFoundPage />} />
@@ -247,22 +242,7 @@ function App() {
               </AdminRouteGuard>
             } />
 
-            {/* Route cho bài viết */}
-            <Route path="articles" element={
-              <AdminRouteGuard requiredPermission="article:view">
-                <ArticleManagement />
-              </AdminRouteGuard>
-            } />
-            <Route path="articles/add" element={
-              <AdminRouteGuard requiredPermission="article:create">
-                <AddArticlePage />
-              </AdminRouteGuard>
-            } />
-            <Route path="articles/edit/:id" element={
-              <AdminRouteGuard requiredPermission="article:update">
-                <EditArticlePage />
-              </AdminRouteGuard>
-            } />
+
 
             {/* Route cho người dùng */}
             <Route

@@ -40,11 +40,7 @@ const AdminNavigation: React.FC = () => {
       title: "Quản lý thương hiệu",
       permission: "brand:view"
     },
-    {
-      href: "/admin/articles",
-      title: "Quản lý bài viết",
-      permission: "article:view"
-    },
+
     {
       href: "/admin/user",
       title: "Quản lý người dùng",

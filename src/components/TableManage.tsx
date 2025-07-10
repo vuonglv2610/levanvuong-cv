@@ -106,11 +106,11 @@ const TableManage = ({
     if (data?.data?.result?.data) {
       let itemsData = data.data.result.data;
 
-      // Check if data is wrapped in a specific property (like articles, categories, etc.)
+      // Check if data is wrapped in a specific property (like categories, products, etc.)
       // This handles the new API response structure
       if (itemsData && typeof itemsData === 'object' && !Array.isArray(itemsData)) {
         // Look for common array properties
-        const possibleArrayProps = ['articles', 'categories', 'products', 'users', 'orders'];
+        const possibleArrayProps = ['categories', 'products', 'users', 'orders'];
         for (const prop of possibleArrayProps) {
           if (Array.isArray(itemsData[prop])) {
             console.log(`Found data array in property: ${prop}`);
@@ -141,7 +141,7 @@ const TableManage = ({
         if (filterOptions.showSearch && searchTerm) {
           const searchLower = searchTerm.toLowerCase();
 
-          // For articles: search in title and content
+          // For items with title: search in title and content
           if (item?.title !== undefined) {
             matchesSearch =
               item?.title?.toLowerCase().includes(searchLower) ||

@@ -22,10 +22,7 @@
         "user:delete",
         "role:view",
         "role:manage",
-        "article:create",
-        "article:view",
-        "article:update",
-        "article:delete",
+
         "voucher:create",
         "voucher:view",
         "voucher:update",
