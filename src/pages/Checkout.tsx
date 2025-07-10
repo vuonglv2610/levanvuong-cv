@@ -169,7 +169,7 @@ function Checkout() {
   }
 
   return (
-    <div className='container py-[40px] min-h-[calc(100vh-175px)]'>
+    <div className='container py-[40px] min-h-[calc(100vh-175px)] !mt-[20px]'>
       <div className="subtitle text-left mb-6">
         <Link to="/" className="hover:text-primary transition-colors">Trang chủ</Link>
         <FontAwesomeIcon icon={faAngleRight} className="mx-2" />
