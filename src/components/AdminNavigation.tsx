@@ -57,11 +57,6 @@ const AdminNavigation: React.FC = () => {
       permission: "serial:view"
     },
     {
-      href: "/admin/permissions",
-      title: "Quản lý phân quyền",
-      permission: "role:manage"
-    },
-    {
       href: "/",
       title: "Trang khách hàng",
     },

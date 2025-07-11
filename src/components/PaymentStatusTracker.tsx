@@ -21,12 +21,12 @@ const PaymentStatusTracker: React.FC<PaymentStatusTrackerProps> = ({
 
   // Query để lấy thông tin thanh toán
   const { data: paymentData, isLoading, error, refetch } = useQuery({
-    queryKey: ['payment', paymentId],
+    queryKey: ['payments', paymentId],
     queryFn: () => paymentService.getPaymentById(paymentId),
     enabled: !!paymentId,
     refetchInterval: (query) => {
       // Tự động refresh nếu payment đang pending hoặc processing
-      const status = query.state.data?.data?.paymentStatus;
+      const status = query.state.data?.result?.data?.paymentStatus;
       return (status === 'pending' || status === 'processing') ? 30000 : false; // 30 giây
     },
     retry: 3
@@ -34,10 +34,10 @@ const PaymentStatusTracker: React.FC<PaymentStatusTrackerProps> = ({
 
   // Callback khi status thay đổi
   useEffect(() => {
-    if (paymentData?.data?.paymentStatus && onStatusChange) {
-      onStatusChange(paymentData.data.paymentStatus);
+    if (paymentData?.result?.data?.paymentStatus && onStatusChange) {
+      onStatusChange(paymentData.result.data.paymentStatus);
     }
-  }, [paymentData?.data?.paymentStatus, onStatusChange]);
+  }, [paymentData?.result?.data?.paymentStatus, onStatusChange]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -62,7 +62,7 @@ const PaymentStatusTracker: React.FC<PaymentStatusTrackerProps> = ({
     );
   }
 
-  if (error || !paymentData?.success) {
+  if (error || !paymentData?.result?.data) {
     return (
       <div className="bg-white rounded-lg shadow-sm p-6">
         <div className="flex items-center justify-between">
@@ -84,7 +84,7 @@ const PaymentStatusTracker: React.FC<PaymentStatusTrackerProps> = ({
     );
   }
 
-  const payment = paymentData.data;
+  const payment = paymentData.result.data;
   const statusInfo = paymentService.getPaymentStatusInfo(payment.paymentStatus);
 
   return (
@@ -137,6 +137,32 @@ const PaymentStatusTracker: React.FC<PaymentStatusTrackerProps> = ({
           <div>
             <p className="text-sm text-gray-600">Mã giao dịch</p>
             <p className="font-medium text-gray-900 text-sm">{payment.transactionId}</p>
+          </div>
+        )}
+
+        {/* Payment Date */}
+        {payment.paymentDate && (
+          <div>
+            <p className="text-sm text-gray-600">Ngày thanh toán</p>
+            <p className="font-medium text-gray-900 text-sm">
+              {new Date(payment.paymentDate).toLocaleDateString('vi-VN', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              })}
+            </p>
+          </div>
+        )}
+
+        {/* Discount Amount */}
+        {payment.discountAmount > 0 && (
+          <div>
+            <p className="text-sm text-gray-600">Giảm giá</p>
+            <p className="font-medium text-green-600">
+              -{paymentService.formatCurrency(payment.discountAmount)}
+            </p>
           </div>
         )}
       </div>

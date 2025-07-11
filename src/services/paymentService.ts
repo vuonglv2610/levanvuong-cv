@@ -14,37 +14,35 @@ export interface ApiResponse<T> {
   result: {
     data?: T;
     token?: {
-      payment: {
+      id: string;
+      orderId: string;
+      customerId: string;
+      amount: number;
+      paymentMethod: string;
+      paymentStatus: string;
+      transactionId: string;
+      paymentDate: string | null;
+      description: string;
+      voucherId: string | null;
+      discountAmount: number;
+      finalAmount: number;
+      paymentGatewayResponse: any;
+      createdAt: string;
+      updatedAt: string;
+      deletedAt: string | null;
+      order: {
         id: string;
-        orderId: string;
-        customerId: string;
-        amount: number;
-        paymentMethod: string;
-        paymentStatus: string;
-        transactionId: string;
-        paymentDate: string | null;
-        description: string;
-        voucherId: string | null;
-        discountAmount: number;
-        finalAmount: number;
-        paymentGatewayResponse: any;
-        createdAt: string;
-        updatedAt: string;
-        deletedAt: string | null;
-        order: {
-          id: string;
-          order_date: string;
-          status: string;
-          total_amount: number;
-        };
-        customer: {
-          id: string;
-          name: string;
-          email: string;
-          phone: string | null;
-        };
-        voucher: any;
+        order_date: string;
+        status: string;
+        total_amount: number;
       };
+      customer: {
+        id: string;
+        name: string;
+        email: string;
+        phone: string | null;
+      };
+      voucher: any;
       vnpayUrl?: string;
     };
   };
@@ -92,20 +90,41 @@ export interface UserData {
 }
 
 export interface PaymentStatusResponse {
-  success: boolean;
-  data: {
-    id: string;
-    paymentStatus: string;
-    paymentMethod: string;
-    amount: number;
-    finalAmount: number;
-    transactionId: string;
-    order: {
+  statusCode: number;
+  message: string;
+  result: {
+    data: {
       id: string;
-      status: string;
+      orderId: string;
+      customerId: string;
+      amount: number;
+      paymentMethod: string;
+      paymentStatus: string;
+      transactionId: string;
+      paymentDate: string | null;
+      description: string;
+      voucherId: string | null;
+      discountAmount: number;
+      finalAmount: number;
+      paymentGatewayResponse: any;
+      createdAt: string;
+      updatedAt: string;
+      deletedAt: string | null;
+      order: {
+        id: string;
+        order_date: string;
+        status: string;
+        total_amount: number;
+      };
+      customer: {
+        id: string;
+        name: string;
+        email: string;
+        phone: string | null;
+      };
+      voucher: any;
     };
   };
-  message: string;
 }
 
 class PaymentService {
@@ -215,7 +234,7 @@ class PaymentService {
    */
   async getPaymentById(paymentId: string): Promise<PaymentStatusResponse> {
     try {
-      const response = await get(`/payment/${paymentId}`);
+      const response = await get(`/payments/${paymentId}`);
       return response.data;
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Lỗi khi lấy thông tin thanh toán');
@@ -330,4 +349,5 @@ class PaymentService {
   }
 }
 
-export default new PaymentService();
+const paymentService = new PaymentService();
+export default paymentService;

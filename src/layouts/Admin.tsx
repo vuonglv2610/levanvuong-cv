@@ -1,6 +1,6 @@
 import {
-    faBars,
-    faXmark
+  faBars,
+  faXmark
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import navbarAdminConfig from "configs/navbarAdminConfig";
@@ -132,12 +132,10 @@ const AdminLayout = () => {
     { href: "/admin/product", title: "Quản lý sản phẩm", icon: "faBox", permission: "product:view" },
     { href: "/admin/category", title: "Quản lý danh mục", icon: "faList", permission: "category:view" },
     { href: "/admin/brand", title: "Quản lý thương hiệu", icon: "faTags", permission: "brand:view" },
-    { href: "/admin/articles", title: "Quản lý bài viết", icon: "faNewspaper", permission: "article:view" },
     { href: "/admin/user", title: "Quản lý người dùng", icon: "faUsers", permission: "user:view" },
     { href: "/admin/orders", title: "Quản lý đơn hàng", icon: "faShoppingCart", permission: "order:view" },
     { href: "/admin/comments", title: "Quản lý đánh giá", icon: "faComments", permission: "comment:view" },
     { href: "/admin/inventory", title: "Quản lý kho hàng", icon: "faWarehouse", permission: "serial:view" },
-    { href: "/admin/permissions", title: "Quản lý phân quyền", icon: "faShield", permission: "role:manage" },
     { href: "/", title: "Trang khách hàng", icon: "faHome" },
   ];
 

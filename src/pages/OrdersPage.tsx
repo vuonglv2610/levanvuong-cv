@@ -4,14 +4,34 @@ import { getCookie } from 'libs/getCookie';
 import React, { useState } from 'react';
 import { get } from 'services/api';
 
-interface OrderItem {
+interface OrderDetail {
   id: string;
-  productName: string;
-  productSku: string;
-  productImage: string;
-  price: number;
+  orderId: string;
+  productId: string;
   quantity: number;
-  total: number;
+  unit_price: number;
+  total_price: number;
+  serial_numbers: string | null;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+  product: {
+    id: string;
+    name: string;
+    sku: string;
+    price: number;
+    img: string;
+  };
+}
+
+interface Payment {
+  id: string;
+  amount: number;
+  paymentMethod: string;
+  paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded';
+  transactionId: string;
+  finalAmount: number;
+  discountAmount: number;
 }
 
 interface Order {
@@ -29,13 +49,12 @@ interface Order {
     email: string;
     phone: string | null;
   };
+  orderDetails: OrderDetail[];
+  payment: Payment | null;
   // Optional fields for compatibility with existing UI
   orderNumber?: string;
-  paymentMethod?: string;
-  paymentStatus?: 'pending' | 'paid' | 'failed' | 'refunded';
   paymentId?: string;
   shippingAddress?: string;
-  items?: OrderItem[];
   subtotal?: number;
   shippingFee?: number;
   tax?: number;
@@ -51,14 +70,16 @@ const OrdersPage = () => {
 
   // Fetch user's orders from API
   const { data: ordersData, isLoading, error } = useQuery({
-    queryKey: ['/orders/customer', userId],
-    queryFn: () => get(`/orders/customer/${userId}`),
+    // queryKey: ['/orders/customer', userId],
+    // queryFn: () => get(`/orders/customer/${userId}`),
+    queryKey: ['/orders/with-details', userId],
+    queryFn: () => get(`/orders/with-details?customerId=${userId}`),
     enabled: !!userId,
     staleTime: 30000, // Cache for 30 seconds
   });
 
   // Extract orders from API response or use empty array
-  const orders: Order[] = ordersData?.data?.result?.token || [];
+  const orders: Order[] = ordersData?.data?.result?.data || [];
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -304,9 +325,9 @@ const OrdersPage = () => {
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
                           {getStatusText(order.status)}
                         </span>
-                        {order.paymentStatus && (
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPaymentStatusColor(order.paymentStatus)}`}>
-                            {getPaymentStatusText(order.paymentStatus)}
+                        {order.payment?.paymentStatus && (
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPaymentStatusColor(order.payment.paymentStatus)}`}>
+                            {getPaymentStatusText(order.payment.paymentStatus)}
                           </span>
                         )}
                       </div>
@@ -346,10 +367,10 @@ const OrdersPage = () => {
                 {selectedOrder?.id === order.id && (
                   <div className="border-t bg-gray-50 p-6">
                     {/* Payment Status Tracker */}
-                    {order.paymentId && (
+                    {order.payment?.id && (
                       <div className="mb-6">
                         <PaymentStatusTracker
-                          paymentId={order.paymentId}
+                          paymentId={order.payment.id}
                           orderId={order.id}
                           onStatusChange={(status) => {
                             // Có thể cập nhật UI khi payment status thay đổi
@@ -359,47 +380,109 @@ const OrdersPage = () => {
                       </div>
                     )}
 
+                    {/* Chi tiết sản phẩm */}
+                    <div className="mb-6">
+                      <h4 className="font-medium text-gray-900 mb-4">Sản phẩm đã đặt</h4>
+                      <div className="bg-white rounded-lg border overflow-hidden">
+                        {order.orderDetails.map((detail, index) => (
+                          <div key={detail.id} className={`p-4 flex items-center gap-4 ${index !== order.orderDetails.length - 1 ? 'border-b' : ''}`}>
+                            <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
+                              {detail.product.img ? (
+                                <img
+                                  src={detail.product.img}
+                                  alt={detail.product.name}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                              )}
+                            </div>
+                            <div className="flex-1">
+                              <h5 className="font-medium text-gray-900">{detail.product.name}</h5>
+                              <p className="text-sm text-gray-600">SKU: {detail.product.sku}</p>
+                              <p className="text-sm text-gray-600">
+                                {formatPrice(detail.unit_price)} x {detail.quantity}
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-medium text-gray-900">{formatPrice(detail.total_price)}</p>
+                              {detail.serial_numbers && (
+                                <p className="text-xs text-gray-500 mt-1">Serial: {detail.serial_numbers}</p>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                       <div>
                         <h4 className="font-medium text-gray-900 mb-3">Thông tin khách hàng</h4>
-                        <p className="text-gray-600">Tên: {order.customer.name}</p>
-                        <p className="text-gray-600">Email: {order.customer.email}</p>
-                        {order.customer.phone && (
-                          <p className="text-gray-600">Điện thoại: {order.customer.phone}</p>
-                        )}
+                        <div className="bg-white rounded-lg p-4 space-y-2">
+                          <p className="text-gray-600">Tên: <span className="font-medium text-gray-900">{order.customer.name}</span></p>
+                          <p className="text-gray-600">Email: <span className="font-medium text-gray-900">{order.customer.email}</span></p>
+                          {order.customer.phone && (
+                            <p className="text-gray-600">Điện thoại: <span className="font-medium text-gray-900">{order.customer.phone}</span></p>
+                          )}
+                        </div>
 
                         {order.shippingAddress && (
                           <>
                             <h4 className="font-medium text-gray-900 mb-3 mt-4">Địa chỉ giao hàng</h4>
-                            <p className="text-gray-600">{order.shippingAddress}</p>
+                            <div className="bg-white rounded-lg p-4">
+                              <p className="text-gray-600">{order.shippingAddress}</p>
+                            </div>
                           </>
                         )}
 
-                        {order.paymentMethod && (
+                        {order.payment && (
                           <>
-                            <h4 className="font-medium text-gray-900 mb-3 mt-4">Phương thức thanh toán</h4>
-                            <p className="text-gray-600">{order.paymentMethod}</p>
+                            <h4 className="font-medium text-gray-900 mb-3 mt-4">Thông tin thanh toán</h4>
+                            <div className="bg-white rounded-lg p-4 space-y-2">
+                              <p className="text-gray-600">Phương thức: <span className="font-medium text-gray-900 capitalize">{order.payment.paymentMethod}</span></p>
+                              <p className="text-gray-600">Trạng thái:
+                                <span className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${getPaymentStatusColor(order.payment.paymentStatus)}`}>
+                                  {getPaymentStatusText(order.payment.paymentStatus)}
+                                </span>
+                              </p>
+                              {order.payment.transactionId && (
+                                <p className="text-gray-600">Mã giao dịch: <span className="font-mono text-sm text-gray-900">{order.payment.transactionId}</span></p>
+                              )}
+                              {order.payment.discountAmount > 0 && (
+                                <p className="text-gray-600">Giảm giá: <span className="font-medium text-green-600">-{formatPrice(order.payment.discountAmount)}</span></p>
+                              )}
+                            </div>
                           </>
                         )}
 
                         {order.notes && (
                           <>
                             <h4 className="font-medium text-gray-900 mb-3 mt-4">Ghi chú</h4>
-                            <p className="text-gray-600">{order.notes}</p>
+                            <div className="bg-white rounded-lg p-4">
+                              <p className="text-gray-600">{order.notes}</p>
+                            </div>
                           </>
                         )}
                       </div>
 
                       <div>
                         <h4 className="font-medium text-gray-900 mb-3">Thông tin đơn hàng</h4>
-                        <div className="bg-white rounded-lg p-4 space-y-2">
+                        <div className="bg-white rounded-lg p-4 space-y-3">
                           <div className="flex justify-between">
                             <span className="text-gray-600">Mã đơn hàng:</span>
-                            <span className="text-gray-900 font-mono">{order.id.slice(0, 8)}...</span>
+                            <span className="text-gray-900 font-mono text-sm">{order.id.slice(0, 8)}...</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-gray-600">Ngày đặt:</span>
-                            <span className="text-gray-900">{new Date(order.order_date).toLocaleDateString('vi-VN')}</span>
+                            <span className="text-gray-900">{new Date(order.order_date).toLocaleDateString('vi-VN', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-gray-600">Trạng thái:</span>
@@ -407,12 +490,38 @@ const OrdersPage = () => {
                               {getStatusText(order.status)}
                             </span>
                           </div>
-                          <div className="border-t pt-2">
-                            <div className="flex justify-between font-semibold">
-                              <span className="text-gray-900">Tổng cộng:</span>
-                              <span className="text-blue-600">{formatPrice(order.total_amount)}</span>
-                            </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Số lượng sản phẩm:</span>
+                            <span className="text-gray-900">{order.orderDetails.reduce((total, detail) => total + detail.quantity, 0)} sản phẩm</span>
                           </div>
+                          {order.payment && (
+                            <>
+                              <div className="border-t pt-3 space-y-2">
+                                <div className="flex justify-between">
+                                  <span className="text-gray-600">Tạm tính:</span>
+                                  <span className="text-gray-900">{formatPrice(order.payment.amount)}</span>
+                                </div>
+                                {order.payment.discountAmount > 0 && (
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-600">Giảm giá:</span>
+                                    <span className="text-green-600">-{formatPrice(order.payment.discountAmount)}</span>
+                                  </div>
+                                )}
+                                <div className="flex justify-between font-semibold text-lg border-t pt-2">
+                                  <span className="text-gray-900">Tổng cộng:</span>
+                                  <span className="text-blue-600">{formatPrice(order.payment.finalAmount)}</span>
+                                </div>
+                              </div>
+                            </>
+                          )}
+                          {!order.payment && (
+                            <div className="border-t pt-2">
+                              <div className="flex justify-between font-semibold">
+                                <span className="text-gray-900">Tổng cộng:</span>
+                                <span className="text-blue-600">{formatPrice(order.total_amount)}</span>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
