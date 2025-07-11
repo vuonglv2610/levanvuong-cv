@@ -26,16 +26,29 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({
 
   // Get avatar URL with fallback
   const getAvatarUrl = () => {
-    if (userInfo?.avatar) return userInfo.avatar;
-    if (userInfo?.img) return userInfo.img;
+    try {
+      // Sử dụng đúng path từ API response
+      const profileData = userInfo?.result?.data;
+      if (profileData?.avatar && profileData.avatar.trim() !== '') {
+        return profileData.avatar;
+      }
 
-    const userName = userInfo?.fullname || userInfo?.name || 'Admin';
-    return `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=3b82f6&color=ffffff&size=128&bold=true&format=png`;
+      // Fallback paths cũ (nếu có)
+      if (userInfo?.avatar && userInfo.avatar.trim() !== '') return userInfo.avatar;
+      if (userInfo?.img && userInfo.img.trim() !== '') return userInfo.img;
+
+      const userName = profileData?.name || userInfo?.fullname || userInfo?.name || 'Admin';
+      return `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=3b82f6&color=ffffff&size=128&bold=true&format=png`;
+    } catch (error) {
+      console.error('Error getting avatar URL:', error);
+      return `https://ui-avatars.com/api/?name=Admin&background=3b82f6&color=ffffff&size=128&bold=true&format=png`;
+    }
   };
 
   // Get display name
   const getDisplayName = () => {
-    return userInfo?.fullname || userInfo?.name || 'Admin';
+    const profileData = userInfo?.result?.data;
+    return profileData?.name || userInfo?.fullname || userInfo?.name || 'Admin';
   };
 
   // Close dropdown when clicking outside
@@ -167,7 +180,7 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({
                         {getDisplayName()}
                       </p>
                       <p className="text-xs text-gray-500 dark:text-gray-400">
-                        {userInfo?.email || ''}
+                        {userInfo?.result?.data?.email || userInfo?.email || ''}
                       </p>
                     </div>
 

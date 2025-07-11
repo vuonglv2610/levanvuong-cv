@@ -16,17 +16,30 @@ function Header() {
 
   // Tạo avatar URL với fallback đẹp hơn
   const getAvatarUrl = () => {
-    if (userInfo?.avatar) return userInfo.avatar;
-    if (userInfo?.img) return userInfo.img;
+    try {
+      // Sử dụng đúng path từ API response
+      const profileData = userInfo?.result?.data;
+      if (profileData?.avatar && profileData.avatar.trim() !== '') {
+        return profileData.avatar;
+      }
 
-    // Sử dụng avatar dummy đẹp từ UI Avatars
-    const userName = userInfo?.fullname || userInfo?.name || 'User';
-    return `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=3b82f6&color=ffffff&size=128&bold=true&format=png`;
+      // Fallback paths cũ (nếu có)
+      if (userInfo?.avatar && userInfo.avatar.trim() !== '') return userInfo.avatar;
+      if (userInfo?.img && userInfo.img.trim() !== '') return userInfo.img;
+
+      // Sử dụng avatar dummy đẹp từ UI Avatars
+      const userName = profileData?.name || userInfo?.fullname || userInfo?.name || 'User';
+      return `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=3b82f6&color=ffffff&size=128&bold=true&format=png`;
+    } catch (error) {
+      console.error('Error getting avatar URL:', error);
+      return `https://ui-avatars.com/api/?name=User&background=3b82f6&color=ffffff&size=128&bold=true&format=png`;
+    }
   };
 
   // Lấy tên hiển thị
   const getDisplayName = () => {
-    return userInfo?.fullname || userInfo?.name || 'User';
+    const profileData = userInfo?.result?.data;
+    return profileData?.name || userInfo?.fullname || userInfo?.name || 'User';
   };
 
   // Nếu đã login nhưng userInfo chưa load, hiển thị loading avatar
@@ -189,7 +202,7 @@ function Header() {
                       alt={userInfo?.fullname || userInfo?.name || 'User Avatar'}
                       className="w-full h-full object-cover"
                       onError={(e) => {
-                        const userName = userInfo?.fullname || userInfo?.name || 'User';
+                        const userName = getDisplayName();
                         (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=3b82f6&color=ffffff&size=32&bold=true&format=png`;
                       }}
                     />
@@ -211,7 +224,7 @@ function Header() {
                           {getDisplayName()}
                         </p>
                         <p className="text-xs text-gray-500">
-                          {userInfo?.email || ''}
+                          {userInfo?.result?.data?.email || userInfo?.email || ''}
                         </p>
                       </div>
                       <a
@@ -224,16 +237,59 @@ function Header() {
                         </svg>
                         Thông tin cá nhân
                       </a>
-                      <a
-                        href="/orders"
+
+                      {/* Chỉ hiển thị "Đổi mật khẩu" cho tài khoản không phải Google và phân biệt admin/customer */}
+                      {(() => {
+                        const profileData = userInfo?.result?.data;
+                        const hasGoogleId = profileData?.google_id || profileData?.googleId;
+
+                        // Ẩn nếu có Google ID
+                        if (hasGoogleId) {
+                          console.log('Hide change password - Google account detected');
+                          return false;
+                        }
+
+                        return true;
+                      })() && (
+                        <a
+                          href={(() => {
+                            const profileData = userInfo?.result?.data;
+                            const accountType = profileData?.accountType;
+
+                            // Admin redirect đến /admin/change-password
+                            if (accountType === 'user') {
+                              return '/admin/change-password';
+                            }
+
+                            // Customer redirect đến /change-password
+                            return '/change-password';
+                          })()}
                         className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
                         onClick={() => setShowUserMenu(false)}
                       >
                         <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                         </svg>
-                        Đơn hàng của tôi
+                        Đổi mật khẩu
                       </a>
+                      )}
+                      {/* Chỉ hiển thị "Đơn hàng của tôi" cho customer, không hiển thị cho user (admin) */}
+                      {(() => {
+                        const accountType = userInfo?.result?.data?.accountType;
+                        console.log('Header accountType check:', accountType);
+                        return accountType !== 'user';
+                      })() && (
+                        <a
+                          href="/orders"
+                          className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                          onClick={() => setShowUserMenu(false)}
+                        >
+                          <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                          </svg>
+                          Đơn hàng của tôi
+                        </a>
+                      )}
 
                       {/* Chỉ hiển thị link admin cho admin */}
                       {(userRole === "admin" || userRole === "user") && (

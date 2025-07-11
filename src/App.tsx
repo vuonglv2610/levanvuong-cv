@@ -48,7 +48,7 @@ import LoginPage from "./pages/Login";
 import OrdersPage from "./pages/OrdersPage";
 import OrderSuccessPage from "./pages/OrderSuccessPage";
 import ProductsList from "./pages/Products";
-import UserProfilePage from "./pages/ProfilePage";
+import ProfilePage from "./pages/ProfilePage";
 import RegisterPage from "./pages/RegisterPage";
 
 
@@ -70,15 +70,15 @@ import OrderManagement from "pages/admin/OrderManagement";
 import StatisticsPage from "pages/admin/StatisticsPage";
 
 // Permission system components
+import AdminChangePasswordPage from "pages/admin/ChangePasswordPage";
 import UserManagement from "pages/admin/UserManagement";
+import CustomerChangePasswordPage from "pages/ChangePasswordPage";
 import PaymentCallbackPage from "pages/PaymentCallbackPage";
 import PaymentFailedPage from "pages/PaymentFailedPage";
 import PaymentProcessingPage from "pages/PaymentProcessingPage";
 import AdminRouteGuard from "./components/AdminRouteGuard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { UserRole } from "./configs/permissions";
-import ChangePasswordPage from "./pages/admin/ChangePasswordPage";
-import ProfilePage from "./pages/admin/ProfilePage";
 
 function App() {
   const router = createBrowserRouter(
@@ -106,7 +106,12 @@ function App() {
             <Route path="/search" element={<SearchPage />} />
             <Route path="/profile" element={
               <ProtectedRoute requiredRole={UserRole.USER}>
-                <UserProfilePage />
+                <ProfilePage />
+              </ProtectedRoute>
+            } />
+            <Route path="/change-password" element={
+              <ProtectedRoute requiredRole={UserRole.USER}>
+                <CustomerChangePasswordPage />
               </ProtectedRoute>
             } />
             <Route path="/orders" element={
@@ -156,7 +161,7 @@ function App() {
           >
             <Route index element={<Dashboard />} />
             <Route path="profile" element={<ProfilePage />} />
-            <Route path="change-password" element={<ChangePasswordPage />} />
+            <Route path="change-password" element={<AdminChangePasswordPage />} />
 
             {/* Route cho sản phẩm */}
             <Route path="product" element={

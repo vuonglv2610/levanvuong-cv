@@ -47,6 +47,16 @@ const AuthProvider = ({ children }: AuthProviderInterface) => {
         setIsLoading(true);
         const res = await getProfile()
         setUserInfo(res.data);
+
+        // Kiểm tra redirect sau khi login thành công
+        const isFromLogin = window.location.pathname === "/login" ||
+                           sessionStorage.getItem('justLoggedIn') === 'true';
+
+        if (isFromLogin && res.data?.result?.data?.accountType === 'user') {
+          sessionStorage.removeItem('justLoggedIn');
+          window.location.href = "/admin";
+        }
+
       } catch (error) {
         console.log(error);
         setUserInfo(null);

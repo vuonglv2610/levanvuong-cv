@@ -93,11 +93,96 @@ export const updateProfile = async (data: any) => {
     if (!userId) {
       throw new Error("User ID not found");
     }
-    
+
     const response = await instance.put(`/users/edit/${userId}`, data);
     return response;
   } catch (error) {
     console.error("Failed to update profile:", error);
+    throw error;
+  }
+};
+
+// API cho customer profile
+export const updateCustomerProfile = async (data: any) => {
+  try {
+    const userId = getCookie("userId");
+    if (!userId) {
+      throw new Error("User ID not found");
+    }
+
+    const response = await instance.put(`/customers/edit/${userId}`, data);
+    return response;
+  } catch (error) {
+    console.error("Failed to update customer profile:", error);
+    throw error;
+  }
+};
+
+// API cho user profile
+export const updateUserProfile = async (data: any) => {
+  try {
+    const userId = getCookie("userId");
+    if (!userId) {
+      throw new Error("User ID not found");
+    }
+
+    const response = await instance.put(`/users/edit/${userId}`, data);
+    return response;
+  } catch (error) {
+    console.error("Failed to update user profile:", error);
+    throw error;
+  }
+};
+
+// API cho change password
+export const changePassword = async (data: any) => {
+  try {
+    const response = await instance.put(`/profile/change-password`, data);
+    return response;
+  } catch (error) {
+    console.error("Failed to change password:", error);
+    throw error;
+  }
+};
+
+// API cho customer change password
+export const changeCustomerPassword = async (data: any) => {
+  try {
+    const response = await instance.put(`/customers/change-password`, data);
+    return response;
+  } catch (error) {
+    console.error("Failed to change customer password:", error);
+    throw error;
+  }
+};
+
+// API cho customer statistics
+export const getCustomerStatisticsOverview = async () => {
+  try {
+    const response = await instance.get(`/customer-statistics/overview`);
+    return response;
+  } catch (error) {
+    console.error("Failed to get customer statistics overview:", error);
+    throw error;
+  }
+};
+
+export const getCustomerStatisticsPayments = async () => {
+  try {
+    const response = await instance.get(`/customer-statistics/payments`);
+    return response;
+  } catch (error) {
+    console.error("Failed to get customer statistics payments:", error);
+    throw error;
+  }
+};
+
+export const getCustomerStatisticsSummary = async () => {
+  try {
+    const response = await instance.get(`/customer-statistics/summary`);
+    return response;
+  } catch (error) {
+    console.error("Failed to get customer statistics summary:", error);
     throw error;
   }
 };

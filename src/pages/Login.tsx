@@ -106,13 +106,16 @@ const LoginPage = () => {
 
       setCookie("userId", userId);
 
+      // Set flag để AuthContext biết đây là login mới
+      sessionStorage.setItem('justLoggedIn', 'true');
+
       // Refresh profile
       await refreshProfile();
 
       // Thông báo thành công
       toast.success("Thành công", "Đăng nhập thành công!");
 
-      // Chuyển hướng
+      // Chuyển hướng mặc định (AuthContext sẽ xử lý redirect cho user type)
       navigate("/");
 
     } catch (error) {
