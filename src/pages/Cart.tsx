@@ -177,24 +177,75 @@ function Cart() {
   };
 
   return (
-    <div className='container py-[40px] min-h-[calc(100vh-175px)] !mt-[20px]'>
-      <div className="subtitle text-left mb-6">
-        <Link to="/" className="hover:text-primary transition-colors">Trang chủ</Link>
-        <FontAwesomeIcon icon={faAngleRight} className="mx-2" />
-        <span className="font-medium">Giỏ hàng</span>
-      </div>
-      
-      {cartItems.length === 0 ? (
-        <div className="empty-cart text-center py-10 bg-white rounded-lg shadow-sm">
-          <div className="mb-4">
-            <svg className="w-20 h-20 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
-            </svg>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white border-b">
+        <div className="container mx-auto px-4 py-6">
+          {/* Breadcrumb */}
+          <nav className="flex items-center space-x-2 text-sm mb-4">
+            <Link to="/" className="text-blue-600 hover:text-blue-800 transition-colors">
+              Trang chủ
+            </Link>
+            <FontAwesomeIcon icon={faAngleRight} className="text-gray-400" />
+            <span className="text-gray-600 font-medium">Giỏ hàng</span>
+          </nav>
+
+          {/* Title */}
+          <div className="flex items-center justify-between">
+            <h1 className="text-3xl font-bold text-gray-900">
+              Giỏ hàng của bạn
+            </h1>
+            {cartItems.length > 0 && (
+              <span className="bg-blue-100 text-blue-800 px-4 py-2 rounded-full font-medium">
+                {cartItems.length} sản phẩm
+              </span>
+            )}
           </div>
-          <h2 className="text-xl mb-4 font-medium">Giỏ hàng của bạn đang trống</h2>
-          <p className="text-gray-500 mb-6">Hãy thêm sản phẩm vào giỏ hàng và quay lại đây nhé!</p>
-          <Link to="/" className="btn-primary inline-block px-6 py-3">Tiếp tục mua sắm</Link>
         </div>
+      </div>
+
+      <div className="container mx-auto px-4 py-8">
+      
+        {cartItems.length === 0 ? (
+          <div className="bg-white rounded-2xl shadow-xl p-12 text-center max-w-2xl mx-auto">
+            <div className="mb-8">
+              <div className="w-32 h-32 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-6">
+                <svg className="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                </svg>
+              </div>
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                Giỏ hàng trống
+              </h2>
+              <p className="text-xl text-gray-600 mb-8">
+                Hãy khám phá các sản phẩm tuyệt vời của chúng tôi và thêm vào giỏ hàng!
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <Link
+                to="/product"
+                className="inline-block bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-4 px-8 rounded-full text-lg transition-all duration-300 transform hover:scale-105"
+              >
+                Khám phá sản phẩm
+              </Link>
+
+              <div className="flex flex-wrap justify-center gap-4 mt-6">
+                <div className="flex items-center gap-2 text-gray-600">
+                  <span className="text-2xl">🚚</span>
+                  <span>Giao hàng miễn phí</span>
+                </div>
+                <div className="flex items-center gap-2 text-gray-600">
+                  <span className="text-2xl">🛡️</span>
+                  <span>Bảo hành chính hãng</span>
+                </div>
+                <div className="flex items-center gap-2 text-gray-600">
+                  <span className="text-2xl">💳</span>
+                  <span>Thanh toán an toàn</span>
+                </div>
+              </div>
+            </div>
+          </div>
       ) : (
         <div className='cart-content flex flex-col md:flex-row gap-[20px]'>
           <div className="relative overflow-x-auto md:min-w-[800px] bg-white rounded-lg shadow-sm">
@@ -206,7 +257,7 @@ function Cart() {
                       type="checkbox"
                       checked={isCheckedAll}
                       onChange={handleCheckAll}
-                      className="w-4 h-4 accent-primary"
+                      className="w-5 h-5 text-blue-600 bg-gray-100 border-2 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 transition-all duration-200"
                     />
                   </th>
                   <th scope="col" className="px-6 py-3">
@@ -239,7 +290,7 @@ function Cart() {
                           type="checkbox"
                           checked={checkedItems[index]}
                           onChange={() => handleCheckboxChange(index)}
-                          className="w-4 h-4 accent-primary"
+                          className="w-5 h-5 text-blue-600 bg-gray-100 border-2 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 transition-all duration-200"
                         />
                       </td>
                       <td className="px-6 py-4">
@@ -264,24 +315,24 @@ function Cart() {
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-center">
                           <button
-                            className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-l-md hover:bg-gray-100 transition-colors"
+                            className="w-10 h-10 flex items-center justify-center border-2 border-gray-200 rounded-l-lg hover:bg-gray-50 hover:border-blue-300 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                             onClick={() => updateQuantity(item.id, quantity - 1, index)}
                             disabled={isUpdating || quantity <= 1}
                           >
-                            <FontAwesomeIcon icon={faMinus} className="text-gray-600" />
+                            <FontAwesomeIcon icon={faMinus} className="text-gray-600 text-sm" />
                           </button>
                           <input
                             type="text"
                             value={quantity}
                             readOnly
-                            className="w-12 h-8 border-t border-b border-gray-300 text-center focus:outline-none"
+                            className="w-16 h-10 border-t-2 border-b-2 border-gray-200 text-center font-semibold text-gray-800 bg-gray-50 focus:outline-none focus:bg-white focus:border-blue-300 transition-all duration-200"
                           />
                           <button
-                            className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-r-md hover:bg-gray-100 transition-colors"
+                            className="w-10 h-10 flex items-center justify-center border-2 border-gray-200 rounded-r-lg hover:bg-gray-50 hover:border-blue-300 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                             onClick={() => updateQuantity(item.id, quantity + 1, index)}
                             disabled={isUpdating}
                           >
-                            <FontAwesomeIcon icon={faPlus} className="text-gray-600" />
+                            <FontAwesomeIcon icon={faPlus} className="text-gray-600 text-sm" />
                           </button>
                         </div>
                       </td>
@@ -315,34 +366,34 @@ function Cart() {
               
               {showPromoInput ? (
                 <div className="flex flex-col space-y-2">
-                  <div className="flex">
+                  <div className="flex shadow-sm">
                     <input
                       type="text"
                       value={promoCode}
                       onChange={(e) => setPromoCode(e.target.value)}
                       placeholder="Nhập mã giảm giá"
-                      className="flex-1 border border-gray-300 rounded-l-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+                      className="flex-1 border-2 border-gray-200 rounded-l-lg px-4 py-3 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                     />
                     <button
                       onClick={applyPromoCode}
-                      className="bg-primary text-white px-4 py-2 rounded-r-md hover:bg-blue-700 transition-colors"
+                      className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-3 rounded-r-lg font-medium transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                     >
                       Áp dụng
                     </button>
                   </div>
-                  <button 
+                  <button
                     onClick={() => setShowPromoInput(false)}
-                    className="text-gray-500 text-sm hover:text-gray-700 transition-colors"
+                    className="text-gray-500 text-sm hover:text-gray-700 transition-colors font-medium px-2 py-1 rounded hover:bg-gray-100"
                   >
                     Hủy
                   </button>
                 </div>
               ) : (
-                <button 
+                <button
                   onClick={() => setShowPromoInput(true)}
-                  className="text-primary hover:text-blue-700 transition-colors flex items-center"
+                  className="text-blue-600 hover:text-blue-700 transition-colors flex items-center font-medium px-3 py-2 rounded-lg hover:bg-blue-50 border-2 border-dashed border-blue-200 hover:border-blue-300 w-full justify-center"
                 >
-                  <span className="mr-2">+</span> Nhập mã giảm giá
+                  <span className="mr-2 text-lg">+</span> Nhập mã giảm giá
                 </button>
               )}
               
@@ -416,12 +467,12 @@ function Cart() {
                 </div>
               </div>
               
-              <button 
-                className='btn-primary w-full mt-4 py-3 rounded-md font-medium disabled:bg-gray-400 disabled:cursor-not-allowed'
+              <button
+                className='w-full mt-6 py-4 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white rounded-xl font-bold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl disabled:bg-gray-400 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none'
                 disabled={checkedItems.filter(Boolean).length === 0}
                 onClick={handleCheckout}
               >
-                Tiến hành thanh toán
+                🛒 Tiến hành thanh toán
               </button>
               
               <Link to="/" className="block text-center mt-3 text-primary hover:underline">
@@ -431,8 +482,9 @@ function Cart() {
           </div>
         </div>
       )}
+      </div>
     </div>
-  )
-}
+  );
+};
 
-export default Cart
+export default Cart;

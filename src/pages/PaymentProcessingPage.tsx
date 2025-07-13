@@ -43,40 +43,67 @@ const PaymentProcessingPage: React.FC = () => {
       // Gọi API tạo thanh toán
       const response = await paymentService.createPaymentFromCart(state.paymentData);
 
-      // Kiểm tra response structure mới
-      if (response.statusCode === "Tạo thanh toán thành công" || response.statusCode === 200) {
+      // Kiểm tra response và lấy payment data
+      if (response.statusCode === 201 || response.statusCode === 200 || response.statusCode === "Tạo thanh toán thành công") {
 
-        // Kiểm tra cấu trúc response mới với token
-        const paymentToken = response?.result?.data?.result?.token;
+        let paymentData: any = null;
+        let vnpayUrl: string | null = null;
 
-        if (paymentToken) {
-          // Response mới có cấu trúc với token
-          const paymentData = paymentToken.payment;
-          const vnpayUrl = paymentToken.vnpayUrl;
+        // Tìm payment data trong các cấu trúc có thể có
+        if (response?.result?.data?.payment) {
+          paymentData = response.result.data.payment;
+          vnpayUrl = response.result.data.vnpayUrl;
+        } else if (response?.result?.data?.result?.data?.payment) {
+          paymentData = response.result.data.result.data.payment;
+          vnpayUrl = response.result.data.result.data.vnpayUrl || response.result.data.vnpayUrl;
+        } else if (response?.result?.data?.result?.token?.payment) {
+          paymentData = response.result.data.result.token.payment;
+          vnpayUrl = response.result.data.result.token.vnpayUrl || response.result.data.result.vnpayUrl || response.result.data.vnpayUrl;
+        } else if (response?.result?.data && response.result.data.id) {
+          paymentData = response.result.data;
+          vnpayUrl = response.result.data.vnpayUrl || (response as any).vnpayUrl;
+        } else {
+          // Tìm trong các keys có sẵn
+          const data = response.result?.data;
+          if (data) {
+            Object.keys(data).forEach(key => {
+              const value = data[key];
+              if (value && typeof value === 'object' && (value.id || value.paymentMethod || value.orderId)) {
+                paymentData = value;
+                vnpayUrl = value.vnpayUrl || data.vnpayUrl;
+              }
+            });
+          }
+        }
+
+        if (paymentData) {
+          // Set payment info với cấu trúc an toàn
+          setPaymentInfo({
+            payment: paymentData,
+            order: paymentData.order || null
+          });
 
           // Xử lý theo phương thức thanh toán
           switch (state.paymentData.paymentMethod) {
             case 'vnpay':
-              if (vnpayUrl) {
-                // Chuyển hướng đến VNPay
+              if (vnpayUrl && typeof vnpayUrl === 'string') {
                 toast.success('Thành công', 'Đang chuyển hướng đến VNPay...');
                 setTimeout(() => {
-                  window.location.href = vnpayUrl;
+                  window.location.href = vnpayUrl as string;
                 }, 1500);
               } else {
-                toast.error('Lỗi VNPay', 'Không nhận được URL thanh toán VNPay');
+                toast.error('Lỗi VNPay', 'API backend chưa được cấu hình VNPay. Vui lòng liên hệ quản trị viên.');
+                setError('API backend chưa được cấu hình VNPay.');
                 setIsProcessing(false);
               }
               break;
 
             case 'momo':
-              // TODO: Implement MoMo integration
               toast.info('Thông báo', 'Tính năng thanh toán MoMo đang được phát triển');
               handleCashPayment(paymentData);
               break;
 
             case 'zalopay':
-              // TODO: Implement ZaloPay integration
               toast.info('Thông báo', 'Tính năng thanh toán ZaloPay đang được phát triển');
               handleCashPayment(paymentData);
               break;
@@ -84,14 +111,11 @@ const PaymentProcessingPage: React.FC = () => {
             case 'cash':
             case 'bank_transfer':
             default:
-              // Thanh toán COD hoặc chuyển khoản - chuyển thẳng đến trang thành công
               handleCashPayment(paymentData);
               break;
           }
         } else {
-          // Fallback cho cấu trúc cũ (nếu có)
-          const userData = response.result.data;
-          handleCashPayment({ user: userData });
+          throw new Error('Không nhận được thông tin thanh toán từ server.');
         }
       } else {
         throw new Error(response.message || 'Lỗi khi tạo thanh toán');
@@ -106,15 +130,16 @@ const PaymentProcessingPage: React.FC = () => {
   const handleCashPayment = (paymentData: any) => {
     // Đối với thanh toán COD hoặc chuyển khoản, chuyển thẳng đến trang thành công
     setTimeout(() => {
-      // Tạm thời sử dụng dữ liệu mock vì API chưa trả về đúng cấu trúc
+      // Sử dụng dữ liệu thực từ API response
       navigate('/order-success', {
         state: {
-          orderId: 'temp-order-' + Date.now(), // Tạm thời
-          paymentId: 'temp-payment-' + Date.now(), // Tạm thời
-          total: 0, // Tạm thời - cần lấy từ cart
-          paymentMethod: state.paymentData.paymentMethod,
-          paymentStatus: 'pending', // Tạm thời
-          userData: paymentData.user // Thêm user data từ response
+          orderId: paymentData.order?.id || paymentData.orderId,
+          paymentId: paymentData.id,
+          total: paymentData.finalAmount || paymentData.amount,
+          paymentMethod: paymentData.paymentMethod || state.paymentData.paymentMethod,
+          paymentStatus: paymentData.paymentStatus || 'pending',
+          orderData: paymentData.order,
+          customerData: paymentData.customer
         }
       });
     }, 2000); // Delay 2 giây để hiển thị loading
@@ -188,22 +213,26 @@ const PaymentProcessingPage: React.FC = () => {
           {paymentInfo && (
             <div className="bg-gray-50 rounded-lg p-4 mb-6 text-left">
               <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Mã đơn hàng:</span>
-                  <span className="font-medium">#{paymentInfo.order.id.slice(-8)}</span>
-                </div>
+                {paymentInfo.order?.id && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Mã đơn hàng:</span>
+                    <span className="font-medium">#{paymentInfo.order.id.slice(-8)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between">
                   <span className="text-gray-600">Phương thức:</span>
                   <span className="font-medium">
                     {paymentService.getPaymentMethodDisplayName(state.paymentData.paymentMethod)}
                   </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Tổng tiền:</span>
-                  <span className="font-medium text-blue-600">
-                    {paymentService.formatCurrency(paymentInfo.payment.finalAmount)}
-                  </span>
-                </div>
+                {paymentInfo.payment?.finalAmount && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Tổng tiền:</span>
+                    <span className="font-medium text-blue-600">
+                      {paymentService.formatCurrency(paymentInfo.payment.finalAmount)}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           )}

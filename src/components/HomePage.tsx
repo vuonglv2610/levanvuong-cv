@@ -67,7 +67,43 @@ const HomePage = () => {
         </section>
       )}
 
-      <ProductList/>
+      {/* Hero Section */}
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-16">
+        <div className="container mx-auto px-4 text-center">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">
+            Sản phẩm của chúng tôi
+          </h1>
+          <p className="text-xl text-blue-100 max-w-2xl mx-auto">
+            Khám phá bộ sưu tập sản phẩm công nghệ hiện đại với chất lượng tốt nhất
+          </p>
+        </div>
+      </div>
+
+      <ProductList />
+
+      {/* Call to Action */}
+      <div className="mt-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-3xl p-8 md:p-12 text-center text-white">
+        <h2 className="text-3xl md:text-4xl font-bold mb-4">
+          Không tìm thấy sản phẩm phù hợp?
+        </h2>
+        <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
+          Liên hệ với chúng tôi để được tư vấn và tìm kiếm sản phẩm theo nhu cầu của bạn
+        </p>
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <a
+            href="/contact"
+            className="inline-block bg-white text-blue-600 font-bold py-4 px-8 rounded-full hover:bg-gray-100 transition-colors"
+          >
+            Liên hệ tư vấn
+          </a>
+          <a
+            href="/product"
+            className="inline-block border-2 border-white text-white font-bold py-4 px-8 rounded-full hover:bg-white hover:text-blue-600 transition-colors"
+          >
+            Xem tất cả sản phẩm
+          </a>
+        </div>
+      </div>
 
       {/* Features Section */}
       <section className="py-16 bg-white">

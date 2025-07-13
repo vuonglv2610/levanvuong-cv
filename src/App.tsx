@@ -76,6 +76,7 @@ import CustomerChangePasswordPage from "pages/ChangePasswordPage";
 import PaymentCallbackPage from "pages/PaymentCallbackPage";
 import PaymentFailedPage from "pages/PaymentFailedPage";
 import PaymentProcessingPage from "pages/PaymentProcessingPage";
+import PaymentResult from "pages/PaymentResult";
 import AdminRouteGuard from "./components/AdminRouteGuard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { UserRole } from "./configs/permissions";
@@ -141,6 +142,11 @@ function App() {
             <Route path="/payment-processing" element={
               <ProtectedRoute requiredRole={UserRole.USER}>
                 <PaymentProcessingPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/payment-result" element={
+              <ProtectedRoute requiredRole={UserRole.USER}>
+                <PaymentResult />
               </ProtectedRoute>
             } />
 

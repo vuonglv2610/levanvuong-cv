@@ -5,6 +5,8 @@ export interface PaymentData {
   paymentMethod: 'cash' | 'credit_card' | 'debit_card' | 'bank_transfer' | 'e_wallet' | 'momo' | 'zalopay' | 'vnpay';
   voucherId?: string;
   description?: string;
+  returnUrl?: string; // URL để VNPay redirect về sau khi thanh toán
+  cancelUrl?: string; // URL để VNPay redirect về khi hủy thanh toán
 }
 
 // Interface cho response thực tế từ API
@@ -12,7 +14,40 @@ export interface ApiResponse<T> {
   statusCode: number | string;
   message: string;
   result: {
-    data?: T;
+    data?: T & {
+      vnpayUrl?: string; // Thêm vnpayUrl vào data level
+      payment?: {
+        id: string;
+        orderId: string;
+        customerId: string;
+        amount: number;
+        paymentMethod: string;
+        paymentStatus: string;
+        transactionId: string;
+        paymentDate: string | null;
+        description: string;
+        voucherId: string | null;
+        discountAmount: number;
+        finalAmount: number;
+        paymentGatewayResponse: any;
+        createdAt: string;
+        updatedAt: string;
+        deletedAt: string | null;
+        order: {
+          id: string;
+          order_date: string;
+          status: string;
+          total_amount: number;
+        };
+        customer: {
+          id: string;
+          name: string;
+          email: string;
+          phone: string | null;
+        };
+        voucher: any;
+      };
+    };
     token?: {
       id: string;
       orderId: string;
@@ -46,6 +81,7 @@ export interface ApiResponse<T> {
       vnpayUrl?: string;
     };
   };
+  vnpayUrl?: string; // Thêm vnpayUrl vào root level
 }
 
 // Interface cho payment response mong đợi
@@ -135,19 +171,11 @@ class PaymentService {
     try {
       const response = await post('/payments/create-from-cart', paymentData);
 
-      // Log để debug response structure
-      console.log('Payment API Response:', JSON.stringify(response, null, 2));
-      console.log('Response data:', JSON.stringify(response.data, null, 2));
-
-      // Kiểm tra các cấu trúc response có thể có
+      // Xử lý response
       if (response.data) {
-        // Trường hợp 1: Response có statusCode
-        if (response.data.statusCode === 200) {
+        if (response.data.statusCode === 200 || response.data.statusCode === 201) {
           return response.data;
-        }
-        // Trường hợp 2: Response trực tiếp là data (không có statusCode wrapper)
-        else if (response.status === 200) {
-          // Wrap response trong format mong đợi
+        } else if (response.status === 200) {
           return {
             statusCode: 200,
             message: 'Success',
@@ -155,9 +183,7 @@ class PaymentService {
               data: response.data
             }
           };
-        }
-        // Trường hợp 3: Response có success flag
-        else if (response.data.success === true) {
+        } else if (response.data.success === true) {
           return {
             statusCode: 200,
             message: response.data.message || 'Success',
@@ -165,19 +191,7 @@ class PaymentService {
               data: response.data.data || response.data
             }
           };
-        }
-        // Log cấu trúc không mong đợi để debug
-        else {
-          console.warn('Unexpected response structure:', {
-            hasStatusCode: 'statusCode' in response.data,
-            statusCode: response.data.statusCode,
-            hasSuccess: 'success' in response.data,
-            success: response.data.success,
-            responseStatus: response.status,
-            keys: Object.keys(response.data)
-          });
-
-          // Thử trả về response như hiện tại để xem có hoạt động không
+        } else {
           return {
             statusCode: 200,
             message: 'Success',
@@ -190,23 +204,6 @@ class PaymentService {
         throw new Error('No data in response from payment API');
       }
     } catch (error: any) {
-      console.error('Payment creation error:', error);
-      console.error('Error response:', error.response?.data);
-      console.error('Error status:', error.response?.status);
-      console.error('Error config:', error.config);
-
-      // More detailed error logging
-      if (error.response) {
-        console.error('Response data:', JSON.stringify(error.response.data, null, 2));
-        console.error('Response status:', error.response.status);
-        console.error('Response headers:', error.response.headers);
-      } else if (error.request) {
-        console.error('Request made but no response received:', error.request);
-      } else {
-        console.error('Error setting up request:', error.message);
-      }
-
-      // Provide more specific error messages
       let errorMessage = 'Lỗi khi tạo thanh toán';
 
       if (error.response?.status === 401) {
@@ -217,8 +214,6 @@ class PaymentService {
         errorMessage = 'Không tìm thấy API thanh toán. Vui lòng kiểm tra cấu hình server.';
       } else if (error.response?.status === 500) {
         errorMessage = 'Lỗi server nội bộ. Vui lòng thử lại sau.';
-      } else if (error.code === 'NETWORK_ERROR' || error.message.includes('Network Error')) {
-        errorMessage = 'Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.';
       } else if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error.message) {

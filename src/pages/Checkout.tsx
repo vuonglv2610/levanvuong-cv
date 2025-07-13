@@ -13,9 +13,9 @@ function Checkout() {
   const userId = getCookie('userId');
   const [selectedItems, setSelectedItems] = useState<any[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [discount, setDiscount] = useState(0);
+  const [discount] = useState(0); // Discount functionality for future use
   const toast = useToast();
-  
+
   // Form state
   const [formData, setFormData] = useState({
     fullName: '',
@@ -30,7 +30,7 @@ function Checkout() {
   });
 
   // Fetch cart items
-  const { data, isLoading } = useQuery({
+  const { isLoading } = useQuery({
     queryKey: ['/shoppingcart/customer', userId],
     queryFn: () => get(`/shoppingcart/customer/${userId}`),
     enabled: !!userId
@@ -112,11 +112,19 @@ function Checkout() {
         }
       };
 
+      const backendPaymentMethod = getBackendPaymentMethod(formData.paymentMethod);
+
       const paymentData: PaymentData = {
         customerId: userId!,
-        paymentMethod: getBackendPaymentMethod(formData.paymentMethod) as any,
+        paymentMethod: backendPaymentMethod as any,
         description: `Thanh toán đơn hàng - ${formData.notes || 'Không có ghi chú'}`
       };
+
+      // Thêm returnUrl và cancelUrl cho VNPay
+      if (backendPaymentMethod === 'vnpay') {
+        paymentData.returnUrl = `${window.location.origin}/payment-result`;
+        paymentData.cancelUrl = `${window.location.origin}/checkout`;
+      }
 
       // Prepare order info for payment processing page
       const orderInfo = {
@@ -303,8 +311,7 @@ function Checkout() {
                     />
                     <label htmlFor="banking" className="text-gray-700">Thanh toán qua VNPay</label>
                   </div>
-                  
-                  <div className="flex items-center">
+                  {/* <div className="flex items-center">
                     <input
                       type="radio"
                       id="momo"
@@ -315,7 +322,7 @@ function Checkout() {
                       className="w-4 h-4 accent-primary mr-2"
                     />
                     <label htmlFor="momo" className="text-gray-700">Ví MoMo</label>
-                  </div>
+                  </div> */}
                 </div>
               </div>
               
