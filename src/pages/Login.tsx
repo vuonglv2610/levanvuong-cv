@@ -2,7 +2,7 @@ import { REGEX_EMAIL } from "configs/regexConfig";
 import { useAuthProvider } from "contexts/AuthContext";
 import useToast from "hooks/useToast";
 import { setCookie } from "libs/getCookie";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { login, loginSuccess } from "services/api";
@@ -26,6 +26,7 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const toast = useToast();
   const { refreshProfile } = useAuthProvider();
+  const hasShownSuccessToast = useRef(false);
 
   // Hàm tìm giá trị trong object nested một cách an toàn
   const findValueInObject = useCallback((obj: any, paths: string[]): any => {
@@ -44,6 +45,8 @@ const LoginPage = () => {
 
   // Xử lý response đăng nhập
   const checkResponse = useCallback(async (response: LoginResponse) => {
+    console.log("🔍 checkResponse called - hasShownSuccessToast:", hasShownSuccessToast.current);
+    
     try {
       if (!response) {
         toast.error("Đăng nhập thất bại", "Không nhận được phản hồi từ máy chủ");
@@ -108,14 +111,17 @@ const LoginPage = () => {
 
       // Set flag để AuthContext biết đây là login mới
       sessionStorage.setItem('justLoggedIn', 'true');
-
       // Refresh profile
       await refreshProfile();
 
-      // Thông báo thành công
-      toast.success("Thành công", "Đăng nhập thành công!");
+      // Chỉ hiển thị 1 toast duy nhất
+      if (!hasShownSuccessToast.current) {
+        toast.success("Thành công", "Đăng nhập thành công!");
+        hasShownSuccessToast.current = true;
+      } else {
+        console.log("⚠️ Toast already shown, skipping");
+      }
 
-      // Chuyển hướng mặc định (AuthContext sẽ xử lý redirect cho user type)
       navigate("/");
 
     } catch (error) {

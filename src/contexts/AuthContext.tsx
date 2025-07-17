@@ -1,10 +1,10 @@
 import React, {
-    createContext,
-    ReactNode,
-    useContext,
-    useEffect,
-    useMemo,
-    useState,
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
 } from "react";
 import { getProfile } from "services/api";
 import { getUserRoleFromString, UserRole } from "../configs/permissions";
@@ -60,17 +60,15 @@ const AuthProvider = ({ children }: AuthProviderInterface) => {
       } catch (error) {
         console.log(error);
         setUserInfo(null);
+        // Không hiển thị toast error nếu đang trong quá trình login
+        if (!sessionStorage.getItem('skipLoginToast')) {
+          // toast.error nếu cần
+        }
       } finally {
         setIsLoading(false);
       }
     } else {
       setIsLoading(false);
-      // if (
-      //   window.location.pathname !== "/login" &&
-      //   window.location.pathname !== "/register"
-      // ) {
-      //   window.location.href = "/login";
-      // }
     }
   };
 
