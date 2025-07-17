@@ -41,7 +41,8 @@
         "comment:moderate",
         "comment:delete",
         "analytics:view",
-        "report:view"
+        "report:view",
+        "dashboard:view"
       ]
     },
     "user": {
@@ -137,6 +138,7 @@
     "profile:update": "Cập nhật thông tin cá nhân",
     "analytics:view": "Xem thống kê chi tiết",
     "report:view": "Xem báo cáo đầy đủ",
-    "report:view_basic": "Xem báo cáo cơ bản"
+    "report:view_basic": "Xem báo cáo cơ bản",
+    "dashboard:view": "Truy cập trang dashboard và thống kê"
   }
 }

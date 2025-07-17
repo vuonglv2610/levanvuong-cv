@@ -1,8 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import PaymentStatusTracker from 'components/PaymentStatusTracker';
+import useToast from 'hooks/useToast';
 import { getCookie } from 'libs/getCookie';
 import React, { useState } from 'react';
-import { get } from 'services/api';
+import { get, put } from 'services/api';
 
 interface OrderDetail {
   id: string;
@@ -66,10 +67,32 @@ const OrdersPage = () => {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [ordersPerPage, setOrdersPerPage] = useState<number>(10);
+  const [cancellingOrderId, setCancellingOrderId] = useState<string | null>(null);
   const userId = getCookie('userId');
+  const toast = useToast();
+
+  // Function to cancel an order
+  const cancelOrder = async (orderId: string) => {
+    if (!window.confirm('Bạn có chắc muốn hủy đơn hàng này?')) return;
+    
+    try {
+      setCancellingOrderId(orderId);
+      const response = await put(`/orders/${orderId}`, { status: 'cancelled' });
+      toast.success('Thành công', 'Đơn hàng đã được hủy thành công');
+      
+      // Refetch orders to update the UI
+      refetch();
+    } catch (error: any) {
+      console.error('Error cancelling order:', error);
+      const errorMessage = error.response?.data?.message || 'Không thể hủy đơn hàng';
+      toast.error('Lỗi', errorMessage);
+    } finally {
+      setCancellingOrderId(null);
+    }
+  };
 
   // Fetch user's orders from API
-  const { data: ordersData, isLoading, error } = useQuery({
+  const { data: ordersData, isLoading, error, refetch } = useQuery({
     // queryKey: ['/orders/customer', userId],
     // queryFn: () => get(`/orders/customer/${userId}`),
     queryKey: ['/orders/with-details', userId],
@@ -679,8 +702,12 @@ const OrdersPage = () => {
                         </button>
                       )}
                       {order.status === 'pending' && (
-                        <button className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
-                          Hủy đơn hàng
+                        <button 
+                          onClick={() => cancelOrder(order.id)}
+                          disabled={cancellingOrderId === order.id}
+                          className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:bg-red-400 disabled:cursor-not-allowed"
+                        >
+                          {cancellingOrderId === order.id ? 'Đang hủy...' : 'Hủy đơn hàng'}
                         </button>
                       )}
                       <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
@@ -793,3 +820,5 @@ const OrdersPage = () => {
 };
 
 export default OrdersPage;
+
+

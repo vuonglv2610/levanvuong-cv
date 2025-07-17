@@ -12,7 +12,7 @@ interface PaymentStatusTrackerProps {
 
 const PaymentStatusTracker: React.FC<PaymentStatusTrackerProps> = ({
   paymentId,
-  orderId,
+  orderId: _orderId, // Renamed to indicate it's not used
   onStatusChange,
   showRefreshButton = true
 }) => {
@@ -34,10 +34,11 @@ const PaymentStatusTracker: React.FC<PaymentStatusTrackerProps> = ({
 
   // Callback khi status thay đổi
   useEffect(() => {
-    if (paymentData?.result?.data?.paymentStatus && onStatusChange) {
-      onStatusChange(paymentData.result.data.paymentStatus);
+    const payment = paymentData?.result?.token || paymentData?.result?.data;
+    if (payment?.paymentStatus && onStatusChange) {
+      onStatusChange(payment.paymentStatus);
     }
-  }, [paymentData?.result?.data?.paymentStatus, onStatusChange]);
+  }, [paymentData?.result?.token, paymentData?.result?.data, onStatusChange]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -62,7 +63,10 @@ const PaymentStatusTracker: React.FC<PaymentStatusTrackerProps> = ({
     );
   }
 
-  if (error || !paymentData?.result?.data) {
+  // Lấy payment data từ cấu trúc response
+  const payment = paymentData?.result?.token || paymentData?.result?.data;
+
+  if (error || !payment) {
     return (
       <div className="bg-white rounded-lg shadow-sm p-6">
         <div className="flex items-center justify-between">
@@ -84,8 +88,7 @@ const PaymentStatusTracker: React.FC<PaymentStatusTrackerProps> = ({
     );
   }
 
-  const payment = paymentData.result.data;
-  const statusInfo = paymentService.getPaymentStatusInfo(payment.paymentStatus);
+  const statusInfo = paymentService.getPaymentStatusInfo(payment.paymentStatus || 'unknown');
 
   return (
     <div className="bg-white rounded-lg shadow-sm p-6">
@@ -113,14 +116,14 @@ const PaymentStatusTracker: React.FC<PaymentStatusTrackerProps> = ({
         {/* Payment ID */}
         <div>
           <p className="text-sm text-gray-600">Mã thanh toán</p>
-          <p className="font-medium text-gray-900">#{payment.id.slice(-8)}</p>
+          <p className="font-medium text-gray-900">#{payment.id ? payment.id.slice(-8) : 'N/A'}</p>
         </div>
 
         {/* Payment Method */}
         <div>
           <p className="text-sm text-gray-600">Phương thức</p>
           <p className="font-medium text-gray-900">
-            {paymentService.getPaymentMethodDisplayName(payment.paymentMethod)}
+            {payment.paymentMethod ? paymentService.getPaymentMethodDisplayName(payment.paymentMethod) : 'N/A'}
           </p>
         </div>
 
@@ -128,7 +131,7 @@ const PaymentStatusTracker: React.FC<PaymentStatusTrackerProps> = ({
         <div>
           <p className="text-sm text-gray-600">Số tiền</p>
           <p className="font-medium text-blue-600">
-            {paymentService.formatCurrency(payment.finalAmount)}
+            {payment.finalAmount ? paymentService.formatCurrency(payment.finalAmount) : 'N/A'}
           </p>
         </div>
 
@@ -173,7 +176,7 @@ const PaymentStatusTracker: React.FC<PaymentStatusTrackerProps> = ({
           <div>
             <p className="text-sm text-gray-600 mb-1">Trạng thái thanh toán</p>
             <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${statusInfo.color} ${statusInfo.bgColor}`}>
-              {getStatusIcon(payment.paymentStatus)}
+              {getStatusIcon(payment.paymentStatus || 'unknown')}
               <span className="ml-2">{statusInfo.name}</span>
             </span>
           </div>

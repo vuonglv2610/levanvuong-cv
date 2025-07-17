@@ -11,7 +11,7 @@ import {
   Title,
   Tooltip
 } from 'chart.js';
-import DateRangeFilter, { DateRange } from 'components/common/DateRangeFilter';
+import { DateRange } from 'components/common/DateRangeFilter';
 import { useAllStatistics } from 'hooks/useStatisticsWithDateRange';
 import React, { useEffect, useState } from "react";
 import { Bar, Doughnut, Line } from 'react-chartjs-2';
@@ -457,12 +457,12 @@ const Dashboard = () => {
       </div>
 
       {/* Date Range Filter */}
-      <DateRangeFilter
+      {/* <DateRangeFilter
         onDateRangeChange={handleDateRangeChange}
         initialStartDate={dateRange.startDate}
         initialEndDate={dateRange.endDate}
         className="mb-6"
-      />
+      /> */}
 
 
 

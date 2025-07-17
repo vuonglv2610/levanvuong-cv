@@ -47,7 +47,7 @@ import DetailPage from "./pages/Detail";
 import LoginPage from "./pages/Login";
 import OrdersPage from "./pages/OrdersPage";
 import OrderSuccessPage from "./pages/OrderSuccessPage";
-import ProductsList from "./pages/Products";
+import ProductsPage from "./pages/ProductsPage";
 import ProfilePage from "./pages/ProfilePage";
 import RegisterPage from "./pages/RegisterPage";
 
@@ -102,7 +102,7 @@ function App() {
             }}
           >
             <Route index element={<HomePage />} />
-            <Route path="/product" element={<ProductsList />} />
+            <Route path="/product" element={<ProductsPage />} />
             <Route path="/product/:id" element={<DetailPage />} />
             <Route path="/search" element={<SearchPage />} />
             <Route path="/profile" element={
@@ -165,7 +165,11 @@ function App() {
               </ProtectedRoute>
             }
           >
-            <Route index element={<Dashboard />} />
+            <Route index element={
+              <AdminRouteGuard requiredPermission="dashboard:view" fallbackPath="/admin/product">
+                <Dashboard />
+              </AdminRouteGuard>
+            } />
             <Route path="profile" element={<ProfilePage />} />
             <Route path="change-password" element={<AdminChangePasswordPage />} />
 

@@ -47,10 +47,11 @@ export const usePermissions = () => {
     canViewRole
   } = permissionCheck;
 
-  // Legacy compatibility
+  // Legacy compatibility với logic mới
   const hasRoleId = !!userInfo?.result?.data?.roleId;
-  const isAdminUser = roleKey === 'admin';
-  const isUserRole = roleKey === 'user';
+  const accountType = userInfo?.result?.data?.accountType;
+  const isAdminUser = roleKey === 'admin' || accountType === 'user';
+  const isUserRole = roleKey === 'user' && accountType !== 'user'; // Chỉ role='user' thực sự
   const isCustomerRole = !hasRoleId && !!userInfo?.result?.data;
   const isAuthenticatedUser = !!userInfo?.result?.data;
 

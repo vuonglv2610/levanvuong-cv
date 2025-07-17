@@ -254,10 +254,10 @@ const ProductsList = () => {
         )}
 
         {/* View All Products Button */}
-        {displayProducts.length > 0 && (
+        {/* {displayProducts.length > 0 && (
           <div className="text-center mt-8">
             <Link
-              to="/products"
+              to="/product"
               className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
             >
               Xem tất cả sản phẩm
@@ -266,7 +266,7 @@ const ProductsList = () => {
               </svg>
             </Link>
           </div>
-        )}
+        )} */}
       </div>
     </div>
   );

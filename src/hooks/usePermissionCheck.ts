@@ -15,12 +15,25 @@ export const usePermissionCheck = () => {
     return unsubscribe;
   }, []);
 
-  // Lấy role từ API response
+  // Lấy thông tin từ API response
   const roleKey = userInfo?.result?.data?.role?.role_key;
   const hasRoleId = !!userInfo?.result?.data?.roleId;
+  const accountType = userInfo?.result?.data?.accountType;
 
-  // Xác định role thực tế: nếu không có roleId thì là customer
-  const actualRole = hasRoleId ? roleKey : 'customer';
+  // Xác định role thực tế với logic phân biệt accountType và role
+  const actualRole = (() => {
+    // Nếu không có roleId thì là customer
+    if (!hasRoleId) return 'customer';
+
+    // Nếu có roleId, kiểm tra accountType
+    if (accountType === 'user') {
+      // User có accountType='user' được coi như admin về permissions
+      return 'admin';
+    }
+
+    // Còn lại sử dụng role_key từ database
+    return roleKey;
+  })();
 
   // Lấy permissions từ PermissionManager
   const getUserPermissions = (): string[] => {

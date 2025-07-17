@@ -126,10 +126,41 @@ export interface UserData {
 }
 
 export interface PaymentStatusResponse {
-  statusCode: number;
+  statusCode: number | string;
   message: string;
   result: {
-    data: {
+    data?: {
+      id: string;
+      orderId: string;
+      customerId: string;
+      amount: number;
+      paymentMethod: string;
+      paymentStatus: string;
+      transactionId: string;
+      paymentDate: string | null;
+      description: string;
+      voucherId: string | null;
+      discountAmount: number;
+      finalAmount: number;
+      paymentGatewayResponse: any;
+      createdAt: string;
+      updatedAt: string;
+      deletedAt: string | null;
+      order: {
+        id: string;
+        order_date: string;
+        status: string;
+        total_amount: number;
+      };
+      customer: {
+        id: string;
+        name: string;
+        email: string;
+        phone: string | null;
+      };
+      voucher: any;
+    };
+    token?: {
       id: string;
       orderId: string;
       customerId: string;

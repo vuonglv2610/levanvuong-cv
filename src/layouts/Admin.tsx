@@ -127,8 +127,7 @@ const AdminLayout = () => {
 
   // Sidebar menu items với icons và permissions
   const allSidebarItems = [
-    { href: "/admin", title: "Trang chủ", icon: "faHome" },
-    { href: "/admin/statistics", title: "Thống kê", icon: "faChartBar", permission: "dashboard:view" },
+    { href: "/admin", title: "Trang chủ", icon: "faHome", permission: "dashboard:view" }, // Chỉ admin mới thấy dashboard
     { href: "/admin/product", title: "Quản lý sản phẩm", icon: "faBox", permission: "product:view" },
     { href: "/admin/category", title: "Quản lý danh mục", icon: "faList", permission: "category:view" },
     { href: "/admin/brand", title: "Quản lý thương hiệu", icon: "faTags", permission: "brand:view" },

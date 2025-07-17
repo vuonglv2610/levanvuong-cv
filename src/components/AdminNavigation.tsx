@@ -19,11 +19,7 @@ const AdminNavigation: React.FC = () => {
     {
       href: "/admin",
       title: "Trang chủ",
-    },
-    {
-      href: "/admin/statistics",
-      title: "Thống kê",
-      permission: "dashboard:view"
+      permission: "dashboard:view" // Chỉ admin mới thấy dashboard
     },
     {
       href: "/admin/product",
