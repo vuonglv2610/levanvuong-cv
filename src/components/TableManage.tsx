@@ -62,6 +62,10 @@ const TableManage = ({
 
   // State để theo dõi item đang xóa
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  
+  // State cho modal xác nhận xóa
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<any>(null);
 
   // Thêm state cho các custom filters
   const [customFilterValues, setCustomFilterValues] = useState<Record<string, string>>({});
@@ -258,11 +262,40 @@ const TableManage = ({
           setCurrentPage(currentPage - 1);
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error removing item:', error);
-      toast.error('Lỗi', 'Có lỗi xảy ra khi xóa!');
+      
+      // Xử lý lỗi 403 - không có quyền
+      if (error.response?.status === 403) {
+        toast.error('Lỗi', 'Bạn không có quyền xóa!');
+      } else if (error.response?.status === 404) {
+        toast.error('Lỗi', 'Không tìm thấy dữ liệu để xóa!');
+      } else {
+        const errorMessage = error.response?.data?.message || 'Có lỗi xảy ra khi xóa!';
+        toast.error('Lỗi', errorMessage);
+      }
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  // Hàm mở modal xác nhận xóa
+  const openDeleteModal = (item: any) => {
+    setItemToDelete(item);
+    setShowDeleteModal(true);
+  };
+
+  // Hàm đóng modal
+  const closeDeleteModal = () => {
+    setShowDeleteModal(false);
+    setItemToDelete(null);
+  };
+
+  // Hàm xác nhận xóa
+  const confirmDelete = () => {
+    if (itemToDelete) {
+      handleRemoveItem(itemToDelete.id);
+      closeDeleteModal();
     }
   };
 
@@ -425,9 +458,7 @@ const TableManage = ({
                   </td>
                   {columns.map((column, index) => (
                     <td key={index} className="px-6 py-4">
-                      {column.render 
-                        ? column.render(item, i)
-                        : item[column.key] || `Không có ${column.header.toLowerCase()}`}
+                      {column.render ? column.render(item, i) : item[column.key] || `Không có ${column.header.toLowerCase()}`}
                     </td>
                   ))}
                   <td className="px-6 py-4 text-right">
@@ -443,11 +474,7 @@ const TableManage = ({
                       <PermissionButton
                         permission={permissions.delete}
                         className="font-medium text-red-600 hover:text-red-800 bg-red-50 px-3 py-1.5 rounded-md transition-colors duration-200"
-                        onClick={() => {
-                          if (window.confirm('Bạn có chắc chắn muốn xóa?')) {
-                            handleRemoveItem(item.id);
-                          }
-                        }}
+                        onClick={() => openDeleteModal(item)}
                       >
                         Xóa
                       </PermissionButton>
@@ -548,6 +575,7 @@ const TableManage = ({
                   className={`flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 ${
                     currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
+
                 >
                   <span className="sr-only">Next</span>
                   <svg className="w-2.5 h-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
@@ -559,9 +587,58 @@ const TableManage = ({
           </nav>
         </div>
       )}
+      {/* Modal xác nhận xóa */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-md w-full p-6">
+            <div className="flex items-center mb-4">
+              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 15.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              </div>
+              <div className="ml-4">
+                <h3 className="text-lg font-medium text-gray-900">Xác nhận xóa</h3>
+                <p className="text-sm text-gray-500">
+                  Bạn có chắc chắn muốn xóa mục này?<br />Hành động này không thể hoàn tác.
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={closeDeleteModal}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors duration-200"
+              >
+                Hủy
+              </button>
+              <button
+                onClick={confirmDelete}
+                disabled={deletingId === itemToDelete?.id}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 disabled:opacity-50 rounded-md transition-colors duration-200"
+              >
+                {deletingId === itemToDelete?.id ? 'Đang xóa...' : 'Xóa'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
 export default TableManage;
+
+
+
+
+
+
+
+
+
+
+
+
+
 

@@ -414,7 +414,7 @@ const Dashboard = () => {
       },
       title: {
         display: true,
-        text: 'Đơn hàng theo tuần',
+        text: 'Đơn hàng theo tháng',
         font: {
           size: 16,
           weight: 'bold'

@@ -170,12 +170,12 @@ const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
   };
 
   const presets = [
-    { key: 'today', label: 'Hôm nay' },
-    { key: 'yesterday', label: 'Hôm qua' },
-    { key: 'last7days', label: '7 ngày qua' },
+    // { key: 'today', label: 'Hôm nay' },
+    // { key: 'yesterday', label: 'Hôm qua' },
+    // { key: 'last7days', label: '7 ngày qua' },
     { key: 'last30days', label: '30 ngày qua' },
-    { key: 'thisMonth', label: 'Tháng này' },
-    { key: 'lastMonth', label: 'Tháng trước' },
+    // { key: 'thisMonth', label: 'Tháng này' },
+    // { key: 'lastMonth', label: 'Tháng trước' },
     { key: 'thisYear', label: 'Năm này' },
     { key: 'lastYear', label: 'Năm trước' }
   ];
