@@ -24,7 +24,11 @@ const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
 }) => {
   const [startDate, setStartDate] = useState(initialStartDate || '');
   const [endDate, setEndDate] = useState(initialEndDate || '');
+  const [tempStartDate, setTempStartDate] = useState(initialStartDate || '');
+  const [tempEndDate, setTempEndDate] = useState(initialEndDate || '');
   const [selectedPreset, setSelectedPreset] = useState('');
+  const [isOpen, setIsOpen] = useState(false);
+  const [isApplying, setIsApplying] = useState(false);
 
   // Set default date range to last 30 days if no initial dates provided
   useEffect(() => {
@@ -39,6 +43,7 @@ const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
       setStartDate(defaultStartDate);
       setEndDate(defaultEndDate);
       onDateRangeChange({ startDate: defaultStartDate, endDate: defaultEndDate });
+      setSelectedPreset('last30days');
     }
   }, [initialStartDate, initialEndDate, onDateRangeChange]);
 
@@ -116,30 +121,52 @@ const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
     }
   };
 
-  const handlePresetClick = (preset: string) => {
-    setSelectedPreset(preset);
-    const dateRange = getDateRange(preset);
-    setStartDate(dateRange.startDate);
-    setEndDate(dateRange.endDate);
-    onDateRangeChange(dateRange);
+  const handlePresetClick = async (preset: string) => {
+    setIsApplying(true);
+    try {
+      setSelectedPreset(preset);
+      const dateRange = getDateRange(preset);
+      setStartDate(dateRange.startDate);
+      setEndDate(dateRange.endDate);
+      setTempStartDate(dateRange.startDate);
+      setTempEndDate(dateRange.endDate);
+      await onDateRangeChange(dateRange);
+      setIsOpen(false);
+    } finally {
+      setIsApplying(false);
+    }
   };
 
   const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newStartDate = e.target.value;
-    setStartDate(newStartDate);
+    setTempStartDate(newStartDate);
     setSelectedPreset('');
-    if (newStartDate && endDate) {
-      onDateRangeChange({ startDate: newStartDate, endDate });
-    }
   };
 
   const handleEndDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newEndDate = e.target.value;
-    setEndDate(newEndDate);
+    setTempEndDate(newEndDate);
     setSelectedPreset('');
-    if (startDate && newEndDate) {
-      onDateRangeChange({ startDate, endDate: newEndDate });
+  };
+
+  const handleApplyCustomRange = async () => {
+    if (tempStartDate && tempEndDate) {
+      setIsApplying(true);
+      try {
+        setStartDate(tempStartDate);
+        setEndDate(tempEndDate);
+        await onDateRangeChange({ startDate: tempStartDate, endDate: tempEndDate });
+        setIsOpen(false);
+      } finally {
+        setIsApplying(false);
+      }
     }
+  };
+
+  const handleCancel = () => {
+    setTempStartDate(startDate);
+    setTempEndDate(endDate);
+    setIsOpen(false);
   };
 
   const presets = [
@@ -164,82 +191,170 @@ const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
     return 0;
   };
 
+  const getPresetLabel = () => {
+    const preset = presets.find(p => p.key === selectedPreset);
+    return preset ? preset.label : 'Tùy chỉnh';
+  };
+
   return (
-    <div className={`bg-white rounded-lg shadow-sm border border-gray-200 p-4 ${className}`}>
-      <div className="flex flex-col space-y-4">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-medium text-gray-700">Chọn khoảng thời gian</h3>
+    <div className={`relative ${className}`}>
+      {/* Main Button */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center justify-between w-full max-w-xs md:max-w-none md:w-64 px-4 py-2.5 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+      >
+        <div className="flex items-center min-w-0">
+          <svg className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          <span className="text-sm font-medium text-gray-700 truncate">
+            {getPresetLabel()}
+          </span>
+        </div>
+        <div className="flex items-center flex-shrink-0 ml-2">
           {startDate && endDate && (
-            <span className="text-xs text-gray-500">
+            <span className="text-xs text-gray-500 mr-2 hidden sm:inline">
               {getDaysDifference()} ngày
             </span>
           )}
+          <svg className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${isOpen ? 'transform rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
         </div>
+      </button>
 
-        {/* Preset Buttons */}
-        {showPresets && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-            {presets.map((preset) => (
-              <button
-                key={preset.key}
-                onClick={() => handlePresetClick(preset.key)}
-                className={`px-3 py-2 text-xs rounded-md border transition-colors duration-200 ${
-                  selectedPreset === preset.key
-                    ? 'bg-blue-500 text-white border-blue-500'
-                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                }`}
-              >
-                {preset.label}
-              </button>
-            ))}
-          </div>
-        )}
+      {/* Dropdown */}
+      {isOpen && (
+        <div className="absolute z-50 mt-2 left-0 right-0 md:left-auto md:right-0 md:w-96 bg-white rounded-xl shadow-lg border border-gray-200 p-4 animate-fadeIn">
+          <div className="flex flex-col space-y-4">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-gray-200 pb-3">
+              <h3 className="text-sm font-semibold text-gray-800">Chọn khoảng thời gian</h3>
+              {startDate && endDate && (
+                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full font-medium">
+                  {getDaysDifference()} ngày
+                </span>
+              )}
+            </div>
 
-        {/* Custom Date Range */}
-        {showCustomRange && (
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="flex-1">
-              <label className="block text-xs font-medium text-gray-700 mb-1">
-                Từ ngày
-              </label>
-              <input
-                type="date"
-                value={startDate}
-                onChange={handleStartDateChange}
-                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-              />
-            </div>
-            <div className="flex-1">
-              <label className="block text-xs font-medium text-gray-700 mb-1">
-                Đến ngày
-              </label>
-              <input
-                type="date"
-                value={endDate}
-                onChange={handleEndDateChange}
-                min={startDate}
-                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-              />
-            </div>
-          </div>
-        )}
+            {/* Preset Buttons */}
+            {showPresets && (
+              <div className="grid grid-cols-2 gap-2">
+                {presets.map((preset) => (
+                  <button
+                    key={preset.key}
+                    onClick={() => handlePresetClick(preset.key)}
+                    disabled={isApplying}
+                    className={`px-3 py-2 text-xs rounded-md border transition-all duration-200 flex items-center justify-center ${
+                      selectedPreset === preset.key
+                        ? 'bg-blue-500 text-white border-blue-500 shadow-md'
+                        : isApplying
+                        ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    {isApplying && selectedPreset === preset.key && (
+                      <svg className="animate-spin -ml-1 mr-1 h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                    )}
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
+            )}
 
-        {/* Date Range Display */}
-        {startDate && endDate && (
-          <div className="flex items-center justify-between p-3 bg-blue-50 rounded-md">
-            <div className="text-sm text-blue-700">
-              <span className="font-medium">Khoảng thời gian:</span>{' '}
-              {new Date(startDate).toLocaleDateString('vi-VN')} - {new Date(endDate).toLocaleDateString('vi-VN')}
-            </div>
-            <div className="text-xs text-blue-600">
-              {getDaysDifference()} ngày
-            </div>
+            {/* Custom Date Range */}
+            {showCustomRange && (
+              <div className="space-y-4">
+                <div className="flex flex-col gap-3">
+                  <div className="flex-1">
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                      Từ ngày
+                    </label>
+                    <input
+                      type="date"
+                      value={tempStartDate}
+                      onChange={handleStartDateChange}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                      Đến ngày
+                    </label>
+                    <input
+                      type="date"
+                      value={tempEndDate}
+                      onChange={handleEndDateChange}
+                      min={tempStartDate}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                    />
+                  </div>
+                </div>
+
+                {/* Action Buttons for Custom Range */}
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleApplyCustomRange}
+                    disabled={!tempStartDate || !tempEndDate || isApplying}
+                    className={`flex-1 px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 flex items-center justify-center ${
+                      !tempStartDate || !tempEndDate || isApplying
+                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                    }`}
+                  >
+                    {isApplying && (
+                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                    )}
+                    {isApplying ? 'Đang áp dụng...' : 'Áp dụng'}
+                  </button>
+                  <button
+                    onClick={handleCancel}
+                    disabled={isApplying}
+                    className={`px-3 py-2 text-sm font-medium rounded-md transition-colors duration-200 ${
+                      isApplying
+                        ? 'text-gray-400 bg-gray-100 cursor-not-allowed'
+                        : 'text-gray-600 bg-gray-100 hover:bg-gray-200'
+                    }`}
+                  >
+                    Hủy
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Date Range Display */}
+            {startDate && endDate && (
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 bg-blue-50 rounded-md gap-2">
+                <div className="text-sm text-blue-700">
+                  <span className="font-medium">Khoảng thời gian:</span>{' '}
+                  <span className="block sm:inline">
+                    {new Date(startDate).toLocaleDateString('vi-VN')} - {new Date(endDate).toLocaleDateString('vi-VN')}
+                  </span>
+                </div>
+                <div className="text-xs text-blue-600 whitespace-nowrap">
+                  {getDaysDifference()} ngày
+                </div>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };
 
 export default DateRangeFilter;
+
+
+
+
+
+
+
+

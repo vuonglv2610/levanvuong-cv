@@ -179,8 +179,21 @@ const ProductList = () => {
 
     if (loading) {
         return (
-            <div className="flex justify-center items-center py-20">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+            <div className="bg-white">
+                <div className="container mx-auto px-4 py-12 sm:py-16">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-8">Sản phẩm nổi bật</h2>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                        {[...Array(itemsPerPage)].map((_, index) => (
+                            <div key={index} className="bg-gray-100 rounded-2xl p-6 animate-pulse">
+                                <div className="w-full h-48 bg-gray-300 rounded-xl mb-4"></div>
+                                <div className="h-4 bg-gray-300 rounded mb-2"></div>
+                                <div className="h-3 bg-gray-300 rounded w-2/3 mb-4"></div>
+                                <div className="h-6 bg-gray-300 rounded w-1/2"></div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
             </div>
         );
     }

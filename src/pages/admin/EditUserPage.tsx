@@ -147,7 +147,7 @@ const EditUserPage = () => {
     const dataUpdate: any = {
       name: data.name,
       email: data.email,
-      role: data.role,
+      roleId: data.role,
       avatar: data.avatar || user.avatar,
       address: data.address,
       status: data.status

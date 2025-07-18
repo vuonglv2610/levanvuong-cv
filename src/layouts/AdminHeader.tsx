@@ -126,7 +126,7 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({
             </button>
 
             {/* Notifications */}
-            <button
+            {/* <button
               className={`p-2 rounded-lg transition-colors relative ${darkMode
                 ? 'text-gray-300 hover:bg-gray-700'
                 : 'text-gray-600 hover:bg-gray-100'
@@ -136,9 +136,8 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM10.5 3.75a6 6 0 0 1 6 6v2.25a2.25 2.25 0 0 0 2.25 2.25H21a.75.75 0 0 1 0 1.5H3a.75.75 0 0 1 0-1.5h2.25A2.25 2.25 0 0 0 7.5 12V9.75a6 6 0 0 1 6-6Z" />
               </svg>
-              {/* Notification Badge */}
               <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
-            </button>
+            </button> */}
 
             {/* User Menu */}
             <div className="relative" ref={dropdownRef}>

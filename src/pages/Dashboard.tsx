@@ -11,9 +11,10 @@ import {
   Title,
   Tooltip
 } from 'chart.js';
-import { DateRange } from 'components/common/DateRangeFilter';
+import DateRangeFilter, { DateRange } from 'components/common/DateRangeFilter';
+import ExportButton from 'components/common/ExportButton';
 import { useAllStatistics } from 'hooks/useStatisticsWithDateRange';
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Bar, Doughnut, Line } from 'react-chartjs-2';
 import {
   extractCategoriesData,
@@ -66,6 +67,9 @@ interface DashboardStats {
 
 
 const Dashboard = () => {
+  // Thêm ref cho dashboard container
+  const dashboardRef = useRef<HTMLDivElement>(null);
+  
   // Use the new hook for all statistics with date range
   const {
     dateRange,
@@ -142,6 +146,8 @@ const Dashboard = () => {
 
     if (revenueData && revenueData.length > 0) {
       console.log('Extracted revenue data:', revenueData);
+      console.log('Raw revenue item:', revenueData[0]); // Log chi tiết item đầu tiên
+      
       const periods = revenueData.map((item: any) => {
         // Convert period format from "2025-07" to "T7"
         if (item.period && item.period.includes('-')) {
@@ -150,8 +156,19 @@ const Dashboard = () => {
         }
         return item.period || 'N/A';
       });
-      const revenues = revenueData.map((item: any) => item.revenue || 0);
-      const orderCounts = revenueData.map((item: any) => item.orderCount || 0);
+      
+      // Đảm bảo lấy đúng giá trị revenue từ cấu trúc API
+      const revenues = revenueData.map((item: any) => {
+        console.log('Revenue item:', item);
+        // Kiểm tra tất cả các trường có thể chứa revenue
+        return item.revenue || item.total_revenue || 0;
+      });
+      
+      const orderCounts = revenueData.map((item: any) => 
+        item.orderCount || item.total_transactions || 0
+      );
+
+      console.log('Processed data:', { periods, revenues, orderCounts });
 
       setRevenueData({
         labels: periods,
@@ -439,277 +456,283 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="space-y-8">
-      {/* Welcome Section */}
-      <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 rounded-2xl p-8 text-white shadow-xl">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">Chào mừng trở lại! 👋</h1>
-            <p className="text-blue-100 text-lg">Đây là tổng quan về hoạt động kinh doanh của bạn hôm nay</p>
-          </div>
-          <div className="hidden md:block">
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-              <div className="text-sm text-blue-100">Hôm nay</div>
-              <div className="text-2xl font-bold">{new Date().toLocaleDateString('vi-VN')}</div>
-            </div>
-          </div>
+    <div className="p-6 bg-slate-50 min-h-screen">
+      <div className="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-800">Dashboard</h1>
+          <p className="text-slate-500">Tổng quan về hoạt động kinh doanh</p>
+        </div>
+        
+        <div className="flex items-center gap-4">
+          <DateRangeFilter 
+            onDateRangeChange={setDateRange}
+            initialStartDate={dateRange.startDate}
+            initialEndDate={dateRange.endDate}
+          />
+          
+          <ExportButton 
+            data={stats} 
+            filename="dashboard-report" 
+            title="Báo cáo thống kê doanh thu"
+            dashboardRef={dashboardRef}
+          />
         </div>
       </div>
-
-      {/* Date Range Filter */}
-      {/* <DateRangeFilter
-        onDateRangeChange={handleDateRangeChange}
-        initialStartDate={dateRange.startDate}
-        initialEndDate={dateRange.endDate}
-        className="mb-6"
-      /> */}
-
-
-
-      {/* Enhanced Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Products Card */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-          <div className="flex items-center justify-between mb-4">
-            <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-3 rounded-xl">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
-              </svg>
-            </div>
-            <div className="text-right">
-              <div className="text-sm text-green-600 font-medium flex items-center">
-                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 11l5-5m0 0l5 5m-5-5v12"/>
+      
+      {/* Wrap dashboard content with ref */}
+      <div ref={dashboardRef}>
+        {/* Enhanced Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* Products Card */}
+          <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+            <div className="flex items-center justify-between mb-4">
+              <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-3 rounded-xl">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
                 </svg>
-                +12%
               </div>
-            </div>
-          </div>
-          <div>
-            <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wide mb-1">Tổng sản phẩm</h3>
-            <p className="text-3xl font-bold text-slate-800 mb-2">{stats.totalProducts}</p>
-            <div className="w-full bg-slate-200 rounded-full h-2">
-              <div className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full" style={{width: '75%'}}></div>
-            </div>
-            <p className="text-xs text-slate-500 mt-2">Tăng trưởng: +{stats.revenueGrowth.toFixed(1)}%</p>
-          </div>
-        </div>
-
-        {/* Users Card */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-          <div className="flex items-center justify-between mb-4">
-            <div className="bg-gradient-to-r from-green-500 to-green-600 p-3 rounded-xl">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/>
-              </svg>
-            </div>
-            <div className="text-right">
-              <div className="text-sm text-green-600 font-medium flex items-center">
-                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 11l5-5m0 0l5 5m-5-5v12"/>
-                </svg>
-                +8%
-              </div>
-            </div>
-          </div>
-          <div>
-            <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wide mb-1">Tổng khách hàng</h3>
-            <p className="text-3xl font-bold text-slate-800 mb-2">{stats.totalCustomers}</p>
-            <div className="w-full bg-slate-200 rounded-full h-2">
-              <div className="bg-gradient-to-r from-green-500 to-green-600 h-2 rounded-full" style={{width: `${Math.min(stats.customerGrowth * 5, 100)}%`}}></div>
-            </div>
-            <p className="text-xs text-slate-500 mt-2">Tăng trưởng: +{stats.customerGrowth.toFixed(1)}%</p>
-          </div>
-        </div>
-
-        {/* Orders Card */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-          <div className="flex items-center justify-between mb-4">
-            <div className="bg-gradient-to-r from-yellow-500 to-orange-500 p-3 rounded-xl">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-              </svg>
-            </div>
-            <div className="text-right">
-              <div className="text-sm text-green-600 font-medium flex items-center">
-                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 11l5-5m0 0l5 5m-5-5v12"/>
-                </svg>
-                +15%
-              </div>
-            </div>
-          </div>
-          <div>
-            <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wide mb-1">Tổng đơn hàng</h3>
-            <p className="text-3xl font-bold text-slate-800 mb-2">{stats.totalOrders}</p>
-            <div className="w-full bg-slate-200 rounded-full h-2">
-              <div className="bg-gradient-to-r from-yellow-500 to-orange-500 h-2 rounded-full" style={{width: `${Math.min(stats.orderGrowth * 5, 100)}%`}}></div>
-            </div>
-            <p className="text-xs text-slate-500 mt-2">Tăng trưởng: +{stats.orderGrowth.toFixed(1)}%</p>
-          </div>
-        </div>
-
-        {/* Revenue Card */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-          <div className="flex items-center justify-between mb-4">
-            <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-3 rounded-xl">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
-              </svg>
-            </div>
-            <div className="text-right">
-              <div className="text-sm text-green-600 font-medium flex items-center">
-                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 11l5-5m0 0l5 5m-5-5v12"/>
-                </svg>
-                +22%
-              </div>
-            </div>
-          </div>
-          <div>
-            <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wide mb-1">Tổng doanh thu</h3>
-            <p className="text-3xl font-bold text-slate-800 mb-2">{formatCurrency(stats.totalRevenue)}</p>
-            <div className="w-full bg-slate-200 rounded-full h-2">
-              <div className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full" style={{width: `${Math.min(stats.revenueGrowth * 4, 100)}%`}}></div>
-            </div>
-            <p className="text-xs text-slate-500 mt-2">Tăng trưởng: +{stats.revenueGrowth.toFixed(1)}%</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Enhanced Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Revenue Chart */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h3 className="text-lg font-semibold text-slate-800">Doanh thu theo tháng</h3>
-              <p className="text-sm text-slate-500">Biểu đồ doanh thu 12 tháng gần nhất</p>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="flex items-center">
-                <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
-                <span className="text-xs text-slate-600">Doanh thu</span>
-              </div>
-            </div>
-          </div>
-          <div className="h-80">
-            <Line data={revenueData} options={lineOptions} />
-          </div>
-        </div>
-
-        {/* Sales Chart */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h3 className="text-lg font-semibold text-slate-800">Đơn hàng theo tháng</h3>
-              <p className="text-sm text-slate-500">Thống kê số lượng đơn hàng</p>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="flex items-center">
-                <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-                <span className="text-xs text-slate-600">Đơn hàng</span>
-              </div>
-            </div>
-          </div>
-          <div className="h-80">
-            <Bar data={salesData} options={barOptions} />
-          </div>
-        </div>
-      </div>
-
-      {/* Enhanced Bottom Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Category Distribution */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h3 className="text-lg font-semibold text-slate-800">Phân bố danh mục</h3>
-              <p className="text-sm text-slate-500">Tỷ lệ sản phẩm theo danh mục</p>
-            </div>
-          </div>
-          <div className="h-80">
-            <Doughnut data={categoryData} options={doughnutOptions} />
-          </div>
-        </div>
-
-        {/* Orders Status Chart */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h3 className="text-lg font-semibold text-slate-800">Trạng thái đơn hàng</h3>
-              <p className="text-sm text-slate-500">Phân bố đơn hàng theo trạng thái</p>
-            </div>
-          </div>
-          <div className="h-80">
-            <Doughnut data={ordersData} options={doughnutOptions} />
-          </div>
-        </div>
-
-        {/* Payment Methods Chart */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h3 className="text-lg font-semibold text-slate-800">Phương thức thanh toán</h3>
-              <p className="text-sm text-slate-500">Phân bố theo phương thức thanh toán</p>
-            </div>
-          </div>
-          <div className="h-80">
-            <Doughnut data={paymentMethodsData} options={doughnutOptions} />
-          </div>
-        </div>
-
-        {/* Top Products */}
-        <div className="lg:col-span-2 bg-white rounded-2xl shadow-lg p-6 border border-slate-200">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h3 className="text-lg font-semibold text-slate-800">Sản phẩm bán chạy</h3>
-              <p className="text-sm text-slate-500">Top 5 sản phẩm có doanh số cao nhất</p>
-            </div>
-            <div className="text-sm text-slate-500">
-              Cập nhật: {new Date().toLocaleDateString('vi-VN')}
-            </div>
-          </div>
-          <div className="space-y-4">
-            {topProducts.length > 0 ? topProducts.map((product, index) => (
-              <div key={product.productId} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors duration-200">
-                <div className="flex items-center space-x-4">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white ${
-                    index === 0 ? 'bg-gradient-to-r from-yellow-400 to-yellow-500' :
-                    index === 1 ? 'bg-gradient-to-r from-gray-400 to-gray-500' :
-                    index === 2 ? 'bg-gradient-to-r from-orange-400 to-orange-500' :
-                    'bg-gradient-to-r from-blue-400 to-blue-500'
-                  }`}>
-                    #{product.rank}
-                  </div>
-                  <div>
-                    <div className="font-medium text-slate-800">{product.name}</div>
-                    <div className="text-sm text-slate-500">SKU: {product.sku} • {product.soldQuantity} đã bán</div>
-                  </div>
+              {/* <div className="text-right">
+                <div className="text-sm text-green-600 font-medium flex items-center">
+                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 11l5-5m0 0l5 5m-5-5v12"/>
+                  </svg>
+                  +12%
                 </div>
-                <div className="text-right">
-                  <div className="font-semibold text-slate-800">{formatCurrency(product.revenue)}</div>
-                  <div className="text-sm text-blue-600 font-medium">
-                    Rank #{product.rank}
-                  </div>
+              </div> */}
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wide mb-1">Tổng sản phẩm</h3>
+              <p className="text-3xl font-bold text-slate-800 mb-2">{stats.totalProducts}</p>
+              <div className="w-full bg-slate-200 rounded-full h-2">
+                <div className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full" style={{width: '75%'}}></div>
+              </div>
+              <p className="text-xs text-slate-500 mt-2">Tăng trưởng: +{stats.revenueGrowth.toFixed(1)}%</p>
+            </div>
+          </div>
+
+          {/* Users Card */}
+          <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+            <div className="flex items-center justify-between mb-4">
+              <div className="bg-gradient-to-r from-green-500 to-green-600 p-3 rounded-xl">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/>
+                </svg>
+              </div>
+              {/* <div className="text-right">
+                <div className="text-sm text-green-600 font-medium flex items-center">
+                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 11l5-5m0 0l5 5m-5-5v12"/>
+                  </svg>
+                  +8%
+                </div>
+              </div> */}
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wide mb-1">Tổng khách hàng</h3>
+              <p className="text-3xl font-bold text-slate-800 mb-2">{stats.totalCustomers}</p>
+              <div className="w-full bg-slate-200 rounded-full h-2">
+                <div className="bg-gradient-to-r from-green-500 to-green-600 h-2 rounded-full" style={{width: `${Math.min(stats.customerGrowth * 5, 100)}%`}}></div>
+              </div>
+              <p className="text-xs text-slate-500 mt-2">Tăng trưởng: +{stats.customerGrowth.toFixed(1)}%</p>
+            </div>
+          </div>
+
+          {/* Orders Card */}
+          <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+            <div className="flex items-center justify-between mb-4">
+              <div className="bg-gradient-to-r from-yellow-500 to-orange-500 p-3 rounded-xl">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+              </div>
+              {/* <div className="text-right">
+                <div className="text-sm text-green-600 font-medium flex items-center">
+                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 11l5-5m0 0l5 5m-5-5v12"/>
+                  </svg>
+                  +15%
+                </div>
+              </div> */}
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wide mb-1">Tổng đơn hàng</h3>
+              <p className="text-3xl font-bold text-slate-800 mb-2">{stats.totalOrders}</p>
+              <div className="w-full bg-slate-200 rounded-full h-2">
+                <div className="bg-gradient-to-r from-yellow-500 to-orange-500 h-2 rounded-full" style={{width: `${Math.min(stats.orderGrowth * 5, 100)}%`}}></div>
+              </div>
+              <p className="text-xs text-slate-500 mt-2">Tăng trưởng: +{stats.orderGrowth.toFixed(1)}%</p>
+            </div>
+          </div>
+
+          {/* Revenue Card */}
+          <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+            <div className="flex items-center justify-between mb-4">
+              <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-3 rounded-xl">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
+                </svg>
+              </div>
+              <div className="text-right">
+                <div className={`text-sm font-medium flex items-center ${stats.revenueGrowth >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
+                      d={stats.revenueGrowth >= 0 
+                        ? "M7 11l5-5m0 0l5 5m-5-5v12" // arrow up
+                        : "M7 13l5 5m0 0l5-5m-5 5V6"   // arrow down
+                      }
+                    />
+                  </svg>
+                  {stats.revenueGrowth >= 0 ? '+' : ''}{stats.revenueGrowth.toFixed(1)}%
                 </div>
               </div>
-            )) : (
-              <div className="text-center py-8 text-gray-500">
-                <p>Chưa có dữ liệu sản phẩm bán chạy</p>
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wide mb-1">Tổng doanh thu</h3>
+              <p className="text-3xl font-bold text-slate-800 mb-2">{formatCurrency(stats.totalRevenue)}</p>
+              <div className="w-full bg-slate-200 rounded-full h-2">
+                <div className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full" style={{width: `${Math.min(stats.revenueGrowth * 4, 100)}%`}}></div>
               </div>
-            )}
+              <p className="text-xs text-slate-500 mt-2">Tăng trưởng: +{stats.revenueGrowth.toFixed(1)}%</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Enhanced Charts Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Revenue Chart */}
+          <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h3 className="text-lg font-semibold text-slate-800">Doanh thu theo tháng</h3>
+                <p className="text-sm text-slate-500">Biểu đồ doanh thu 12 tháng gần nhất</p>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="flex items-center">
+                  <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                  <span className="text-xs text-slate-600">Doanh thu</span>
+                </div>
+              </div>
+            </div>
+            <div className="h-80">
+              <Line data={revenueData} options={lineOptions} />
+            </div>
+          </div>
+
+          {/* Sales Chart */}
+          <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h3 className="text-lg font-semibold text-slate-800">Đơn hàng theo tháng</h3>
+                <p className="text-sm text-slate-500">Thống kê số lượng đơn hàng</p>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="flex items-center">
+                  <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                  <span className="text-xs text-slate-600">Đơn hàng</span>
+                </div>
+              </div>
+            </div>
+            <div className="h-80">
+              <Bar data={salesData} options={barOptions} />
+            </div>
+          </div>
+        </div>
+
+        {/* Enhanced Bottom Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Category Distribution */}
+          <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h3 className="text-lg font-semibold text-slate-800">Phân bố danh mục</h3>
+                <p className="text-sm text-slate-500">Tỷ lệ sản phẩm theo danh mục</p>
+              </div>
+            </div>
+            <div className="h-80">
+              <Doughnut data={categoryData} options={doughnutOptions} />
+            </div>
+          </div>
+
+          {/* Orders Status Chart */}
+          <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h3 className="text-lg font-semibold text-slate-800">Trạng thái đơn hàng</h3>
+                <p className="text-sm text-slate-500">Phân bố đơn hàng theo trạng thái</p>
+              </div>
+            </div>
+            <div className="h-80">
+              <Doughnut data={ordersData} options={doughnutOptions} />
+            </div>
+          </div>
+
+          {/* Payment Methods Chart */}
+          <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h3 className="text-lg font-semibold text-slate-800">Phương thức thanh toán</h3>
+                <p className="text-sm text-slate-500">Phân bố theo phương thức thanh toán</p>
+              </div>
+            </div>
+            <div className="h-80">
+              <Doughnut data={paymentMethodsData} options={doughnutOptions} />
+            </div>
+          </div>
+
+          {/* Top Products */}
+          <div className="lg:col-span-2 bg-white rounded-2xl shadow-lg p-6 border border-slate-200">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h3 className="text-lg font-semibold text-slate-800">Sản phẩm bán chạy</h3>
+                <p className="text-sm text-slate-500">Top 5 sản phẩm có doanh số cao nhất</p>
+              </div>
+              <div className="text-sm text-slate-500">
+                Cập nhật: {new Date().toLocaleDateString('vi-VN')}
+              </div>
+            </div>
+            <div className="space-y-4">
+              {topProducts.length > 0 ? topProducts.map((product, index) => (
+                <div key={product.productId} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors duration-200">
+                  <div className="flex items-center space-x-4">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white ${
+                      index === 0 ? 'bg-gradient-to-r from-yellow-400 to-yellow-500' :
+                      index === 1 ? 'bg-gradient-to-r from-gray-400 to-gray-500' :
+                      index === 2 ? 'bg-gradient-to-r from-orange-400 to-orange-500' :
+                      'bg-gradient-to-r from-blue-400 to-blue-500'
+                    }`}>
+                      #{product.rank}
+                    </div>
+                    <div>
+                      <div className="font-medium text-slate-800">{product.name}</div>
+                      <div className="text-sm text-slate-500">SKU: {product.sku} • {product.soldQuantity} đã bán</div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-semibold text-slate-800">{formatCurrency(product.revenue)}</div>
+                    <div className="text-sm text-blue-600 font-medium">
+                      Rank #{product.rank}
+                    </div>
+                  </div>
+                </div>
+              )) : (
+                <div className="text-center py-8 text-gray-500">
+                  <p>Chưa có dữ liệu sản phẩm bán chạy</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
-
-
     </div>
-    // </div>
   );
 };
 
 export default Dashboard;
+
+
+
+
+
 
 
 
