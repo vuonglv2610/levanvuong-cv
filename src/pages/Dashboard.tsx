@@ -475,6 +475,7 @@ const Dashboard = () => {
             filename="dashboard-report" 
             title="Báo cáo thống kê doanh thu"
             dashboardRef={dashboardRef}
+            dateRange={dateRange}
           />
         </div>
       </div>
@@ -728,6 +729,7 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+
 
 
 

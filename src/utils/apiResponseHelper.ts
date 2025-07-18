@@ -74,6 +74,24 @@ export const extractDashboardData = (response: any) => {
   const data = extractApiData(response);
   if (!data) return null;
 
+  // Kiểm tra nếu có dữ liệu period (khi có startDate và endDate)
+  if (data.period) {
+    console.log('Using period data for dashboard stats:', data.period);
+    return {
+      totalRevenue: data.period.revenue || 0,
+      totalOrders: data.period.orders || 0,
+      totalCustomers: data.customers?.total || 0,
+      totalProducts: data.products?.total || 0,
+      revenueGrowth: 0, // Không có dữ liệu so sánh trong period
+      orderGrowth: 0,
+      customerGrowth: 0,
+      topSellingProduct: {
+        name: '',
+        soldQuantity: 0
+      }
+    };
+  }
+
   // Lấy giá trị hiện tại
   const currentRevenue = data.revenue?.year || data.revenue?.month || data.totalRevenue || 0;
   const currentOrders = data.orders?.total || data.totalOrders || 0;
@@ -273,5 +291,6 @@ export const extractPaymentMethodsData = (response: any) => {
 
   return [];
 };
+
 
 

@@ -82,10 +82,16 @@ const StatisticsOverview: React.FC = () => {
                 {(() => {
                   // Xử lý cấu trúc response thực tế
                   const dashboardData = statisticsData.dashboard?.data?.result?.data;
+                  
+                  // Ưu tiên dữ liệu period nếu có
+                  if (dashboardData?.period?.revenue) {
+                    return formatCurrency(dashboardData.period.revenue);
+                  }
+                  
+                  // Fallback về dữ liệu revenue hoặc tính tổng từ revenue API
                   const revenueData = statisticsData.revenue?.data?.result?.data;
-
-                  // Tính tổng revenue từ revenue API hoặc lấy từ dashboard
                   let totalRevenue = 0;
+                  
                   if (revenueData && Array.isArray(revenueData)) {
                     totalRevenue = revenueData.reduce((sum, item) => sum + (item.total_revenue || 0), 0);
                   } else {
@@ -267,3 +273,5 @@ const StatisticsOverview: React.FC = () => {
 };
 
 export default StatisticsOverview;
+
+

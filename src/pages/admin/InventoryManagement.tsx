@@ -1,9 +1,7 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import TableManage from '../../components/TableManage';
 
 const InventoryManagement = () => {
-  const navigate = useNavigate();
 
   return (
     <TableManage 

@@ -9,17 +9,29 @@ interface ExportButtonProps {
   filename?: string;
   title?: string;
   dashboardRef?: React.RefObject<HTMLDivElement>;
+  dateRange?: { startDate: string; endDate: string };
 }
 
 const ExportButton: React.FC<ExportButtonProps> = ({ 
   data, 
   filename = 'dashboard-report', 
   title = 'Báo cáo thống kê',
-  dashboardRef
+  dashboardRef,
+  dateRange
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [exportType, setExportType] = useState<'summary' | 'detailed'>('summary');
+
+  // Tạo tên file với date range
+  const generateFilename = (baseFilename: string, extension: string) => {
+    if (dateRange?.startDate && dateRange?.endDate) {
+      const startDate = new Date(dateRange.startDate).toLocaleDateString('vi-VN').replace(/\//g, '-');
+      const endDate = new Date(dateRange.endDate).toLocaleDateString('vi-VN').replace(/\//g, '-');
+      return `${baseFilename}_${startDate}_${endDate}.${extension}`;
+    }
+    return `${baseFilename}.${extension}`;
+  };
 
   // Xuất ra Excel
   const exportToExcel = async () => {
@@ -30,7 +42,7 @@ const ExportButton: React.FC<ExportButtonProps> = ({
       XLSX.utils.book_append_sheet(wb, ws, 'Dashboard');
       const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
       const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-      saveAs(blob, `${filename}.xlsx`);
+      saveAs(blob, generateFilename(filename, 'xlsx'));
     } finally {
       setIsExporting(false);
       setIsOpen(false);
@@ -57,17 +69,26 @@ const ExportButton: React.FC<ExportButtonProps> = ({
       doc.setFont("helvetica", "normal");
       doc.text("Bao cao thong ke kinh doanh", 105, 30, { align: 'center' });
       
-      // Thông tin báo cáo
+      // Thông tin báo cáo với date range
       doc.setTextColor(0, 0, 0);
       doc.setFontSize(14);
       doc.setFont("helvetica", "bold");
       doc.text("BAO CAO THONG KE DOANH THU", 105, 55, { align: 'center' });
       
+      // Hiển thị khoảng thời gian báo cáo
+      if (dateRange?.startDate && dateRange?.endDate) {
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        const startDateStr = new Date(dateRange.startDate).toLocaleDateString('vi-VN');
+        const endDateStr = new Date(dateRange.endDate).toLocaleDateString('vi-VN');
+        doc.text(`Thoi gian: ${startDateStr} - ${endDateStr}`, 105, 65, { align: 'center' });
+      }
+      
       const today = new Date();
       const dateStr = today.toLocaleDateString('vi-VN');
       doc.setFontSize(10);
       doc.setFont("helvetica", "normal");
-      doc.text(`Ngay xuat: ${dateStr}`, 105, 65, { align: 'center' });
+      doc.text(`Ngay xuat: ${dateStr}`, 105, 72, { align: 'center' });
       
       // Thêm bảng với styling đẹp hơn
       const tableData = prepareDataForExport();
@@ -124,7 +145,7 @@ const ExportButton: React.FC<ExportButtonProps> = ({
         );
       }
       
-      doc.save(`${filename}.pdf`);
+      doc.save(generateFilename(filename, 'pdf'));
     } finally {
       setIsExporting(false);
       setIsOpen(false);
@@ -137,22 +158,21 @@ const ExportButton: React.FC<ExportButtonProps> = ({
       {
         'Chi so': 'Tong doanh thu',
         'Gia tri': data.totalRevenue?.toLocaleString('vi-VN') + ' VND',
-        'Tang truong': data.revenueGrowth?.toFixed(1) + '%'
       },
       {
         'Chi so': 'Tong don hang',
         'Gia tri': data.totalOrders?.toLocaleString('vi-VN'),
-        'Tang truong': data.orderGrowth?.toFixed(1) + '%'
+        // 'Tang truong': data.orderGrowth?.toFixed(1) + '%'
       },
       {
         'Chi so': 'Tong khach hang',
         'Gia tri': data.totalCustomers?.toLocaleString('vi-VN'),
-        'Tang truong': data.customerGrowth?.toFixed(1) + '%'
+        // 'Tang truong': data.customerGrowth?.toFixed(1) + '%'
       },
       {
         'Chi so': 'Tong san pham',
         'Gia tri': data.totalProducts?.toLocaleString('vi-VN'),
-        'Tang truong': '0%'
+        // 'Tang truong': '0%'
       }
     ];
     
@@ -194,6 +214,8 @@ const ExportButton: React.FC<ExportButtonProps> = ({
 };
 
 export default ExportButton;
+
+
 
 
 
