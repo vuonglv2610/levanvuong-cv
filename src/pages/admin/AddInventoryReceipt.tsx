@@ -2,9 +2,11 @@ import { useQuery } from '@tanstack/react-query';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { get, post } from "services/api";
+import { useToast } from '../../hooks/useToast';
 
 const AddInventoryReceipt = () => {
   const navigate = useNavigate();
+  const toast = useToast();
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [serials, setSerials] = useState<string[]>([]);
   const [serialInput, setSerialInput] = useState('');
@@ -58,11 +60,13 @@ const AddInventoryReceipt = () => {
   // Xử lý khi submit form
   const handleSubmit = async () => {
     if (!selectedProduct) {
-      throw new Error("Vui lòng chọn sản phẩm");
+      toast.error("Lỗi", "Vui lòng chọn sản phẩm");
+      return;
     }
     
     if (serials.length === 0) {
-      throw new Error("Vui lòng nhập ít nhất một serial");
+      toast.error("Lỗi", "Vui lòng nhập ít nhất một serial");
+      return;
     }
     
     const receiptData = {
@@ -72,10 +76,12 @@ const AddInventoryReceipt = () => {
     
     try {
       await post('/serials/bulk', receiptData);
+      toast.success("Thành công", `Đã thêm ${serials.length} serial cho sản phẩm ${selectedProduct.name}`);
       navigate('/admin/inventory');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating inventory receipt:', error);
-      throw error;
+      const errorMessage = error.response?.data?.message || 'Không thể thêm serial sản phẩm';
+      toast.error("Lỗi", errorMessage);
     }
   };
   
